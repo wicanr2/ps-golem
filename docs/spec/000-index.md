@@ -8,8 +8,9 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `001-scope-and-mvp.md` | DRAFT | 目標、分層、里程碑、已核實的 BIOS 與光碟事實 |
 | `002-references-and-licensing.md` | READY | GPL-3.0-or-later、可參照與只能讀的來源 |
 | `003-gte.md` | CONFORMED | GTE 暫存器與命令，1150 筆實機紀錄 |
-| `004-cpu-r3000a.md` | DRAFT | CPU 範圍；驗收依賴最小機器 |
+| `004-cpu-r3000a.md` | CONFORMED | CPU；與參照實作的差異依實機紀錄修正 |
 | `005-cross-platform-delivery.md` | DRAFT | 三平台在 Linux docker 內建置 |
+| `006-minimal-machine.md` | CONFORMED | 匯流排、BIOS 開機、PS-EXE 側載、TTY；週邊台帳 |
 
 狀態定義：
 

@@ -1,0 +1,348 @@
+package machine
+
+import "encoding/binary"
+
+// 中斷來源（I_STAT 的位元），psx-spx interrupts.md。
+const (
+	irqVBlank = 0
+	irqGPU    = 1
+	irqCDROM  = 2
+	irqDMA    = 3
+	irqTimer0 = 4
+	irqTimer1 = 5
+	irqTimer2 = 6
+	irqSIO0   = 7
+	irqSIO1   = 8
+	irqSPU    = 9
+)
+
+// ioState 是 006 §2 列出的最小 I/O。沒有特別處理的暫存器存在 regs，讀回寫入值。
+type ioState struct {
+	regs [0x1000]byte // 1F801000..1F801FFF
+
+	iStat, iMask uint32
+
+	dma    dmaState
+	timers timerState
+
+	gpuOddField bool
+
+	cdIndex uint8
+}
+
+func (s *ioState) reset() {
+	*s = ioState{}
+}
+
+func (s *ioState) raise(bit uint) { s.iStat |= 1 << bit }
+
+func (s *ioState) irqPending() bool { return s.iStat&s.iMask != 0 }
+
+// ioRead 讀 I/O 區，size 為 1、2、4。
+func (m *Machine) ioRead(p uint32, size int) uint32 {
+	if p >= 0x1F802000 {
+		return 0xFFFFFFFF >> (32 - 8*size) // DEV8 擴充區
+	}
+	if p >= 0x1F801800 && p < 0x1F801804 {
+		return uint32(m.cdRead(p))
+	}
+	al := p &^ 3
+	v := m.ioRead32(al)
+	v >>= (p & 3) * 8
+	if size < 4 {
+		v &= 1<<(8*size) - 1
+	}
+	return v
+}
+
+// ioWrite 寫 I/O 區。寬度小於 4 的寫入先與目前值合併成 32 位元再交給處理函式。
+func (m *Machine) ioWrite(p uint32, v uint32, size int) {
+	if p >= 0x1F802000 {
+		return
+	}
+	if p >= 0x1F801800 && p < 0x1F801804 {
+		m.cdWrite(p, uint8(v))
+		return
+	}
+	al := p &^ 3
+	if size < 4 {
+		shift := (p & 3) * 8
+		mask := uint32(1<<(8*size)-1) << shift
+		v = m.ioPeek32(al)&^mask | (v<<shift)&mask
+	}
+	m.ioWrite32(al, v)
+}
+
+func (m *Machine) store32(al uint32, v uint32) {
+	binary.LittleEndian.PutUint32(m.io.regs[al-0x1F801000:], v)
+}
+
+func (m *Machine) load32(al uint32) uint32 {
+	return binary.LittleEndian.Uint32(m.io.regs[al-0x1F801000:])
+}
+
+// ioPeek32 是合併部分寫入用的「目前值」，不能有讀取副作用。
+func (m *Machine) ioPeek32(al uint32) uint32 {
+	switch {
+	case al == 0x1F801070:
+		return m.io.iStat
+	case al == 0x1F801074:
+		return m.io.iMask
+	case al >= 0x1F801080 && al < 0x1F801100:
+		return m.io.dma.read(al)
+	case al >= 0x1F801100 && al < 0x1F801130:
+		return m.io.timers.peek(al)
+	}
+	return m.load32(al)
+}
+
+func (m *Machine) ioRead32(al uint32) uint32 {
+	switch {
+	case al == 0x1F801044 || al == 0x1F801054: // SIO 狀態：傳送就緒
+		return 0x00000005
+	case al == 0x1F801070:
+		return m.io.iStat
+	case al == 0x1F801074:
+		return m.io.iMask
+	case al >= 0x1F801080 && al < 0x1F801100:
+		return m.io.dma.read(al)
+	case al >= 0x1F801100 && al < 0x1F801130:
+		return m.io.timers.read(al)
+	case al == 0x1F801810: // GPUREAD
+		return 0
+	case al == 0x1F801814: // GPUSTAT：可收命令、可送 VRAM、可收 DMA
+		st := uint32(0x1C000000)
+		if m.io.gpuOddField {
+			st |= 1 << 31
+		}
+		return st
+	case al == 0x1F801824: // MDEC 狀態：輸出 FIFO 空
+		return 0x80040000
+	case al == 0x1F801DAC: // SPUSTAT 在 DAE，與 DAC（傳輸控制）同一個字
+		spucnt := uint32(binary.LittleEndian.Uint16(m.io.regs[0xDAA:]))
+		return m.load32(al)&^0x003F0000 | (spucnt&0x3F)<<16
+	}
+	return m.load32(al)
+}
+
+func (m *Machine) ioWrite32(al uint32, v uint32) {
+	switch {
+	case al == 0x1F801070:
+		m.io.iStat &= v
+	case al == 0x1F801074:
+		m.io.iMask = v & 0x7FF
+	case al >= 0x1F801080 && al < 0x1F801100:
+		m.dmaWrite(al, v)
+	case al >= 0x1F801100 && al < 0x1F801130:
+		m.io.timers.write(al, v)
+	case al == 0x1F801810 || al == 0x1F801814: // GP0／GP1：本階段忽略
+	default:
+		m.store32(al, v)
+	}
+}
+
+// ---- CD-ROM（006 §2：只回報「無命令進行中」）----
+
+func (m *Machine) cdRead(p uint32) uint8 {
+	switch p & 3 {
+	case 0:
+		return 0x18 | m.io.cdIndex // 參數 FIFO 空且未滿
+	case 3:
+		if m.io.cdIndex&1 == 1 {
+			return 0xE0 // 中斷旗標：沒有待處理的中斷
+		}
+	}
+	return 0
+}
+
+func (m *Machine) cdWrite(p uint32, v uint8) {
+	if p&3 == 0 {
+		m.io.cdIndex = v & 3
+	}
+}
+
+// ---- DMA ----
+
+type dmaState struct {
+	madr, bcr, chcr [7]uint32
+	dpcr, dicr      uint32
+}
+
+func (d *dmaState) read(al uint32) uint32 {
+	off := al - 0x1F801080
+	if off >= 0x70 {
+		switch off {
+		case 0x70:
+			return d.dpcr
+		case 0x74:
+			return d.dicr
+		}
+		return 0
+	}
+	ch := off >> 4
+	switch off & 0xF {
+	case 0x0:
+		return d.madr[ch]
+	case 0x4:
+		return d.bcr[ch]
+	default: // 0x8 與其鏡像 0xC
+		return d.chcr[ch]
+	}
+}
+
+func (d *dmaState) updateMaster() (rising bool) {
+	old := d.dicr & (1 << 31)
+	flags := (d.dicr >> 24) & 0x7F
+	en := (d.dicr >> 16) & 0x7F
+	on := d.dicr&(1<<15) != 0 || (d.dicr&(1<<23) != 0 && flags&en != 0)
+	d.dicr &^= 1 << 31
+	if on {
+		d.dicr |= 1 << 31
+	}
+	return old == 0 && on
+}
+
+func (m *Machine) dmaWrite(al uint32, v uint32) {
+	d := &m.io.dma
+	off := al - 0x1F801080
+	if off >= 0x70 {
+		switch off {
+		case 0x70:
+			d.dpcr = v
+		case 0x74:
+			keep := v & 0x00FF803F
+			ack := v & 0x7F000000
+			d.dicr = keep | (d.dicr&0x7F000000)&^ack
+			if d.updateMaster() {
+				m.io.raise(irqDMA)
+			}
+		}
+		return
+	}
+	ch := off >> 4
+	switch off & 0xF {
+	case 0x0:
+		d.madr[ch] = v & 0x00FFFFFF
+	case 0x4:
+		d.bcr[ch] = v
+	default:
+		d.chcr[ch] = v
+		if v&(1<<24) != 0 {
+			m.dmaRun(int(ch))
+		}
+	}
+}
+
+// dmaRun 立即完成一次傳輸（006 §2）：channel 6 清表，其他不搬資料。
+func (m *Machine) dmaRun(ch int) {
+	d := &m.io.dma
+	if ch == 6 {
+		addr := d.madr[6] & 0x1FFFFC
+		n := d.bcr[6] & 0xFFFF
+		if n == 0 {
+			n = 0x10000
+		}
+		for i := uint32(0); i < n; i++ {
+			w := (addr - 4) & 0x1FFFFF
+			if i == n-1 {
+				w = 0xFFFFFF
+			}
+			binary.LittleEndian.PutUint32(m.ram[addr:], w)
+			addr = (addr - 4) & 0x1FFFFC
+		}
+	}
+	d.chcr[ch] &^= 1<<24 | 1<<28
+	if d.dicr&(1<<(16+ch)) != 0 {
+		d.dicr |= 1 << (24 + ch)
+	}
+	if d.updateMaster() {
+		m.io.raise(irqDMA)
+	}
+}
+
+// ---- 計時器（本階段：計數、到達目標、溢位與中斷）----
+
+type timer struct {
+	count, mode, target uint32
+}
+
+type timerState struct {
+	t       [3]timer
+	divider uint64 // timer2 的 sysclock/8
+}
+
+func (ts *timerState) peek(al uint32) uint32 {
+	n := (al - 0x1F801100) >> 4
+	t := &ts.t[n]
+	switch al & 0xF {
+	case 0x0:
+		return t.count
+	case 0x4:
+		return t.mode
+	case 0x8:
+		return t.target
+	}
+	return 0
+}
+
+func (ts *timerState) read(al uint32) uint32 {
+	v := ts.peek(al)
+	if al&0xF == 0x4 {
+		n := (al - 0x1F801100) >> 4
+		ts.t[n].mode &^= 3 << 11 // 讀模式暫存器清除「到達」旗標
+	}
+	return v
+}
+
+func (ts *timerState) write(al uint32, v uint32) {
+	n := (al - 0x1F801100) >> 4
+	t := &ts.t[n]
+	switch al & 0xF {
+	case 0x0:
+		t.count = v & 0xFFFF
+	case 0x4:
+		t.mode = v&0x3FF | 1<<10 // bit10：IRQ 線未拉低
+		t.count = 0
+	case 0x8:
+		t.target = v & 0xFFFF
+	}
+}
+
+// tick 推進計時器。來源一律視為 system clock；timer2 的 /8 例外（006 §3 的簡化）。
+func (ts *timerState) tick(s *ioState, n uint64) {
+	for i := range ts.t {
+		steps := n
+		if i == 2 && ts.t[i].mode&(1<<9) != 0 {
+			ts.divider += n
+			steps = ts.divider / 8
+			ts.divider %= 8
+		}
+		for k := uint64(0); k < steps; k++ {
+			ts.inc(s, i)
+		}
+	}
+}
+
+func (ts *timerState) inc(s *ioState, i int) {
+	t := &ts.t[i]
+	t.count = (t.count + 1) & 0xFFFF
+	irq := false
+	if t.count == t.target {
+		t.mode |= 1 << 11
+		if t.mode&(1<<4) != 0 {
+			irq = true
+		}
+		if t.mode&(1<<3) != 0 {
+			t.count = 0
+		}
+	}
+	if t.count == 0xFFFF {
+		t.mode |= 1 << 12
+		if t.mode&(1<<5) != 0 {
+			irq = true
+		}
+	}
+	if irq {
+		s.raise(uint(irqTimer0 + i))
+	}
+}
