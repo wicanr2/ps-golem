@@ -69,6 +69,3 @@ func (m *Machine) InsertDisc(d *disc.Disc)
 - cue 檔名退回：本案例的 Big5 檔名找不到，自動改用 `sotn.bin` 並回報。
 - `internal/disc` 單元測試（合成映像，不需原版素材）通過。
 - ps1-tests `cdrom/*`：tests.zip 只有互動程式、沒有期望輸出，未列入。
-
-過程中修掉一個 DMA 的錯誤：寫 DICR 時先覆蓋再判斷 bit 31 的上升緣，
-使未確認的 channel 2 旗標在每次寫入都重新觸發 DMA 中斷，核心卡在中斷迴圈。
