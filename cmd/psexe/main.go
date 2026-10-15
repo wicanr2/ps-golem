@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/pprof"
+	"time"
 
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/machine"
@@ -174,10 +175,18 @@ func writeScreen(m *machine.Machine, path string) error {
 // runCycles 執行 n 個週期，每個 field 依按鍵腳本更新手把。
 func runCycles(m *machine.Machine, n uint64) {
 	end := m.Cycles() + n
+	speedLog := os.Getenv("PSGOLEM_SPEEDLOG") != ""
+	lastT, lastC := time.Now(), m.Cycles()
 	for m.Cycles() < end && (fieldLimit == 0 || m.Field() < fieldLimit) {
 		m.Pad1.Buttons = buttonsAt(presses, m.Field())
 		f := m.Field() + 1
 		left := end - m.Cycles()
+		if speedLog && f%600 == 0 {
+			now := time.Now()
+			rate := float64(m.Cycles()-lastC) / now.Sub(lastT).Seconds()
+			fmt.Fprintf(os.Stderr, "speed field=%d %.1fM 週期/秒（實機 %.2f 倍）\n", f, rate/1e6, rate/33868800)
+			lastT, lastC = now, m.Cycles()
+		}
 		if m.RunUntilField(f, left) && shotsDir != "" && shotStep > 0 && f%shotStep == 0 {
 			if err := writeScreen(m, filepath.Join(shotsDir, fmt.Sprintf("f%06d.png", f))); err != nil {
 				fmt.Fprintln(os.Stderr, "psexe:", err)

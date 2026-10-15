@@ -58,11 +58,13 @@ type Machine struct {
 	videoAcc uint64
 	// pending 是已執行、還沒交給週邊的週期；deadline 是下一次必須同步的週期（008 §2.5）。
 	pending, deadline uint64
-	dotAcc            uint64
-	field             uint64
-	gpuIRQ            bool
-	cdIRQ             bool
-	sioIRQ            bool
+	// mdecPending 是還沒交給 MDEC 的週期；MDEC 忙碌時逐條指令交付，不等 deadline。
+	mdecPending uint64
+	dotAcc      uint64
+	field       uint64
+	gpuIRQ      bool
+	cdIRQ       bool
+	sioIRQ      bool
 
 	tty []byte
 }
@@ -132,6 +134,12 @@ func (m *Machine) Step() {
 	n := uint64(m.CPU.Step())
 	m.cycles += n
 	m.pending += n
+	m.mdecPending += n
+	if m.MDEC.WaitingClock() || m.io.dma.active(0) || m.io.dma.active(1) {
+		// MDEC 的時脈有預存上限，要逐條指令推進（011 §4）；其他週邊照常延後
+		m.syncMDEC()
+		m.CPU.SetIRQ(m.io.irqPending())
+	}
 	if m.cycles >= m.deadline || m.ExactTiming {
 		m.sync()
 	}
@@ -215,14 +223,22 @@ func (m *Machine) sync() {
 	m.deadline = m.cycles + m.nextEvent()
 }
 
+// syncMDEC 把 MDEC 尚未推進的週期交給它，DMA channel 0、1 啟動中時接著搬資料。
+func (m *Machine) syncMDEC() {
+	if n := m.mdecPending; n > 0 {
+		m.mdecPending = 0
+		m.MDEC.Tick(int32(n))
+	}
+	if m.io.dma.active(0) || m.io.dma.active(1) {
+		m.mdecPump()
+	}
+}
+
 // maxBatch 是一次最多累積的週期數。
 const maxBatch = 1 << 16
 
 // nextEvent 回傳最多再過多少週期，某個週邊就可能改變狀態或拉中斷（至少 1）。
 func (m *Machine) nextEvent() uint64 {
-	if m.MDEC.WaitingClock() || m.io.dma.active(0) || m.io.dma.active(1) {
-		return 1 // MDEC 的時脈有預存上限，要逐條指令推進（011 §4）
-	}
 	next := uint64(maxBatch)
 	take := func(v int64) {
 		if v > 0 && uint64(v) < next {
@@ -258,10 +274,7 @@ func (m *Machine) advance(n uint64) {
 	}
 	m.io.timers.tick(&m.io, n, dots, lines)
 	m.CD.Tick(int64(n))
-	m.MDEC.Tick(int32(n))
-	if m.io.dma.active(0) || m.io.dma.active(1) {
-		m.mdecPump()
-	}
+	m.syncMDEC()
 	m.SIO.Tick(int64(n))
 }
 
