@@ -43,24 +43,35 @@ tools/            docker 包裝、語料抓取
 判準沿用 dosgolem `docs/spec/006-layering.md`：換一片光碟之後還成立的程式碼往下放，
 不成立的留在 `apps/`。
 
+### 3.1 時間基準
+
+唯一的主時鐘是 CPU 週期（33.8688 MHz）。GPU dot clock、HBlank、VBlank、SPU 取樣、
+CD-ROM 扇區時序都用分數累加器從 CPU 週期推出，不另設獨立時鐘。
+理由：dosgolem 有過兩個時間基準並存、拿錯一個整條時間軸被縮放卻沒有任何環節報錯的教訓
+（dosgolem `CLAUDE.md`、`docs/spec/190-opl-vgm-dump` §3）。單一時鐘也是
+「開關 HD 前後 RAM 與 CPU 狀態相同」能成立的前提。
+
 `render/hd/` 與 `internal/gpu/` 分開的理由：軟體光柵化是決定性的基準，HD 只影響呈現。
 開關 HD 前後，同一份輸入重播出來的 RAM 與 CPU 狀態必須相同。
 
-## 4. MVP 里程碑
+## 4. 里程碑
 
-每一項都要先有 `READY` 規格才實作。
+每一項都要先有 `READY` 規格才實作。順序以「能玩」優先，觀測 API 排在可玩之後。
 
 | # | 里程碑 | 驗收 |
 |---|---|---|
-| M1 | CPU 與 GTE 通過公開測試語料 | 全部通過，不是大部分通過 |
-| M2 | BIOS 開機到 PlayStation 標誌畫面 | 畫面與參考模擬器截圖逐像素一致 |
-| M3 | 從 cue/bin 開機，《月下》進到標題畫面 | 同上，另記錄到達的影格數 |
-| M4 | 可玩：輸入、SPU、XA、記憶卡 | 正常玩家路徑走到第一個存檔點並存檔成功 |
-| M5 | 跨平台交付 | Linux／Windows／macOS 執行檔都能跑 M4 路徑 |
-| M6 | HD 後端 | 見 `docs/spec/` 的 HD 規格（待寫） |
-| M7 | oracle API | RunUntil、RAM 讀寫、輸入重播、即時存檔，附 `go test` 範例 |
+| M1 | GTE | `003-gte` 的 1150 筆實機紀錄全部相符 |
+| M2 | 最小機器：CPU、匯流排、BIOS 載入、PS-EXE 側載、TTY 攔截 | ps1-tests `cpu/*` 的 TTY 與 `psx.log` 相同（`004-cpu-r3000a`） |
+| M3 | BIOS 開機到 PlayStation 標誌畫面，GPU 2D | ps1-tests `gpu/*` 的 VRAM 與附帶的 `vram.png` 相同；開機畫面與參考模擬器比對 |
+| M4 | 從 cue/bin 開機到《月下》可玩：DMA、CD-ROM、SPU、XA、CDDA、手把、記憶卡 | 正常玩家路徑走到第一個存檔點並存檔成功 |
+| M5 | 跨平台交付 | `005-cross-platform-delivery` |
+| M6 | HD 後端（Codex） | HD 規格（待寫） |
+| M7 | oracle API：RunUntil、RAM 讀寫、輸入重播、即時存檔 | 附 `go test` 範例 |
 
-M7 的優先度未定：是否在 M4 之前先做，待使用者決定。
+M3 之後的關鍵路徑是 匯流排＋DMA＋GPU 2D → CD-ROM → SPU／XA。《月下》以 2D 為主，
+大量從光碟串流，MDEC 與 GTE 3D 的重要性排在後面。
+
+ps1-tests 附的 `vram.png` 是否為實機擷取，README 沒有寫明（未知）。採用為 oracle 前先查各測試的原始碼或提交紀錄。
 
 ## 5. 不做
 
@@ -89,4 +100,4 @@ M7 的優先度未定：是否在 M4 之前先做，待使用者決定。
 ## 7. 未知
 
 - 中文化改了哪些檔案（與日版 SLPM-86023 原盤比對，需要原盤的檔案雜湊表）。
-- 交叉 oracle 選哪個成熟模擬器，以及它在 docker 內如何無頭截圖。
+- 開機畫面的交叉 oracle：先查 PCSX-Redux 命令列能否無 GUI 執行、載入 BIOS、讀 VRAM，查了再定。
