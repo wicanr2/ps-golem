@@ -1,0 +1,21 @@
+# 測試語料（CPU／GTE／GPU 測試 ROM 等），用 tools/ 下的腳本抓，不進版控。
+/testdata/
+# docker 裡的 Go 快取
+/workplace/
+# 建置產物
+/bin/
+/dist/
+
+# 原版素材一律不進版控：光碟映像、BIOS、記憶卡、即時存檔、截圖。
+*.bin
+*.BIN
+*.cue
+*.iso
+*.img
+*.chd
+*.zip
+*.mcd
+*.mcr
+*.srm
+*.state
+/*.png
