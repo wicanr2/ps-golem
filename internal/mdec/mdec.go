@@ -317,6 +317,9 @@ const clockCap = 128
 // blockCycles 是解碼一個 8×8 區塊的週期數（Beetle WriteImageData 的平均值 512）。
 const blockCycles = 512
 
+// WaitingClock 回傳解碼器是否在等週期。這時 Tick 會消耗週期，必須逐條指令推進（預存上限 128）。
+func (d *MDEC) WaitingClock() bool { return d.waitClock }
+
 // Tick 讓解碼器前進 n 個 CPU 週期（Beetle MDEC_Run）。
 func (d *MDEC) Tick(n int32) {
 	d.clock += n

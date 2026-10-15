@@ -40,6 +40,8 @@ type Machine struct {
 	MDEC *mdec.MDEC
 	// Pad1 是插在 1P 的數位手把；改 Buttons 就是按鍵。
 	Pad1 *sio.Gamepad
+	// ExactTiming 為 true 時每條指令都同步週邊（延後同步之前的做法），只給等價性測試用（008 §2.5）。
+	ExactTiming bool
 	// Card1 是插在 1P 的記憶卡。
 	Card1 *sio.Memcard
 
@@ -54,11 +56,13 @@ type Machine struct {
 
 	// 影像時鐘累加器：每個 CPU 週期加 videoNum，滿 videoDen 進一個影像週期。
 	videoAcc uint64
-	dotAcc   uint64
-	field    uint64
-	gpuIRQ   bool
-	cdIRQ    bool
-	sioIRQ   bool
+	// pending 是已執行、還沒交給週邊的週期；deadline 是下一次必須同步的週期（008 §2.5）。
+	pending, deadline uint64
+	dotAcc            uint64
+	field             uint64
+	gpuIRQ            bool
+	cdIRQ             bool
+	sioIRQ            bool
 
 	tty []byte
 }
@@ -122,10 +126,15 @@ func (m *Machine) Field() uint64 { return m.field }
 // TTY 回傳目前攔到的 TTY 輸出。
 func (m *Machine) TTY() string { return string(m.tty) }
 
-// Step 執行一條指令並推進它花費的週期（008）。
+// Step 執行一條指令。週期先累積，到了下一個週邊事件的期限才交給週邊（008 §2.5）。
 func (m *Machine) Step() {
 	m.ttyHook()
-	m.tick(uint64(m.CPU.Step()))
+	n := uint64(m.CPU.Step())
+	m.cycles += n
+	m.pending += n
+	if m.cycles >= m.deadline || m.ExactTiming {
+		m.sync()
+	}
 }
 
 // Run 執行 n 個週期。
@@ -134,11 +143,13 @@ func (m *Machine) Run(n uint64) {
 	for m.cycles < end {
 		m.Step()
 	}
+	m.sync()
 }
 
 // RunUntilField 執行到經過的 VBlank 次數達到 f，最多 maxCycles 個週期；回傳是否達到。
 func (m *Machine) RunUntilField(f uint64, maxCycles uint64) bool {
 	end := m.cycles + maxCycles
+	defer m.sync()
 	for m.field < f {
 		if m.cycles >= end {
 			return false
@@ -154,10 +165,12 @@ func (m *Machine) RunUntilPC(pc uint32, maxCycles uint64) error {
 	end := m.cycles + maxCycles
 	for m.cycles < end {
 		if physical(m.CPU.PC()) == want {
+			m.sync()
 			return nil
 		}
 		m.Step()
 	}
+	m.sync()
 	return fmt.Errorf("跑了 %d 個週期仍未到達 PC %08x（目前 %08x）", maxCycles, pc, m.CPU.PC())
 }
 
@@ -173,8 +186,60 @@ func (m *Machine) ttyHook() {
 	}
 }
 
-func (m *Machine) tick(n uint64) {
-	m.cycles += n
+// sync 把累積的週期交給週邊、更新中斷線，並算出下一個期限（008 §2.5）。
+// 程式存取 I/O 前後也會呼叫，讓週邊在存取當下的狀態與逐條指令推進時相同。
+func (m *Machine) sync() {
+	if n := m.pending; n > 0 {
+		m.pending = 0
+		m.advance(n)
+	}
+	if irq := m.SIO.IRQ(); irq != m.sioIRQ {
+		if irq {
+			m.io.raise(irqSIO0)
+		}
+		m.sioIRQ = irq
+	}
+	if irq := m.CD.IRQ(); irq != m.cdIRQ {
+		if irq {
+			m.io.raise(irqCDROM)
+		}
+		m.cdIRQ = irq
+	}
+	if irq := m.GPU.IRQ(); irq != m.gpuIRQ {
+		if irq {
+			m.io.raise(irqGPU)
+		}
+		m.gpuIRQ = irq
+	}
+	m.CPU.SetIRQ(m.io.irqPending())
+	m.deadline = m.cycles + m.nextEvent()
+}
+
+// maxBatch 是一次最多累積的週期數。
+const maxBatch = 1 << 16
+
+// nextEvent 回傳最多再過多少週期，某個週邊就可能改變狀態或拉中斷（至少 1）。
+func (m *Machine) nextEvent() uint64 {
+	if m.MDEC.WaitingClock() || m.io.dma.active(0) || m.io.dma.active(1) {
+		return 1 // MDEC 的時脈有預存上限，要逐條指令推進（011 §4）
+	}
+	next := uint64(maxBatch)
+	take := func(v int64) {
+		if v > 0 && uint64(v) < next {
+			next = uint64(v)
+		}
+	}
+	// 下一條掃描線結束：影像週期每個 CPU 週期加 videoNum/videoDen
+	rem := uint64(m.GPU.VideoToNextLine())*videoDen - min(uint64(m.GPU.VideoToNextLine())*videoDen, m.videoAcc)
+	take(int64((rem + videoNum - 1) / videoNum))
+	take(m.io.timers.nextEvent(m.dotAcc, uint64(m.GPU.DotDivider())))
+	take(m.CD.NextEvent())
+	take(m.SIO.NextEvent())
+	return max(next, 1)
+}
+
+// advance 讓週邊前進 n 個週期。
+func (m *Machine) advance(n uint64) {
 	var dots, lines uint64
 	m.videoAcc += n * videoNum
 	if m.videoAcc >= videoDen {
@@ -198,25 +263,6 @@ func (m *Machine) tick(n uint64) {
 		m.mdecPump()
 	}
 	m.SIO.Tick(int64(n))
-	if irq := m.SIO.IRQ(); irq != m.sioIRQ {
-		if irq {
-			m.io.raise(irqSIO0)
-		}
-		m.sioIRQ = irq
-	}
-	if irq := m.CD.IRQ(); irq != m.cdIRQ {
-		if irq {
-			m.io.raise(irqCDROM)
-		}
-		m.cdIRQ = irq
-	}
-	if irq := m.GPU.IRQ(); irq != m.gpuIRQ {
-		if irq {
-			m.io.raise(irqGPU)
-		}
-		m.gpuIRQ = irq
-	}
-	m.CPU.SetIRQ(m.io.irqPending())
 }
 
 // physical 把虛擬位址轉成實體位址（006 §1，照 Beetle cpu.c 的 addr_mask）。

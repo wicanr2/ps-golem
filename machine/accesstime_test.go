@@ -15,7 +15,7 @@ var accessTimeKnownGaps = map[string]bool{
 	"SPUCNT/32": true,
 }
 
-// ps1-tests cpu/access-time：每格與實機表值差距在 1 週期以內（docs/spec/008-cycle-model.md §3）。
+// ps1-tests cpu/access-time：每格與實機表值差距在 1 週期以內（docs/spec/008-cycle-model.md §2.5）。
 func TestAccessTime(t *testing.T) {
 	bios := loadBIOS(t)
 	files := loadTestsZip(t)

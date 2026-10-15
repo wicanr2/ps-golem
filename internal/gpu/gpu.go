@@ -442,3 +442,6 @@ func (g *GPU) DebugState() string {
 	return fmt.Sprintf("inCmd=%d bufLen=%d need=%d buf0=%08x fb=(%d,%d %dx%d) cur=(%d,%d)",
 		g.inCmd, g.bufLen, g.need, g.buf[0], g.fbX, g.fbY, g.fbW, g.fbH, g.fbCurX, g.fbCurY)
 }
+
+// VideoToNextLine 回傳到下一條掃描線結束還差多少影像週期（機器據此決定何時同步，008）。
+func (g *GPU) VideoToNextLine() uint32 { return videoPerLine - g.lineClock }

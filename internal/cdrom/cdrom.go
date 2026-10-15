@@ -710,3 +710,24 @@ func (c *CDROM) Clone() *CDROM {
 	n.dmaBuf = append([]uint8(nil), c.dmaBuf...)
 	return &n
 }
+
+// NextEvent 回傳最多再過多少週期，控制器狀態就可能改變（不含程式存取暫存器）；-1 表示沒有排定的事件。
+// 機器在這之前不必呼叫 Tick（008 §2.5）。
+func (c *CDROM) NextEvent() int64 {
+	next := int64(-1)
+	take := func(v int64) {
+		if v > 0 && (next < 0 || v < next) {
+			next = v
+		}
+	}
+	take(c.psrCounter)
+	take(c.pendingCounter)
+	take(c.startupDelay)
+	if c.irqBuffer&0xF == 0 {
+		take(c.readyCounter)
+	}
+	if c.aipIRQ != 0 && c.readyCounter <= 0 {
+		return 1
+	}
+	return next
+}

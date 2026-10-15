@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/machine"
@@ -23,6 +24,9 @@ func main() {
 	screenFlag := flag.String("screen", "", "結束時把目前顯示的畫面存成 PNG（007 §8）")
 	shotsFlag := flag.String("shots", "", "每隔 -shot-every 個 field 把畫面存到這個目錄")
 	shotEvery := flag.Uint64("shot-every", 60, "-shots 的間隔（field 數）")
+	exact := flag.Bool("exact", false, "每條指令都同步週邊（等價性比對用，較慢）")
+	digest := flag.Bool("digest", false, "結束時印出機器狀態摘要")
+	cpuProf := flag.String("cpuprofile", "", "把 CPU profile 寫到這個檔案（效能分析用）")
 	stopField := flag.Uint64("fields", 0, "大於 0 時跑到第這麼多次 VBlank 就停（不超過 -cycles）")
 	state := flag.Bool("state", false, "結束時印出 PC、GPUSTAT 與部分暫存器到 stderr")
 	ramOut := flag.String("ram", "", "結束時把 2 MB 主記憶體存成檔案（除錯用）")
@@ -30,11 +34,21 @@ func main() {
 	cardPath := flag.String("card", "", "1P 記憶卡檔案（128 KB）；不存在就用空白卡，結束時有寫入就存回")
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
 	flag.Parse()
+	if *cpuProf != "" {
+		f, err := os.Create(*cpuProf)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "psexe:", err)
+			os.Exit(1)
+		}
+		_ = pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	ramPath = *ramOut
 	cue = *cuePath
 	card = *cardPath
 	screenOut, shotsDir, shotStep, fieldLimit = *screenFlag, *shotsFlag, *shotEvery, *stopField
+	exactTiming, printDigest = *exact, *digest
 	var err error
 	if presses, err = parsePresses(*pressSpec); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
@@ -55,6 +69,7 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	if err != nil {
 		return err
 	}
+	m.ExactTiming = exactTiming
 	if cue != "" {
 		d, err := disc.Open(cue)
 		if err != nil {
@@ -140,10 +155,11 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 }
 
 var (
-	ramPath, cue, card   string
-	screenOut, shotsDir  string
-	shotStep, fieldLimit uint64
-	presses              []press
+	ramPath, cue, card       string
+	screenOut, shotsDir      string
+	shotStep, fieldLimit     uint64
+	exactTiming, printDigest bool
+	presses                  []press
 )
 
 func writeScreen(m *machine.Machine, path string) error {
@@ -171,6 +187,9 @@ func runCycles(m *machine.Machine, n uint64) {
 }
 
 func finish(m *machine.Machine, vramOut string, state bool) error {
+	if printDigest {
+		fmt.Println("digest", m.Digest())
+	}
 	fmt.Print(m.TTY())
 	if card != "" && m.Card1.Dirty {
 		if err := os.WriteFile(card, m.Card1.Data[:], 0o644); err != nil {

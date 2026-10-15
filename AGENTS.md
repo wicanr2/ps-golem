@@ -23,8 +23,10 @@ ps-golem 是無頭、決定性、可以當 Go 套件 import 的 PlayStation 1 �
 tools/build_image.sh                         # 建 psgolem-go-ebiten 映像（要網路）
 PSGOLEM_NETWORK=bridge tools/go.sh mod download   # 新 clone 先抓模組
 tools/go.sh build ./...
-tools/go.sh test ./...
+PSGOLEM_GO_CMD=xvfb-run tools/go.sh -a go test ./...   # 全部（frontend/ebiten 在 init 開 GLFW，要 xvfb）
+tools/go.sh test ./machine/... ./internal/...       # 不含前端時不需要 xvfb
 tools/go.sh test ./internal/cpu -run TestXxx -v    # 單一測試
+PSGOLEM_EXTRA_MOUNTS="<BIOS 目錄>:/bios:ro" PSGOLEM_BIOS=/bios/SCPH5500.BIN tools/go.sh test ./machine/...   # 要 BIOS 的測試
 PSGOLEM_GO_CMD=gofmt tools/go.sh -l .
 PSGOLEM_ORIG=~/cht/castlevinia_x tools/go.sh test ./...   # 原版素材唯讀掛到 /orig
 ```

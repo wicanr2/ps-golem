@@ -46,6 +46,8 @@ func (s *ioState) irqPending() bool { return s.iStat&s.iMask != 0 }
 
 // ioRead 讀 I/O 區，size 為 1、2、4。
 func (m *Machine) ioRead(p uint32, size int) uint32 {
+	m.sync()
+	defer m.sync()
 	if p >= 0x1F802000 {
 		return 0xFFFFFFFF >> (32 - 8*size) // DEV8 擴充區
 	}
@@ -70,6 +72,8 @@ func (m *Machine) ioRead(p uint32, size int) uint32 {
 
 // ioWrite 寫 I/O 區。寬度小於 4 的寫入先與目前值合併成 32 位元再交給處理函式。
 func (m *Machine) ioWrite(p uint32, v uint32, size int) {
+	m.sync()
+	defer m.sync()
 	if p >= 0x1F802000 {
 		return
 	}
@@ -571,10 +575,73 @@ func (ts *timerState) tick(s *ioState, sys, dots, lines uint64) {
 				ts.divider %= 8
 			}
 		}
-		for k := uint64(0); k < steps; k++ {
-			ts.inc(s, i)
+		ts.advance(s, i, steps)
+	}
+}
+
+// toEvent 回傳計時器 i 還要加幾次才會到達目標值或 0xFFFF（1–0x10000）。
+func (ts *timerState) toEvent(i int) uint64 {
+	t := &ts.t[i]
+	d := func(v uint32) uint64 {
+		n := uint64((v - t.count) & 0xFFFF)
+		if n == 0 {
+			n = 0x10000
+		}
+		return n
+	}
+	return min(d(t.target), d(0xFFFF))
+}
+
+// advance 加 steps 次，結果與逐次 inc 相同：中間沒有事件的部分一次加完。
+func (ts *timerState) advance(s *ioState, i int, steps uint64) {
+	for steps > 0 {
+		e := ts.toEvent(i)
+		if steps < e {
+			ts.t[i].count = (ts.t[i].count + uint32(steps)) & 0xFFFF
+			return
+		}
+		ts.t[i].count = (ts.t[i].count + uint32(e) - 1) & 0xFFFF
+		ts.inc(s, i)
+		steps -= e
+	}
+}
+
+// nextEvent 回傳開了中斷的計時器最快在幾個系統週期後觸發；-1 表示沒有。
+// 點時脈、HBlank 來源取保守的下界（008 §2.5）。
+func (ts *timerState) nextEvent(dotAcc, div uint64) int64 {
+	next := int64(-1)
+	for i := range ts.t {
+		t := &ts.t[i]
+		if t.mode&(3<<4) == 0 {
+			continue
+		}
+		e := ts.toEvent(i)
+		var c uint64
+		switch {
+		case i == 0 && t.mode&(1<<8) != 0:
+			// 點時脈：dots 由影像週期 ÷ div 而來，影像週期每個 CPU 週期加 11/7
+			need := (e-1)*div + 1
+			if need > dotAcc {
+				need -= dotAcc
+			} else {
+				need = 1
+			}
+			c = (7*need - min(7*need, 6)) / 11
+		case i == 1 && t.mode&(1<<8) != 0:
+			continue // HBlank：機器本來就在每條掃描線結束時同步
+		case i == 2 && t.mode&(1<<9) != 0:
+			c = e*8 - min(e*8, ts.divider)
+		default:
+			c = e
+		}
+		if c < 1 {
+			c = 1
+		}
+		if next < 0 || int64(c) < next {
+			next = int64(c)
 		}
 	}
+	return next
 }
 
 func (ts *timerState) inc(s *ioState, i int) {

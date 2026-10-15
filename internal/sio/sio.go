@@ -338,3 +338,17 @@ func (p *Gamepad) Clock(txd bool) (bool, int64) {
 	}
 	return ret, 0
 }
+
+// NextEvent 回傳最多再過多少週期，SIO 狀態就可能改變（不含程式存取暫存器）；-1 表示閒置。
+func (s *SIO) NextEvent() int64 {
+	next := int64(-1)
+	for _, d := range s.ackDelay {
+		if d > 0 && (next < 0 || d < next) {
+			next = d
+		}
+	}
+	if s.divider > 0 && (s.rxActive || s.txActive) && (next < 0 || s.divider < next) {
+		next = s.divider
+	}
+	return next
+}
