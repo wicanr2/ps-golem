@@ -37,6 +37,8 @@ type Machine struct {
 	SIO *sio.SIO
 	// Pad1 是插在 1P 的數位手把；改 Buttons 就是按鍵。
 	Pad1 *sio.Gamepad
+	// Card1 是插在 1P 的記憶卡。
+	Card1 *sio.Memcard
 
 	ram        [ramSize]byte
 	bios       [biosSize]byte
@@ -71,6 +73,8 @@ func New(bios []byte) (*Machine, error) {
 	m.SIO = sio.New()
 	m.Pad1 = &sio.Gamepad{}
 	m.SIO.Pads[0] = m.Pad1
+	m.Card1 = sio.NewMemcard()
+	m.SIO.Cards[0] = m.Card1
 	m.CPU = cpu.New(m)
 	return m, nil
 }
@@ -93,6 +97,9 @@ func (m *Machine) Clone() *Machine {
 	sioCopy := *m.SIO
 	n.SIO = &sioCopy
 	n.SIO.Pads[0] = n.Pad1
+	card := *m.Card1
+	n.Card1 = &card
+	n.SIO.Cards[0] = n.Card1
 	n.CPU.Rebind(&n)
 	return &n
 }
@@ -121,6 +128,18 @@ func (m *Machine) Run(n uint64) {
 	for m.cycles < end {
 		m.Step()
 	}
+}
+
+// RunUntilField 執行到經過的 VBlank 次數達到 f，最多 maxCycles 個週期；回傳是否達到。
+func (m *Machine) RunUntilField(f uint64, maxCycles uint64) bool {
+	end := m.cycles + maxCycles
+	for m.field < f {
+		if m.cycles >= end {
+			return false
+		}
+		m.Step()
+	}
+	return true
 }
 
 // RunUntilPC 執行到 PC 的實體位址等於 pc 為止（三個區段都算），最多 maxCycles 個週期。

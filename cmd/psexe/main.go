@@ -21,10 +21,18 @@ func main() {
 	state := flag.Bool("state", false, "結束時印出 PC、GPUSTAT 與部分暫存器到 stderr")
 	ramOut := flag.String("ram", "", "結束時把 2 MB 主記憶體存成檔案（除錯用）")
 	cuePath := flag.String("cue", "", "光碟映像的 cue 檔（docs/spec/009）")
+	cardPath := flag.String("card", "", "1P 記憶卡檔案（128 KB）；不存在就用空白卡，結束時有寫入就存回")
+	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
 	flag.Parse()
 
 	ramPath = *ramOut
 	cue = *cuePath
+	card = *cardPath
+	var err error
+	if presses, err = parsePresses(*pressSpec); err != nil {
+		fmt.Fprintln(os.Stderr, "psexe:", err)
+		os.Exit(2)
+	}
 	if err := run(*biosPath, *exePath, *boot, *cycles, *vramOut, *state); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
 		os.Exit(1)
@@ -50,6 +58,15 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 		}
 		fmt.Fprintf(os.Stderr, "psexe：光碟 %d 軌，lead-out LBA %d，區域 %q\n", len(d.Tracks), d.LeadOut(), d.Region())
 		m.InsertDisc(d)
+	}
+	if card != "" {
+		if b, err := os.ReadFile(card); err == nil {
+			if !m.Card1.Load(b) {
+				return fmt.Errorf("記憶卡 %s 不是 128 KB", card)
+			}
+		} else if !os.IsNotExist(err) {
+			return err
+		}
 	}
 	if n := os.Getenv("PSGOLEM_TRACE_CD"); n != "" {
 		var limit, count int
@@ -77,8 +94,8 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 		}
 	}
 	if exePath == "" {
-		// 不側載：只跑 BIOS（看開機畫面用）。
-		m.Run(cycles)
+		// 不側載：只跑 BIOS（或以光碟開機）。
+		runCycles(m, cycles)
 		return finish(m, vramOut, state)
 	}
 	exe, err := os.ReadFile(exePath)
@@ -102,14 +119,34 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 			count++
 		}
 	}
-	m.Run(cycles)
+	runCycles(m, cycles)
 	return finish(m, vramOut, state)
 }
 
-var ramPath, cue string
+var (
+	ramPath, cue, card string
+	presses            []press
+)
+
+// runCycles 執行 n 個週期，每個 field 依按鍵腳本更新手把。
+func runCycles(m *machine.Machine, n uint64) {
+	end := m.Cycles() + n
+	for m.Cycles() < end {
+		m.Pad1.Buttons = buttonsAt(presses, m.Field())
+		f := m.Field() + 1
+		left := end - m.Cycles()
+		m.RunUntilField(f, left)
+	}
+}
 
 func finish(m *machine.Machine, vramOut string, state bool) error {
 	fmt.Print(m.TTY())
+	if card != "" && m.Card1.Dirty {
+		if err := os.WriteFile(card, m.Card1.Data[:], 0o644); err != nil {
+			return err
+		}
+		fmt.Fprintln(os.Stderr, "psexe：記憶卡已寫回", card)
+	}
 	if ramPath != "" {
 		if err := os.WriteFile(ramPath, m.ReadRAM(0, 2<<20), 0o644); err != nil {
 			return err
