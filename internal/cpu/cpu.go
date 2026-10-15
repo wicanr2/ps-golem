@@ -19,8 +19,10 @@ type Bus interface {
 	Read8(addr uint32) uint8
 	Read16(addr uint32) uint16
 	Read32(addr uint32) uint32
-	Write8(addr uint32, v uint8)
-	Write16(addr uint32, v uint16)
+	// Write8、Write16 的 v 是整個來源暫存器：sb／sh 把整個 GPR 放上匯流排，
+	// 寬的 I/O 暫存器會收到沒有遮罩的值（psx-spx unpredictablethings.md「I/O Write Datasize」）。
+	Write8(addr uint32, v uint32)
+	Write16(addr uint32, v uint32)
 	Write32(addr uint32, v uint32)
 	// IsolatedWrite 是 SR.IsC 成立時的資料寫入（BIOS 用來清快取），size 為 1、2、4。
 	IsolatedWrite(addr uint32, v uint32, size int)
@@ -762,9 +764,9 @@ func (c *CPU) write(a, v uint32, size int) {
 	}
 	switch size {
 	case 1:
-		c.bus.Write8(a, uint8(v))
+		c.bus.Write8(a, v)
 	case 2:
-		c.bus.Write16(a, uint16(v))
+		c.bus.Write16(a, v)
 	default:
 		c.bus.Write32(a, v)
 	}

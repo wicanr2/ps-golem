@@ -11,6 +11,7 @@ import (
 	"github.com/wicanr2/ps-golem/internal/cpu"
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/gpu"
+	"github.com/wicanr2/ps-golem/internal/mdec"
 	"github.com/wicanr2/ps-golem/internal/sio"
 )
 
@@ -35,6 +36,8 @@ type Machine struct {
 	GPU *gpu.GPU
 	CD  *cdrom.CDROM
 	SIO *sio.SIO
+	// MDEC 是動畫解碼器（011）。
+	MDEC *mdec.MDEC
 	// Pad1 是插在 1P 的數位手把；改 Buttons 就是按鍵。
 	Pad1 *sio.Gamepad
 	// Card1 是插在 1P 的記憶卡。
@@ -73,6 +76,7 @@ func New(bios []byte) (*Machine, error) {
 	m.SIO = sio.New()
 	m.Pad1 = &sio.Gamepad{}
 	m.SIO.Pads[0] = m.Pad1
+	m.MDEC = mdec.New()
 	m.Card1 = sio.NewMemcard()
 	m.SIO.Cards[0] = m.Card1
 	m.CPU = cpu.New(m)
@@ -97,6 +101,8 @@ func (m *Machine) Clone() *Machine {
 	sioCopy := *m.SIO
 	n.SIO = &sioCopy
 	n.SIO.Pads[0] = n.Pad1
+	md := *m.MDEC
+	n.MDEC = &md
 	card := *m.Card1
 	n.Card1 = &card
 	n.SIO.Cards[0] = n.Card1
@@ -187,6 +193,10 @@ func (m *Machine) tick(n uint64) {
 	}
 	m.io.timers.tick(&m.io, n, dots, lines)
 	m.CD.Tick(int64(n))
+	m.MDEC.Tick(int32(n))
+	if m.io.dma.active(0) || m.io.dma.active(1) {
+		m.mdecPump()
+	}
 	m.SIO.Tick(int64(n))
 	if irq := m.SIO.IRQ(); irq != m.sioIRQ {
 		if irq {
@@ -280,27 +290,29 @@ func (m *Machine) Read32(a uint32) uint32 {
 	return 0
 }
 
-func (m *Machine) Write8(a uint32, v uint8) {
+// Write8 的 v 是整個來源暫存器（cpu.Bus）；記憶體只取低 8 位元。
+func (m *Machine) Write8(a uint32, v uint32) {
 	p := physical(a)
 	switch {
 	case p < 0x00800000:
-		m.ram[p&(ramSize-1)] = v
+		m.ram[p&(ramSize-1)] = uint8(v)
 	case isScratchpad(a, p):
-		m.scratchpad[p&0x3FF] = v
+		m.scratchpad[p&0x3FF] = uint8(v)
 	case p >= 0x1F801000 && p < 0x1F803000:
-		m.ioWrite(p, uint32(v), 1)
+		m.ioWrite(p, v, 1)
 	}
 }
 
-func (m *Machine) Write16(a uint32, v uint16) {
+// Write16 的 v 是整個來源暫存器（cpu.Bus）；記憶體只取低 16 位元。
+func (m *Machine) Write16(a uint32, v uint32) {
 	p := physical(a)
 	switch {
 	case p < 0x00800000:
-		binary.LittleEndian.PutUint16(m.ram[p&(ramSize-1):], v)
+		binary.LittleEndian.PutUint16(m.ram[p&(ramSize-1):], uint16(v))
 	case isScratchpad(a, p):
-		binary.LittleEndian.PutUint16(m.scratchpad[p&0x3FF:], v)
+		binary.LittleEndian.PutUint16(m.scratchpad[p&0x3FF:], uint16(v))
 	case p >= 0x1F801000 && p < 0x1F803000:
-		m.ioWrite(p, uint32(v), 2)
+		m.ioWrite(p, v, 2)
 	}
 }
 

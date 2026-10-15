@@ -105,7 +105,8 @@ func TestM3(t *testing.T) {
 
 	ledger := m3LedgerPath()
 	if os.Getenv("PSGOLEM_WRITE_LEDGER") == "1" {
-		writeM3Ledger(t, ledger, got)
+		writeM3Ledger(t, ledger, got, "# M3 驗收台帳（machine/m3_test.go）：測試<TAB>不符數。VRAM 為不符像素數，TTY 為差異行數。\n"+
+			"# 每一列不為 0 的原因見 docs/spec/007-gpu-and-dma.md §6。\n")
 		return
 	}
 	known := readM3Ledger(t, ledger)
@@ -234,7 +235,7 @@ func readM3Ledger(t *testing.T, path string) map[string]int {
 	return out
 }
 
-func writeM3Ledger(t *testing.T, path string, got map[string]int) {
+func writeM3Ledger(t *testing.T, path string, got map[string]int, header string) {
 	t.Helper()
 	keys := make([]string, 0, len(got))
 	for k := range got {
@@ -242,8 +243,7 @@ func writeM3Ledger(t *testing.T, path string, got map[string]int) {
 	}
 	sort.Strings(keys)
 	var b strings.Builder
-	b.WriteString("# M3 驗收台帳（machine/m3_test.go）：測試<TAB>不符數。VRAM 為不符像素數，TTY 為差異行數。\n")
-	b.WriteString("# 每一列不為 0 的原因見 docs/spec/007-gpu-and-dma.md §6。\n")
+	b.WriteString(header)
 	for _, k := range keys {
 		fmt.Fprintf(&b, "%s\t%d\n", k, got[k])
 	}

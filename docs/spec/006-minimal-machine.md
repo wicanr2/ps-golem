@@ -117,12 +117,17 @@ psx-spx `kernelbios.md`：putchar 是 A(3Ch) 與 B(3Dh)，呼叫方式為跳到 
 
 ### 7.1 `io-access-bitwidth` 台帳
 
-108 格中 55 格相符（2026-10-15）。不符的 53 格列在 `machine/bitwidth_gaps.txt`，
+108 格中 81 格相符（2026-10-15）。不符的 27 格列在 `machine/bitwidth_gaps.txt`，
 `machine/bitwidth_test.go` 每次比對：台帳外出現新的不符、或台帳內的格子變成相符，都算失敗。
+
+8／16 位元寫入的資料寬度：`sb`／`sh` 把整個來源暫存器放上匯流排（psx-spx `unpredictablethings.md`
+「I/O Write Datasize」）。表中標 `(w32)` 的區域（MEMCTRL、RAM_SIZE、中斷控制、DMA 的 ADDR／CTRL／DPCR／DICR、
+計時器）把整個暫存器左移到位址對應的位元組後寫入整個字；其他區域只寫入該寬度。
+《月下》的 CD 中斷處理以 `sb` 寫 DICR 的 bit 16–23，若改成「讀回合併」會把 bit 24–30 的中斷旗標寫 1 而清掉，
+MDEC 輸出 DMA 的完成中斷因此遺失（`011`）。
 
 | 類別 | 格子 | 負責 |
 |---|---|---|
-| 8／16 位元寫入 32 位元 I/O 時，實機寫入整個暫存器值（DMA、I_MASK、計時器） | DMA0_ADDR、DMAC_*、I_MASK、T0_TARGET | 匯流排規格（待寫） |
 | 32 位元讀 16 位元暫存器時上半部的殘值（開放匯流排） | I_MASK、T0_TARGET 的 `0x1234`、`0x3c04` | 匯流排規格（待寫） |
 | GPU 重置後的 GPUSTAT `0x14802000` | GPUSTAT | M3 GPU 規格 |
 | CD-ROM 狀態暫存器 | CDROM_STAT | M4 CD-ROM 規格 |

@@ -1,0 +1,13 @@
+# MDEC 驗收台帳（machine/mdec_test.go）：測試<TAB>不符數。VRAM 為不符像素數，TTY 為差異行數。
+# 每一列不為 0 的原因見 docs/spec/011-mdec.md §7。
+mdec/4bit tty	19
+mdec/4bit vram	50
+mdec/8bit tty	19
+mdec/8bit vram	54
+mdec/frame-15bit vram	18362
+mdec/frame-15bit-dma vram	15133
+mdec/frame-24bit vram	102051
+mdec/frame-24bit-dma vram	37157
+mdec/movie-15bit vram	20732
+mdec/movie-24bit vram	34735
+mdec/step-by-step-log tty	1644

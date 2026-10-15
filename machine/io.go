@@ -32,7 +32,15 @@ func (s *ioState) reset() {
 	s.dma.chcr[6] = 2
 }
 
-func (s *ioState) raise(bit uint) { s.iStat |= 1 << bit }
+func (s *ioState) raise(bit uint) {
+	if IRQTrace != nil && s.iStat&(1<<bit) == 0 {
+		IRQTrace(false, bit)
+	}
+	s.iStat |= 1 << bit
+}
+
+// IRQTrace 不為 nil 時記錄中斷：ack 為 false 是 I_STAT 某位元變 1，為 true 是程式寫 I_STAT（bit 為寫入值）。
+var IRQTrace func(ack bool, bit uint)
 
 func (s *ioState) irqPending() bool { return s.iStat&s.iMask != 0 }
 
@@ -65,6 +73,14 @@ func (m *Machine) ioWrite(p uint32, v uint32, size int) {
 	if p >= 0x1F802000 {
 		return
 	}
+	if size < 4 && ioWritesFull32(p) {
+		// (w32)：整個暫存器左移到位址對應的位元組後寫入整個字（psx-spx unpredictablethings.md）
+		m.ioWrite32(p&^3, v<<((p&3)*8))
+		return
+	}
+	if size < 4 {
+		v &= 1<<(8*size) - 1
+	}
 	if p >= 0x1F801800 && p < 0x1F801804 {
 		m.cdWrite(p, uint8(v))
 		return
@@ -80,6 +96,20 @@ func (m *Machine) ioWrite(p uint32, v uint32, size int) {
 		v = m.ioPeek32(al)&^mask | (v<<shift)&mask
 	}
 	m.ioWrite32(al, v)
+}
+
+// ioWritesFull32 是 psx-spx「I/O Write Datasize」表中 8、16 位元寫入標為 (w32) 的區域：
+// MEMCTRL、RAM_SIZE、中斷控制、DMA 的 ADDR／CTRL／DPCR／DICR、計時器。DMA 的 LEN 標為 OK，照一般合併。
+func ioWritesFull32(p uint32) bool {
+	switch {
+	case p >= 0x1F801000 && p < 0x1F801024, p >= 0x1F801060 && p < 0x1F801064,
+		p >= 0x1F801070 && p < 0x1F801078, p >= 0x1F8010F0 && p < 0x1F8010F8,
+		p >= 0x1F801100 && p < 0x1F80112C:
+		return true
+	case p >= 0x1F801080 && p < 0x1F8010F0:
+		return p&0xC != 0x4
+	}
+	return false
 }
 
 func (m *Machine) store32(al uint32, v uint32) {
@@ -101,6 +131,10 @@ func (m *Machine) ioPeek32(al uint32) uint32 {
 		return m.io.dma.read(al)
 	case al >= 0x1F801100 && al < 0x1F801130:
 		return m.io.timers.peek(al)
+	case al == 0x1F801820:
+		return 0
+	case al == 0x1F801824:
+		return m.MDEC.Read(al)
 	}
 	return m.load32(al)
 }
@@ -121,8 +155,10 @@ func (m *Machine) ioRead32(al uint32) uint32 {
 		return m.GPU.ReadData()
 	case al == 0x1F801814:
 		return m.GPU.Status()
-	case al == 0x1F801824: // MDEC 狀態：輸出 FIFO 空
-		return 0x80040000
+	case al == 0x1F801820 || al == 0x1F801824:
+		v := m.MDEC.Read(al)
+		m.mdecPump()
+		return v
 	case al == 0x1F801DAC: // SPUSTAT 在 DAE，與 DAC（傳輸控制）同一個字
 		spucnt := uint32(binary.LittleEndian.Uint16(m.io.regs[0xDAA:]))
 		return m.load32(al)&^0x003F0000 | (spucnt&0x3F)<<16
@@ -133,6 +169,9 @@ func (m *Machine) ioRead32(al uint32) uint32 {
 func (m *Machine) ioWrite32(al uint32, v uint32) {
 	switch {
 	case al == 0x1F801070:
+		if IRQTrace != nil {
+			IRQTrace(true, uint(v&0x7FF))
+		}
 		m.io.iStat &= v
 	case al == 0x1F801074:
 		m.io.iMask = v & 0x7FF
@@ -144,6 +183,9 @@ func (m *Machine) ioWrite32(al uint32, v uint32) {
 		m.GPU.WriteGP0(v)
 	case al == 0x1F801814:
 		m.GPU.WriteGP1(v)
+	case al == 0x1F801820 || al == 0x1F801824:
+		m.MDEC.Write(al, v)
+		m.mdecPump()
 	default:
 		m.store32(al, v)
 	}
@@ -230,6 +272,7 @@ func (m *Machine) dmaWrite(al uint32, v uint32) {
 		switch off {
 		case 0x70:
 			d.dpcr = v
+			m.mdecPump()
 		case 0x74:
 			// bit 0–5、15、16–23 可寫。psx-spx 寫 bit 0–6，但 ps1-tests
 			// cpu/io-access-bitwidth 的實機紀錄是寫 0x78 讀回 0x38，bit 6 不可寫。
@@ -270,7 +313,75 @@ func (m *Machine) dmaMaybeStart(ch int) {
 	if (c>>9)&3 == 0 && c&(1<<28) == 0 {
 		return
 	}
+	if ch <= 1 {
+		m.mdecPump()
+		return
+	}
 	m.dmaRun(ch)
+}
+
+// dmaActive：通道已啟動、DPCR 開啟；同步模式 0 另需 bit 28。
+func (d *dmaState) active(ch int) bool {
+	c := d.chcr[ch]
+	if c&(1<<24) == 0 || d.dpcr&(1<<(3+4*ch)) == 0 {
+		return false
+	}
+	return (c>>9)&3 != 0 || c&(1<<28) != 0
+}
+
+// mdecPump 推進 channel 0、1（011 §3）：MDEC 能收或能給時搬一個區塊，直到兩邊都沒有進展。
+func (m *Machine) mdecPump() {
+	d := &m.io.dma
+	for progress := true; progress; {
+		progress = false
+		if d.active(0) && m.MDEC.DMACanWrite() {
+			m.dmaMDECBlock(0)
+			progress = true
+		}
+		if d.active(1) && m.MDEC.DMACanRead() {
+			m.dmaMDECBlock(1)
+			progress = true
+		}
+	}
+}
+
+// dmaMDECBlock 搬一個區塊（Beetle dma.c RunChannel、ChRW）。同步模式 0 整段算一個區塊。
+func (m *Machine) dmaMDECBlock(ch int) {
+	d := &m.io.dma
+	c := d.chcr[ch]
+	words := d.bcr[ch] & 0xFFFF
+	if words == 0 {
+		words = 0x10000
+	}
+	addr := d.madr[ch] & 0xFFFFFF
+	toDev := c&1 != 0
+	for i := uint32(0); i < words; i++ {
+		a := addr & 0x1FFFFC
+		switch {
+		case ch == 0 && toDev:
+			m.MDEC.DMAWrite(binary.LittleEndian.Uint32(m.ram[a:]))
+		case ch == 0:
+			binary.LittleEndian.PutUint32(m.ram[a:], 0)
+		case !toDev:
+			v, offs := m.MDEC.DMARead()
+			binary.LittleEndian.PutUint32(m.ram[(addr+offs<<2)&0x1FFFFC:], v)
+		}
+		if c&2 != 0 {
+			addr = (addr - 4) & 0xFFFFFF
+		} else {
+			addr = (addr + 4) & 0xFFFFFF
+		}
+	}
+	d.madr[ch] = addr
+	done := true
+	if (c>>9)&3 == 1 {
+		blocks := (d.bcr[ch]>>16 - 1) & 0xFFFF
+		d.bcr[ch] = d.bcr[ch]&0xFFFF | blocks<<16
+		done = blocks == 0
+	}
+	if done {
+		m.dmaFinish(ch)
+	}
 }
 
 // dmaRun 立即完成一次傳輸（006 §2、007 §1）：channel 2 送 GPU，channel 6 清表，其他不搬資料。
@@ -296,6 +407,12 @@ func (m *Machine) dmaRun(ch int) {
 			addr = (addr - 4) & 0x1FFFFC
 		}
 	}
+	m.dmaFinish(ch)
+}
+
+// dmaFinish 結束一次傳輸：清 CHCR bit 24、28，依 DICR 設旗標與中斷。
+func (m *Machine) dmaFinish(ch int) {
+	d := &m.io.dma
 	d.chcr[ch] &^= 1<<24 | 1<<28
 	before := d.dicr
 	if d.dicr&(1<<(16+ch)) != 0 && d.dicr&(1<<23) != 0 {
