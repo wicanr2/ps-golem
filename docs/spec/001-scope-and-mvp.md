@@ -62,7 +62,7 @@ CD-ROM 扇區時序都用分數累加器從 CPU 週期推出，不另設獨立�
 |---|---|---|
 | M1 ✅ | GTE | `003-gte` 的 1150 筆實機紀錄全部相符 |
 | M2 ✅ | 最小機器：CPU、匯流排、BIOS 載入、PS-EXE 側載、TTY 攔截 | ps1-tests `cpu/*` 的 TTY 與 `psx.log` 相同（`004-cpu-r3000a`） |
-| M3 | BIOS 開機到 PlayStation 標誌畫面，GPU 2D | ps1-tests `gpu/*` 的 VRAM 與附帶的 `vram.png` 相同；開機畫面與參考模擬器比對 |
+| M3 | BIOS 開機到 SCE 開場畫面，GPU 2D | ps1-tests `gpu/*` 的 VRAM 與附帶的 `vram.png` 相同；開機畫面與參考模擬器比對 |
 | M4 | 從 cue/bin 開機到《月下》可玩：DMA、CD-ROM、SPU、XA、CDDA、手把、記憶卡 | 正常玩家路徑走到第一個存檔點並存檔成功 |
 | M5 | 跨平台交付 | `005-cross-platform-delivery` |
 | M6 | HD 後端（Codex） | HD 規格（待寫） |

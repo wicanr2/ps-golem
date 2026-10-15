@@ -10,7 +10,7 @@ gpu/gp0-e1	0
 gpu/lines	64
 gpu/mask-bit	0
 gpu/quad	0
-gpu/rectangles	2288
+gpu/rectangles	0
 gpu/texture-flip	0
 gpu/texture-overflow	0
 gpu/transparency	0

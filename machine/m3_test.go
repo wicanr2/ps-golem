@@ -252,3 +252,5 @@ func writeM3Ledger(t *testing.T, path string, got map[string]int) {
 	}
 	t.Logf("台帳寫入 %s", path)
 }
+
+func sortStrings(s []string) { sort.Strings(s) }

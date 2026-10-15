@@ -86,11 +86,10 @@ func (m *Machine) Field() uint64 { return m.field }
 // TTY 回傳目前攔到的 TTY 輸出。
 func (m *Machine) TTY() string { return string(m.tty) }
 
-// Step 執行一條指令並推進時間一個週期。
+// Step 執行一條指令並推進它花費的週期（008）。
 func (m *Machine) Step() {
 	m.ttyHook()
-	m.CPU.Step()
-	m.tick(1)
+	m.tick(uint64(m.CPU.Step()))
 }
 
 // Run 執行 n 個週期。
@@ -261,6 +260,44 @@ func (m *Machine) Write32(a uint32, v uint32) {
 	case p == 0xFFFE0130:
 		m.biu = v &^ 0x440
 	}
+}
+
+// BIU 回傳快取控制暫存器。
+func (m *Machine) BIU() uint32 { return m.biu }
+
+// ReadCost 依 008 §2.1 回傳讀取的額外週期（數值來自 ps1-tests cpu/access-time 實機紀錄）。
+func (m *Machine) ReadCost(a uint32, size int) int {
+	p := physical(a)
+	w := 0
+	switch size {
+	case 2:
+		w = 1
+	case 4:
+		w = 2
+	}
+	switch {
+	case p < 0x00800000:
+		return 4
+	case isScratchpad(a, p):
+		return 0
+	case p >= 0x1FC00000 && p < 0x1FC00000+biosSize:
+		return [3]int{6, 12, 24}[w]
+	case p >= 0x1F801800 && p < 0x1F801804:
+		return [3]int{7, 13, 25}[w]
+	case p >= 0x1F801C00 && p < 0x1F802000:
+		return [3]int{17, 17, 38}[w]
+	case p >= 0x1F801000 && p < 0x1F802000:
+		return 2
+	case p >= 0x1F802000 && p < 0x1F804000:
+		return [3]int{10, 25, 55}[w]
+	case p >= 0x1FA00000 && p < 0x1FC00000:
+		return [3]int{5, 5, 9}[w]
+	case p >= 0x1F000000 && p < 0x1F800000:
+		return [3]int{6, 12, 24}[w]
+	case p == 0xFFFE0130:
+		return 0
+	}
+	return 0
 }
 
 // IsolatedWrite：SR.IsC 成立時的寫入不進記憶體；(BIU & 0x81) == 0x80 時寫 scratchpad（006 §4）。

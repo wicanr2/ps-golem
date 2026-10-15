@@ -96,7 +96,7 @@ func (m *Machine) VRAM() []uint16  // 1024*512，觀測與 HD 後端用
 GPUSTAT bit 28（GP0 寫入 FIFO 空）照 Beetle `CalcFIFOReadyBit`：FIFO 空就是 1，即使 CPU→VRAM 傳輸
 進行中。寫成「沒有進行中的傳輸」會讓 PSn00bSDK 的 `DrawSync` 在送像素之前卡死（`gpu/clut-cache`、`gpu/mask-bit`）。
 
-## 6. 驗收結果（2026-10-15，SCPH5500 與 SCPH-100 相同）
+## 6. 驗收結果（2026-10-15，含 `008-cycle-model`；SCPH5500 與 SCPH-100 相同）
 
 台帳 `machine/m3_gaps.txt`，`machine/m3_test.go` 每次比對。
 
@@ -104,8 +104,7 @@ GPUSTAT bit 28（GP0 寫入 FIFO 空）照 Beetle `CalcFIFOReadyBit`：FIFO 空�
 |---|---|---|
 | `gpu/triangle`、`quad`、`clipping`、`texture-flip`、`texture-overflow`、`uv-interpolation`、`vram-to-vram-overlap`、`clut-cache` | 0 | |
 | `gpu/transparency` | 0（只比對 320×240） | 參考圖在 commit `da6b472` 錄下，那一版用白色清 VRAM；`2fe1570` 重構後改清成黑色。程式只畫 320×240 |
-| `gpu/gp0-e1`、`gpu/mask-bit` | 0 | |
-| `gpu/rectangles` | 2288 像素 | 只在未貼圖的半透明矩形。參考圖在平均模式是未混色的原色、相減模式全黑，與 psx-spx 的混色定義及 `gpu/transparency` 的參考圖矛盾（同一套混色在後者逐像素相符）。推論：參考圖來自當時有誤的模擬器（假說） |
+| `gpu/gp0-e1`、`gpu/mask-bit`、`gpu/rectangles` | 0 | `rectangles` 每個 frame 在同一處重畫半透明矩形、不清背景，混色逐 frame 累積；結果依賴 frame 數，需要 `008-cycle-model` 才正確 |
 | `gpu/lines` | 64 像素 | 測試程式 `setRGB2` 呼叫兩次、沒有 `setRGB3`，第四頂點顏色是未初始化的堆疊內容 |
 | `dma/otc-test` | 2 行 | 實得多出 `testOtcBigTransfer`、`testOtcControlBitsAfterTransferWithChopping` 的 pass 行；實機紀錄沒有這兩行，但同一 commit 的原始碼已含這兩個測試（原因未知） |
 | `dma/chain-looping`、`dma/chopping` | 8、197 行 | 量 DMA 的週期數與自我參照串列，需要 DMA 時序（`008-cycle-model` 之後） |

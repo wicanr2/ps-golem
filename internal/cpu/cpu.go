@@ -8,7 +8,11 @@
 // 週期模型與 i-cache 不搬（006 §3、§4）。
 package cpu
 
-import "github.com/wicanr2/ps-golem/internal/gte"
+import (
+	"math/bits"
+
+	"github.com/wicanr2/ps-golem/internal/gte"
+)
 
 // Bus 是 CPU 看到的記憶體。位址是 CPU 的虛擬位址，區段轉換由 Bus 負責。
 type Bus interface {
@@ -22,6 +26,10 @@ type Bus interface {
 	IsolatedWrite(addr uint32, v uint32, size int)
 	// InstructionBusError 回報從 addr 取指令是否會發生匯流排錯誤。
 	InstructionBusError(addr uint32) bool
+	// ReadCost 回傳從 addr 讀 size 位元組要額外花的週期（docs/spec/008-cycle-model.md §2.1）。
+	ReadCost(addr uint32, size int) int
+	// BIU 回傳快取控制暫存器 FFFE0130 的值。
+	BIU() uint32
 }
 
 // COP0 暫存器編號。
@@ -81,6 +89,26 @@ type CPU struct {
 
 	// branched 為真時，本指令已自行設定 pc／nextPC（分支），結束時不再前進。
 	branched bool
+
+	// 週期模型（008）：now 是開機以來的週期，cost 是本指令累計的週期。
+	now        uint64
+	cost       uint64
+	muldivDone uint64
+	gteDone    uint64
+	icache     [256]icLine
+}
+
+// icLine 是一行 i-cache 的標籤與有效位元（只模擬時間，不存指令內容）。
+type icLine struct {
+	tag   uint32
+	valid uint8
+}
+
+// 乘法延遲表，照 Beetle cpu.c 的 MULT_Tab24。
+var multTab24 = [24]uint8{
+	14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+	10, 10, 10, 10, 10, 10, 10, 10, 10,
+	7, 7, 7,
 }
 
 // New 建立一顆上電狀態的 CPU。
@@ -205,8 +233,44 @@ func (c *CPU) branch(cond bool, offset, mask uint32, link uint32, doLink bool) {
 	c.branched = true
 }
 
-// Step 執行一條指令。
-func (c *CPU) Step() {
+// Step 執行一條指令，回傳花費的週期（008）。
+func (c *CPU) Step() int {
+	c.cost = 1
+	c.step()
+	c.now += c.cost
+	return int(c.cost)
+}
+
+// fetchCost 依 008 §2.2 計算取指令的週期。
+func (c *CPU) fetchCost(pc uint32) uint64 {
+	seg := pc >> 29
+	if seg == 5 || c.bus.BIU()&0x800 == 0 {
+		return uint64(c.bus.ReadCost(pc, 4))
+	}
+	p := pc & 0x1FFFFFFF
+	l := &c.icache[(p>>4)&0xFF]
+	word := (p >> 2) & 3
+	if l.tag == p>>12 && l.valid&(1<<word) != 0 {
+		return 0
+	}
+	fill := uint8(0xF << word & 0xF)
+	if l.tag == p>>12 {
+		l.valid |= fill
+	} else {
+		l.tag = p >> 12
+		l.valid = fill
+	}
+	return 3 + uint64(4-word)
+}
+
+// waitUntil 讓本指令等到 t 才完成。
+func (c *CPU) waitUntil(t uint64) {
+	if c.now+c.cost < t {
+		c.cost = t - c.now
+	}
+}
+
+func (c *CPU) step() {
 	c.gpr[0] = 0
 	c.branched = false
 	pc := c.pc
@@ -223,6 +287,7 @@ func (c *CPU) Step() {
 		c.advance()
 		return
 	}
+	c.cost += c.fetchCost(pc)
 	instr := c.bus.Read32(pc)
 
 	// 中斷在指令邊界檢查；PC 指著 COP2 指令時不收（照參照實作，避開 GTE pipeline 細節）。
@@ -298,25 +363,30 @@ func (c *CPU) execute(instr uint32) {
 			c.raise(ExcBP, instr)
 		case 0x10: // MFHI
 			c.doLDS()
+			c.waitUntil(c.muldivDone)
 			g[rd] = c.hi
 		case 0x11: // MTHI
 			c.hi = g[rs]
 			c.doLDS()
 		case 0x12: // MFLO
 			c.doLDS()
+			c.waitUntil(c.muldivDone)
 			g[rd] = c.lo
 		case 0x13: // MTLO
 			c.lo = g[rs]
 			c.doLDS()
 		case 0x18: // MULT
+			c.muldivDone = c.now + c.cost + uint64(multTab24[bits.LeadingZeros32(g[rs]^uint32(int32(g[rs])>>31)|0x400)])
 			r := uint64(int64(int32(g[rs])) * int64(int32(g[rt])))
 			c.doLDS()
 			c.lo, c.hi = uint32(r), uint32(r>>32)
 		case 0x19: // MULTU
+			c.muldivDone = c.now + c.cost + uint64(multTab24[bits.LeadingZeros32(g[rs]|0x400)])
 			r := uint64(g[rs]) * uint64(g[rt])
 			c.doLDS()
 			c.lo, c.hi = uint32(r), uint32(r>>32)
 		case 0x1A: // DIV
+			c.muldivDone = c.now + c.cost + 37
 			n, d := g[rs], g[rt]
 			switch {
 			case d == 0:
@@ -334,6 +404,7 @@ func (c *CPU) execute(instr uint32) {
 			}
 			c.doLDS()
 		case 0x1B: // DIVU
+			c.muldivDone = c.now + c.cost + 37
 			n, d := g[rs], g[rt]
 			if d == 0 {
 				c.lo, c.hi = 0xFFFFFFFF, n
@@ -476,7 +547,7 @@ func (c *CPU) execute(instr uint32) {
 		a := g[rs] + imm
 		c.cancelLoadTo(rt)
 		c.doLDS()
-		c.startLoad(rt, uint32(int32(int8(c.bus.Read8(a)))))
+		c.startLoad(rt, uint32(int32(int8(c.read8(a)))))
 	case 0x21: // LH
 		a := g[rs] + imm
 		if a&1 != 0 {
@@ -486,20 +557,23 @@ func (c *CPU) execute(instr uint32) {
 		}
 		c.cancelLoadTo(rt)
 		c.doLDS()
-		c.startLoad(rt, uint32(int32(int16(c.bus.Read16(a)))))
+		c.startLoad(rt, uint32(int32(int16(c.read16(a)))))
 	case 0x22: // LWL
 		a := g[rs] + imm
 		v := c.mergeBase(rt)
+		// 存取寬度照 Beetle：依對齊讀 8、16、24、32 位元，週期成本跟著寬度（008 §2.1）。
+		c.cost += uint64(c.bus.ReadCost(a&^3, [4]int{1, 2, 4, 4}[a&3]))
+		w := c.bus.Read32(a &^ 3)
 		var r uint32
 		switch a & 3 {
 		case 0:
-			r = v&0x00FFFFFF | c.read32(a&^3)<<24
+			r = v&0x00FFFFFF | w<<24
 		case 1:
-			r = v&0x0000FFFF | c.read32(a&^3)<<16
+			r = v&0x0000FFFF | w<<16
 		case 2:
-			r = v&0x000000FF | c.read32(a&^3)<<8
+			r = v&0x000000FF | w<<8
 		case 3:
-			r = c.read32(a &^ 3)
+			r = w
 		}
 		c.startLoad(rt, r)
 	case 0x23: // LW
@@ -516,7 +590,7 @@ func (c *CPU) execute(instr uint32) {
 		a := g[rs] + imm
 		c.cancelLoadTo(rt)
 		c.doLDS()
-		c.startLoad(rt, uint32(c.bus.Read8(a)))
+		c.startLoad(rt, uint32(c.read8(a)))
 	case 0x25: // LHU
 		a := g[rs] + imm
 		if a&1 != 0 {
@@ -526,11 +600,12 @@ func (c *CPU) execute(instr uint32) {
 		}
 		c.cancelLoadTo(rt)
 		c.doLDS()
-		c.startLoad(rt, uint32(c.bus.Read16(a)))
+		c.startLoad(rt, uint32(c.read16(a)))
 	case 0x26: // LWR
 		a := g[rs] + imm
 		v := c.mergeBase(rt)
-		w := c.read32(a &^ 3)
+		c.cost += uint64(c.bus.ReadCost(a, [4]int{4, 4, 2, 1}[a&3]))
+		w := c.bus.Read32(a &^ 3)
 		var r uint32
 		switch a & 3 {
 		case 0:
@@ -616,6 +691,7 @@ func (c *CPU) execute(instr uint32) {
 		} else if a&3 != 0 {
 			c.addressError(ExcADEL, a, instr)
 		} else {
+			c.waitUntil(c.gteDone)
 			c.GTE.Write(int(rt), c.read32(a))
 		}
 	case 0x38, 0x39, 0x3B: // SWC0、SWC1、SWC3
@@ -635,6 +711,7 @@ func (c *CPU) execute(instr uint32) {
 		} else if a&3 != 0 {
 			c.addressError(ExcADES, a, instr)
 		} else {
+			c.waitUntil(c.gteDone)
 			c.write(a, c.GTE.Read(int(rt)), 4)
 		}
 		c.doLDS()
@@ -659,10 +736,27 @@ func (c *CPU) addressError(code, addr, instr uint32) {
 	c.raise(code, instr)
 }
 
-func (c *CPU) read32(a uint32) uint32 { return c.bus.Read32(a) }
+func (c *CPU) read32(a uint32) uint32 {
+	c.cost += uint64(c.bus.ReadCost(a, 4))
+	return c.bus.Read32(a)
+}
+
+func (c *CPU) read16(a uint32) uint16 {
+	c.cost += uint64(c.bus.ReadCost(a, 2))
+	return c.bus.Read16(a)
+}
+
+func (c *CPU) read8(a uint32) uint8 {
+	c.cost += uint64(c.bus.ReadCost(a, 1))
+	return c.bus.Read8(a)
+}
 
 func (c *CPU) write(a, v uint32, size int) {
 	if c.cop0[CP0SR]&srIsC != 0 {
+		// 快取隔離時的寫入：tag test／invalidate／lock 模式讓該行失效（BIOS 清 i-cache 用）。
+		if biu := c.bus.BIU(); biu&0x800 != 0 && biu&0x7 != 0 {
+			c.icache[(a>>4)&0xFF].valid = 0
+		}
 		c.bus.IsolatedWrite(a, v, size)
 		return
 	}
@@ -752,6 +846,9 @@ func (c *CPU) cop2Op(instr uint32) {
 		c.raise(ExcCOPU, instr)
 		return
 	}
+	if sub != 0x08 && sub != 0x0C {
+		c.waitUntil(c.gteDone)
+	}
 	switch {
 	case sub == 0x00: // MFC2
 		c.cancelLoadTo(rt)
@@ -772,7 +869,8 @@ func (c *CPU) cop2Op(instr uint32) {
 		c.branch(instr&(1<<16) == 0, uint32(int32(int16(instr)))<<2, ^uint32(0), 0, false)
 	case sub >= 0x10:
 		c.doLDS()
-		c.GTE.Execute(instr)
+		n := c.GTE.Execute(instr)
+		c.gteDone = c.now + c.cost + uint64(n) - 1
 	default:
 		c.doLDS()
 	}
