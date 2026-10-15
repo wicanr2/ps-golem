@@ -1,8 +1,8 @@
 # M3 驗收台帳（machine/m3_test.go）：測試<TAB>不符數。VRAM 為不符像素數，TTY 為差異行數。
 # 每一列不為 0 的原因見 docs/spec/007-gpu-and-dma.md §6。
 dma/chain-looping	8
-dma/chopping	197
-dma/dpcr	17
+dma/chopping	260
+dma/dpcr	0
 dma/otc-test	2
 gpu/clipping	0
 gpu/clut-cache	0
@@ -17,3 +17,4 @@ gpu/transparency	0
 gpu/triangle	0
 gpu/uv-interpolation	0
 gpu/vram-to-vram-overlap	0
+spu/memory-transfer	8

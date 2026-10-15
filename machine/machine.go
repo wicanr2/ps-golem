@@ -13,6 +13,7 @@ import (
 	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/internal/mdec"
 	"github.com/wicanr2/ps-golem/internal/sio"
+	"github.com/wicanr2/ps-golem/internal/spu"
 )
 
 const (
@@ -38,6 +39,8 @@ type Machine struct {
 	SIO *sio.SIO
 	// MDEC 是動畫解碼器（011）。
 	MDEC *mdec.MDEC
+	// SPU 是音效處理器（013）。
+	SPU *spu.SPU
 	// Pad1 是插在 1P 的數位手把；改 Buttons 就是按鍵。
 	Pad1 *sio.Gamepad
 	// ExactTiming 為 true 時每條指令都同步週邊（延後同步之前的做法），只給等價性測試用（008 §2.5）。
@@ -65,6 +68,7 @@ type Machine struct {
 	gpuIRQ      bool
 	cdIRQ       bool
 	sioIRQ      bool
+	spuIRQ      bool
 
 	tty []byte
 }
@@ -83,6 +87,7 @@ func New(bios []byte) (*Machine, error) {
 	m.Pad1 = &sio.Gamepad{}
 	m.SIO.Pads[0] = m.Pad1
 	m.MDEC = mdec.New()
+	m.SPU = spu.New()
 	m.Card1 = sio.NewMemcard()
 	m.SIO.Cards[0] = m.Card1
 	m.CPU = cpu.New(m)
@@ -109,6 +114,8 @@ func (m *Machine) Clone() *Machine {
 	n.SIO.Pads[0] = n.Pad1
 	md := *m.MDEC
 	n.MDEC = &md
+	sp := *m.SPU
+	n.SPU = &sp
 	card := *m.Card1
 	n.Card1 = &card
 	n.SIO.Cards[0] = n.Card1
@@ -213,6 +220,12 @@ func (m *Machine) sync() {
 		}
 		m.cdIRQ = irq
 	}
+	if irq := m.SPU.IRQ(); irq != m.spuIRQ {
+		if irq {
+			m.io.raise(irqSPU)
+		}
+		m.spuIRQ = irq
+	}
 	if irq := m.GPU.IRQ(); irq != m.gpuIRQ {
 		if irq {
 			m.io.raise(irqGPU)
@@ -221,6 +234,17 @@ func (m *Machine) sync() {
 	}
 	m.CPU.SetIRQ(m.io.irqPending())
 	m.deadline = m.cycles + m.nextEvent()
+}
+
+// spuClock 把 *spu.SPU 接到 CD-ROM 的推進迴圈（cdrom.SPUClock）。
+type spuClock struct{ s *spu.SPU }
+
+func (c spuClock) Advance(clocks int64, cd cdrom.AudioSource) int64 { return c.s.Advance(clocks, cd) }
+
+// TakeAudio 取走 SPU 累積的 44.1 kHz 立體聲取樣（L、R 交錯），append 到 dst（013 §5）。
+func (m *Machine) TakeAudio(dst []int16) []int16 {
+	m.sync()
+	return m.SPU.TakeSamples(dst)
 }
 
 // syncMDEC 把 MDEC 尚未推進的週期交給它，DMA channel 0、1 啟動中時接著搬資料。
@@ -250,6 +274,9 @@ func (m *Machine) nextEvent() uint64 {
 	take(int64((rem + videoNum - 1) / videoNum))
 	take(m.io.timers.nextEvent(m.dotAcc, uint64(m.GPU.DotDivider())))
 	take(m.CD.NextEvent())
+	if m.SPU.IRQEnabled() {
+		take(m.CD.SPUCounter()) // SPU 中斷可能在任何一個取樣點成立（013 §3）
+	}
 	take(m.SIO.NextEvent())
 	return max(next, 1)
 }
@@ -273,7 +300,7 @@ func (m *Machine) advance(n uint64) {
 		m.dotAcc -= dots * div
 	}
 	m.io.timers.tick(&m.io, n, dots, lines)
-	m.CD.Tick(int64(n))
+	m.CD.Tick(int64(n), spuClock{m.SPU})
 	m.syncMDEC()
 	m.SIO.Tick(int64(n))
 }

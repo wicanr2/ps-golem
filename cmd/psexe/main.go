@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"image/png"
@@ -25,6 +26,7 @@ func main() {
 	screenFlag := flag.String("screen", "", "結束時把目前顯示的畫面存成 PNG（007 §8）")
 	shotsFlag := flag.String("shots", "", "每隔 -shot-every 個 field 把畫面存到這個目錄")
 	shotEvery := flag.Uint64("shot-every", 60, "-shots 的間隔（field 數）")
+	wavFlag := flag.String("wav", "", "把 SPU 輸出（44.1 kHz 立體聲）存成 WAV")
 	exact := flag.Bool("exact", false, "每條指令都同步週邊（等價性比對用，較慢）")
 	digest := flag.Bool("digest", false, "結束時印出機器狀態摘要")
 	cpuProf := flag.String("cpuprofile", "", "把 CPU profile 寫到這個檔案（效能分析用）")
@@ -50,6 +52,7 @@ func main() {
 	card = *cardPath
 	screenOut, shotsDir, shotStep, fieldLimit = *screenFlag, *shotsFlag, *shotEvery, *stopField
 	exactTiming, printDigest = *exact, *digest
+	wavOut = *wavFlag
 	var err error
 	if presses, err = parsePresses(*pressSpec); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
@@ -160,6 +163,8 @@ var (
 	screenOut, shotsDir      string
 	shotStep, fieldLimit     uint64
 	exactTiming, printDigest bool
+	wavOut                   string
+	wavPCM                   []int16
 	presses                  []press
 )
 
@@ -187,7 +192,11 @@ func runCycles(m *machine.Machine, n uint64) {
 			fmt.Fprintf(os.Stderr, "speed field=%d %.1fM 週期/秒（實機 %.2f 倍）\n", f, rate/1e6, rate/33868800)
 			lastT, lastC = now, m.Cycles()
 		}
-		if m.RunUntilField(f, left) && shotsDir != "" && shotStep > 0 && f%shotStep == 0 {
+		reached := m.RunUntilField(f, left)
+		if wavOut != "" {
+			wavPCM = m.TakeAudio(wavPCM)
+		}
+		if reached && shotsDir != "" && shotStep > 0 && f%shotStep == 0 {
 			if err := writeScreen(m, filepath.Join(shotsDir, fmt.Sprintf("f%06d.png", f))); err != nil {
 				fmt.Fprintln(os.Stderr, "psexe:", err)
 			}
@@ -198,6 +207,11 @@ func runCycles(m *machine.Machine, n uint64) {
 func finish(m *machine.Machine, vramOut string, state bool) error {
 	if printDigest {
 		fmt.Println("digest", m.Digest())
+	}
+	if wavOut != "" {
+		if err := writeWAV(wavOut, wavPCM); err != nil {
+			return err
+		}
 	}
 	fmt.Print(m.TTY())
 	if card != "" && m.Card1.Dirty {
@@ -227,4 +241,26 @@ func finish(m *machine.Machine, vramOut string, state bool) error {
 		}
 	}
 	return nil
+}
+
+// writeWAV 把 44.1 kHz 16 位元立體聲取樣（L、R 交錯）存成 WAV。
+func writeWAV(path string, pcm []int16) error {
+	data := make([]byte, 44+2*len(pcm))
+	le := binary.LittleEndian
+	copy(data[0:], "RIFF")
+	le.PutUint32(data[4:], uint32(36+2*len(pcm)))
+	copy(data[8:], "WAVEfmt ")
+	le.PutUint32(data[16:], 16)
+	le.PutUint16(data[20:], 1)
+	le.PutUint16(data[22:], 2)
+	le.PutUint32(data[24:], 44100)
+	le.PutUint32(data[28:], 44100*4)
+	le.PutUint16(data[32:], 4)
+	le.PutUint16(data[34:], 16)
+	copy(data[36:], "data")
+	le.PutUint32(data[40:], uint32(2*len(pcm)))
+	for i, v := range pcm {
+		le.PutUint16(data[44+2*i:], uint16(v))
+	}
+	return os.WriteFile(path, data, 0o644)
 }

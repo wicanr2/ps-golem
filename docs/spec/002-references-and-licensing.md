@@ -18,9 +18,10 @@ GPL-3.0-or-later（全文見 `LICENSE`）。
 
 | 專案 | 授權 | 核實依據 | 用途 |
 |---|---|---|---|
-| `libretro/beetle-psx-libretro` | GPL-2.0-or-later | `mednafen/psx/cpu.c`、`gte.c`、`gpu.c` 檔頭 | CPU、GTE、GPU、CD-ROM、SPU 的主要參照 |
+| `libretro/beetle-psx-libretro` | GPL-2.0-or-later | `mednafen/psx/cpu.c`、`gte.c`、`gpu.c`、`mdec.c`、`spu.c`、`cdc.c` 檔頭 | CPU、GTE、GPU、CD-ROM、SPU 的主要參照 |
 | `grumpycoders/pcsx-redux` | GPL-2.0-or-later | `src/core/r3000a.cc` 檔頭 | 第二參照、除錯器設計參考 |
 | `hajimehoshi/ebiten` | Apache-2.0 | GitHub license API | 前端相依 |
+| `ebitengine/oto`、`ebitengine/purego` | Apache-2.0 | GitHub license API（2026-10-15） | Ebiten 音訊的間接相依 |
 | `JaCzekanski/ps1-tests` | MIT | GitHub license API | 測試 ROM 語料，不進版控 |
 
 Beetle PSX 的 `mednafen/psx/pgxp/` 是 PGXP 實作，檔頭授權還沒核實，參照前先讀檔頭。

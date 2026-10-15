@@ -112,6 +112,7 @@ func (c *CDROM) command(cmd uint8, args []uint8) int64 {
 			return 0
 		}
 		c.ack()
+		c.audio.clear()
 		c.clearAIP()
 		c.pipePos, c.pipeIn = 0, 0
 		c.sectorsRead = 0
@@ -127,6 +128,7 @@ func (c *CDROM) command(cmd uint8, args []uint8) int64 {
 		if c.driveStatus == dsStopped {
 			return 5000
 		}
+		c.audio.clear()
 		c.clearAIP()
 		c.pipePos, c.pipeIn = 0, 0
 		c.sectorsRead = 0
@@ -168,6 +170,7 @@ func (c *CDROM) command(cmd uint8, args []uint8) int64 {
 				c.statusAfterSeek == dsPaused && c.seekTarget == 0 {
 				return 256
 			}
+			c.audio.clear()
 			c.sbIn = 0
 			c.pipePos, c.pipeIn = 0, 0
 			c.sectorsRead = 0
@@ -381,12 +384,14 @@ func (c *CDROM) cmdPlay(args []uint8) int64 {
 		} else if t > last {
 			t = last
 		}
+		c.audio.clear()
 		c.pipePos, c.pipeIn = 0, 0
 		c.sectorsRead = 0
 		c.playTrackMatch = t
 		c.seekTarget = c.disc.Tracks[t-first].Index1
 		c.startSeekPlay()
 	} else if c.commandLocDirty || c.driveStatus != dsPlaying {
+		c.audio.clear()
 		c.pipePos, c.pipeIn = 0, 0
 		c.sectorsRead = 0
 		if c.commandLocDirty {
@@ -423,6 +428,7 @@ func (c *CDROM) readBase() {
 	}
 	if c.commandLocDirty || c.driveStatus != dsReading {
 		c.clearAIP()
+		c.audio.clear()
 		c.sbIn = 0
 		c.pipePos, c.pipeIn = 0, 0
 		c.sectorsRead = 0

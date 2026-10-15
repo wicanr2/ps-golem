@@ -29,6 +29,7 @@ var m3VRAMTests = []string{
 var m3TTYTests = []string{
 	"gpu/gp0-e1", "gpu/mask-bit",
 	"dma/otc-test", "dma/dpcr", "dma/chain-looping", "dma/chopping",
+	"spu/memory-transfer",
 }
 
 // vramCompareRegion 是只比對部分 VRAM 的測試與理由（007 §2.1）。

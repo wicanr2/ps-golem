@@ -13,6 +13,7 @@ var syncEquivTests = []string{
 	"dma/chopping/chopping.exe", "dma/chain-looping/chain-looping.exe",
 	"gpu/rectangles/rectangles.exe", "gpu/animated-triangle/animated-triangle.exe",
 	"mdec/movie/movie-15bit.exe", "input/pad/pad.exe", "cdrom/timing/timing.exe",
+	"spu/test/test.exe", "spu/memory-transfer/memory-transfer.exe", "spu/stereo/stereo.exe",
 }
 
 func TestDeferredSyncEquivalent(t *testing.T) {

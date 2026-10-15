@@ -19,14 +19,15 @@ func main() {
 	scale := flag.Int("scale", 3, "起始視窗倍率")
 	frames := flag.Int("frames", 0, "跑這麼多次 Update 後結束（驗收用）")
 	shot := flag.String("screenshot", "", "配合 -frames：結束前存下畫面")
+	mute := flag.Bool("mute", false, "不開音訊裝置")
 	flag.Parse()
-	if err := run(*biosPath, *cuePath, *cardPath, *scale, *frames, *shot); err != nil {
+	if err := run(*biosPath, *cuePath, *cardPath, *scale, *frames, *shot, *mute); err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
 		os.Exit(1)
 	}
 }
 
-func run(biosPath, cuePath, cardPath string, scale, frames int, shot string) error {
+func run(biosPath, cuePath, cardPath string, scale, frames int, shot string, mute bool) error {
 	if biosPath == "" || cuePath == "" {
 		return fmt.Errorf("需要 -bios 與 -cue")
 	}
@@ -68,6 +69,6 @@ func run(biosPath, cuePath, cardPath string, scale, frames int, shot string) err
 	fmt.Fprintln(os.Stderr, "psgolem：記憶卡", cardPath)
 	return ebiten.Run(ebiten.Config{
 		Machine: m, CardPath: cardPath, Scale: scale,
-		Title: "ps-golem " + d.BootFile(), Frames: frames, Screenshot: shot,
+		Title: "ps-golem " + d.BootFile(), Frames: frames, Screenshot: shot, Mute: mute,
 	})
 }

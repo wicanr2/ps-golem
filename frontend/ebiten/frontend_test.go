@@ -59,3 +59,19 @@ func TestCardSaverWaitsForQuiet(t *testing.T) {
 		t.Fatalf("存檔內容不對：len=%d err=%v dirty=%v", len(b), err, c.Dirty)
 	}
 }
+
+func TestPCMStreamPadsSilenceAndDrops(t *testing.T) {
+	s := &pcmStream{}
+	s.push([]int16{1, -1})
+	p := make([]byte, 8)
+	if n, _ := s.Read(p); n != 8 {
+		t.Fatalf("讀到 %d 位元組", n)
+	}
+	if p[0] != 1 || p[1] != 0 || p[2] != 0xFF || p[3] != 0xFF || p[4] != 0 || p[7] != 0 {
+		t.Fatalf("內容 %x，前 4 位元組應為取樣、後 4 位元組靜音", p)
+	}
+	s.push(make([]int16, maxQueued*2+10))
+	if len(s.buf) != maxQueued*2 {
+		t.Fatalf("排隊 %d，應截到 %d", len(s.buf), maxQueued*2)
+	}
+}

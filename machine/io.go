@@ -61,6 +61,17 @@ func (m *Machine) ioRead(p uint32, size int) uint32 {
 		}
 		return v
 	}
+	if p >= 0x1F801C00 && p < 0x1F802000 {
+		// SPU 暫存器 16 位元（013 §4）：32 位元讀兩次，8 位元取對應的半邊
+		h := p &^ 1
+		switch size {
+		case 4:
+			return uint32(m.SPU.Read(h)) | uint32(m.SPU.Read(h+2))<<16
+		case 2:
+			return uint32(m.SPU.Read(h))
+		}
+		return uint32(m.SPU.Read(h)>>(8*(p&1))) & 0xFF
+	}
 	al := p &^ 3
 	v := m.ioRead32(al)
 	v >>= (p & 3) * 8
@@ -75,6 +86,17 @@ func (m *Machine) ioWrite(p uint32, v uint32, size int) {
 	m.sync()
 	defer m.sync()
 	if p >= 0x1F802000 {
+		return
+	}
+	if p >= 0x1F801C00 && p < 0x1F802000 {
+		// SPU（psx-spx 表標 (i16)）：8 位元寫入在偶數位址寫入整個 16 位元、奇數位址忽略；32 位元拆兩次
+		switch {
+		case size == 4:
+			m.SPU.Write(p, uint16(v))
+			m.SPU.Write(p+2, uint16(v>>16))
+		case p&1 == 0:
+			m.SPU.Write(p, uint16(v))
+		}
 		return
 	}
 	if size < 4 && ioWritesFull32(p) {
@@ -163,9 +185,6 @@ func (m *Machine) ioRead32(al uint32) uint32 {
 		v := m.MDEC.Read(al)
 		m.mdecPump()
 		return v
-	case al == 0x1F801DAC: // SPUSTAT 在 DAE，與 DAC（傳輸控制）同一個字
-		spucnt := uint32(binary.LittleEndian.Uint16(m.io.regs[0xDAA:]))
-		return m.load32(al)&^0x003F0000 | (spucnt&0x3F)<<16
 	}
 	return m.load32(al)
 }
@@ -306,15 +325,15 @@ func (m *Machine) dmaWrite(al uint32, v uint32) {
 	}
 }
 
-// dmaMaybeStart：bit 24 成立、DPCR 的通道總開關開啟；同步模式 0 另需 bit 28（強制開始）。
-// 其他模式視為裝置一直要求資料（DREQ），立即開始。
+// dmaMaybeStart：bit 24 成立、DPCR 的通道總開關開啟。只有 channel 6（OTC）另需 bit 28；
+// 其他通道 bit 24 一設就開始（Beetle dma.c ChCan，只對 CH_OT 檢查 bit 28）。
 func (m *Machine) dmaMaybeStart(ch int) {
 	d := &m.io.dma
 	c := d.chcr[ch]
 	if c&(1<<24) == 0 || d.dpcr&(1<<(3+4*ch)) == 0 {
 		return
 	}
-	if (c>>9)&3 == 0 && c&(1<<28) == 0 {
+	if ch == 6 && c&(1<<28) == 0 {
 		return
 	}
 	if ch <= 1 {
@@ -327,10 +346,7 @@ func (m *Machine) dmaMaybeStart(ch int) {
 // dmaActive：通道已啟動、DPCR 開啟；同步模式 0 另需 bit 28。
 func (d *dmaState) active(ch int) bool {
 	c := d.chcr[ch]
-	if c&(1<<24) == 0 || d.dpcr&(1<<(3+4*ch)) == 0 {
-		return false
-	}
-	return (c>>9)&3 != 0 || c&(1<<28) != 0
+	return c&(1<<24) != 0 && d.dpcr&(1<<(3+4*ch)) != 0
 }
 
 // mdecPump 推進 channel 0、1（011 §3）：MDEC 能收或能給時搬一個區塊，直到兩邊都沒有進展。
@@ -396,6 +412,8 @@ func (m *Machine) dmaRun(ch int) {
 		m.dmaGPU()
 	case 3:
 		m.dmaCD()
+	case 4:
+		m.dmaSPU()
 	case 6:
 		addr := d.madr[6] & 0x1FFFFC
 		n := d.bcr[6] & 0xFFFF
@@ -445,6 +463,37 @@ func (m *Machine) dmaCD() {
 	if (d.chcr[3]>>9)&3 == 1 {
 		d.madr[3] = addr
 		d.bcr[3] &= 0xFFFF
+	}
+}
+
+// dmaSPU：channel 4，RAM 與 SPU RAM 之間（013 §4）。CHCR bit 0 為方向（1=RAM→SPU）。
+// 字數：同步模式 0 為 BCR 低 16 位元，1 為區塊大小 × 區塊數。
+func (m *Machine) dmaSPU() {
+	d := &m.io.dma
+	words := d.bcr[4] & 0xFFFF
+	if words == 0 {
+		words = 0x10000
+	}
+	if (d.chcr[4]>>9)&3 == 1 {
+		blocks := d.bcr[4] >> 16
+		if blocks == 0 {
+			blocks = 0x10000
+		}
+		words *= blocks
+	}
+	addr := d.madr[4] & 0x1FFFFC
+	toSPU := d.chcr[4]&1 != 0
+	for i := uint32(0); i < words; i++ {
+		if toSPU {
+			m.SPU.DMAWrite(binary.LittleEndian.Uint32(m.ram[addr:]))
+		} else {
+			binary.LittleEndian.PutUint32(m.ram[addr:], m.SPU.DMARead())
+		}
+		addr = (addr + 4) & 0x1FFFFC
+	}
+	if (d.chcr[4]>>9)&3 == 1 {
+		d.madr[4] = addr
+		d.bcr[4] &= 0xFFFF
 	}
 }
 

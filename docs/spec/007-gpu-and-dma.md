@@ -107,8 +107,11 @@ GPUSTAT bit 28（GP0 寫入 FIFO 空）照 Beetle `CalcFIFOReadyBit`：FIFO 空�
 | `gpu/gp0-e1`、`gpu/mask-bit`、`gpu/rectangles` | 0 | `rectangles` 每個 frame 在同一處重畫半透明矩形、不清背景，混色逐 frame 累積；結果依賴 frame 數，需要 `008-cycle-model` 才正確 |
 | `gpu/lines` | 64 像素 | 測試程式 `setRGB2` 呼叫兩次、沒有 `setRGB3`，第四頂點顏色是未初始化的堆疊內容 |
 | `dma/otc-test` | 2 行 | 實得多出 `testOtcBigTransfer`、`testOtcControlBitsAfterTransferWithChopping` 的 pass 行；實機紀錄沒有這兩行，但同一 commit 的原始碼已含這兩個測試（原因未知） |
-| `dma/chain-looping`、`dma/chopping` | 8、197 行 | 量 DMA 的週期數與自我參照串列，需要 DMA 時序（`008-cycle-model` 之後） |
-| `dma/dpcr` | 17 行 | SPU DMA，屬 M4 |
+| `dma/chain-looping`、`dma/chopping` | 8、260 行 | 量 DMA 的週期數與自我參照串列，需要 DMA 時序；本專案 DMA 立即完成。`chopping` 的不符全部是「took N CPU cycles」計時行 |
+| `dma/dpcr` | 0 | `013` 加入 SPU DMA 後相符 |
+| `spu/memory-transfer` | 8 行 | DMA 時序（模式 1 區塊間讓 CPU 執行、傳輸耗時）；另有 `SyncMode0` 兩個測試比 `psx.log` 新，實機紀錄沒有 |
+
+DMA 開始條件照 Beetle `dma.c`：CHCR bit 24 一設就開始，只有 channel 6 另需 bit 28。
 
 BIOS 開機到 SCE 開場畫面（SONY 字樣、GTE 投影的鑽石標誌與 Gouraud 漸層），以 `psexe -vram` 目視確認。
 與參考模擬器逐像素比對尚未做。

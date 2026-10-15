@@ -121,15 +121,13 @@ type CDROM struct {
 	commandLocDirty bool
 	reportLastF     uint8
 
-	// XASector 不為 nil 時，符合篩選的 XA 音訊扇區交給它（SPU 用）。
-	XASector func(sector *[disc.SectorSize]byte)
-	// CDDASector 不為 nil 時，播放中的 CD-DA 扇區交給它。
-	CDDASector func(sector *[disc.SectorSize]byte)
+	audio      audioState
+	spuCounter int64 // 到 SPU 下一個取樣點的週期數（Beetle SPUCounter）
 }
 
 // New 建立上電狀態的控制器。
 func New() *CDROM {
-	c := &CDROM{}
+	c := &CDROM{spuCounter: 768} // Beetle PS_CDC_Power：SPU_UpdateFromCDC(0) 回傳 768
 	c.softReset()
 	return c
 }
@@ -153,6 +151,8 @@ func (c *CDROM) Insert(d *disc.Disc) {
 }
 
 func (c *CDROM) softReset() {
+	c.audio.clear()
+	c.audio.resetVolume()
 	c.regSelector = 0
 	c.argsBuf = [16]uint8{}
 	c.argsWP, c.argsRP = 0, 0
@@ -346,6 +346,18 @@ func (c *CDROM) Write(a uint32, v uint8) {
 		}
 	case 0x04:
 		c.irqMask = v
+	case 0x07:
+		c.audio.pendingVol[0][0] = v
+	case 0x08:
+		c.audio.pendingVol[0][1] = v
+	case 0x09:
+		c.audio.pendingVol[1][1] = v
+	case 0x0A:
+		c.audio.pendingVol[1][0] = v
+	case 0x0B:
+		if v&0x20 != 0 {
+			c.audio.vol = c.audio.pendingVol
+		}
 	case 0x05:
 		c.irqBuffer &^= v
 		if v&0x80 != 0 {
@@ -371,10 +383,14 @@ func (c *CDROM) DMARead() uint32 {
 
 // ---- 時間推進（Beetle PS_CDC_Update）----
 
-// Tick 推進 clocks 個 CPU 週期。
-func (c *CDROM) Tick(clocks int64) {
+// Tick 推進 clocks 個 CPU 週期。spu 不為 nil 時，時間切到 SPU 的取樣點，
+// 每段處理完 CD 事件後推進 SPU（Beetle PS_CDC_Update 的 SPUCounter，013 §3）。
+func (c *CDROM) Tick(clocks int64, spu SPUClock) {
 	for clocks > 0 {
 		chunk := clocks
+		if spu != nil && c.spuCounter > 0 && chunk > c.spuCounter {
+			chunk = c.spuCounter
+		}
 		if c.psrCounter > 0 && chunk > c.psrCounter {
 			chunk = c.psrCounter
 		}
@@ -412,6 +428,7 @@ func (c *CDROM) Tick(clocks int64) {
 				case dsResetting:
 					c.setAIP(irqComplete, c.makeStatus(false))
 					c.muted = false
+					c.audio.clear()
 					c.sbIn = 0
 					c.pipePos, c.pipeIn = 0, 0
 					c.sectorsRead = 0
@@ -456,9 +473,15 @@ func (c *CDROM) Tick(clocks int64) {
 				c.runPending()
 			}
 		}
+		if spu != nil {
+			c.spuCounter = spu.Advance(chunk, c)
+		}
 		clocks -= chunk
 	}
 }
+
+// SPUCounter 回傳到 SPU 下一個取樣點的週期數（機器在 SPU 中斷開啟時據此同步，013 §3）。
+func (c *CDROM) SPUCounter() int64 { return c.spuCounter }
 
 func (c *CDROM) runPending() {
 	var next int64
@@ -575,8 +598,8 @@ func (c *CDROM) handlePlayRead() {
 			}
 			if c.driveStatus == dsReading {
 				if c.mode&modeStrSnd != 0 && buf[12+3] == 0x2 && buf[12+6]&0x64 == 0x64 {
-					if c.xaTest(buf) && c.XASector != nil {
-						c.XASector(buf)
+					if c.xaTest(buf) && c.audio.read >= c.audio.size {
+						c.xaProcessSector(buf)
 					}
 				} else {
 					offs, size := 12, 2048
@@ -606,8 +629,8 @@ func (c *CDROM) handlePlayRead() {
 				}
 			}
 			if (c.driveStatus == dsReading && c.mode&modeCDDA != 0) || c.driveStatus == dsPlaying {
-				if c.CDDASector != nil {
-					c.CDDASector(buf)
+				if c.audio.read >= c.audio.size {
+					c.enbufferizeCDDA(buf)
 				}
 			}
 		}

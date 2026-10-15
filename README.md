@@ -6,7 +6,7 @@
 第一個案例是《惡魔城X：月下的夜想曲》中文版：在 Linux、Windows、macOS 上可玩、有 HD 輸出，
 並讓 AI agent 能在 `go test` 裡直接查詢執行中的狀態。
 
-規格見 [`docs/spec/000-index.md`](docs/spec/000-index.md)。目前可以從光碟開機玩到遊戲內，還沒有聲音（SPU）。
+規格見 [`docs/spec/000-index.md`](docs/spec/000-index.md)。目前可以從光碟開機玩到遊戲內，有聲音（SPU、XA、CD-DA）。
 
 ## 執行
 

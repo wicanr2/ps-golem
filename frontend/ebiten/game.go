@@ -26,6 +26,8 @@ type Config struct {
 	// Frames 大於 0 時跑完這麼多次 Update 就結束，並把畫面存到 Screenshot（驗收用）。
 	Frames     int
 	Screenshot string
+	// Mute 為 true 時不開音訊裝置（沒有音效卡的環境，例如容器內驗收）。
+	Mute bool
 }
 
 // Game 實作 ebiten.Game。
@@ -37,6 +39,8 @@ type Game struct {
 	canvas  *eb.Image
 	updates int
 	err     error
+	stream  *pcmStream
+	pcm     []int16
 }
 
 // Run 開視窗並執行到關閉。
@@ -45,6 +49,12 @@ func Run(cfg Config) error {
 		cfg.Scale = 3
 	}
 	g := &Game{cfg: cfg, m: cfg.Machine, card: cardSaver{path: cfg.CardPath}}
+	if !cfg.Mute {
+		g.stream = &pcmStream{}
+		if _, err := newAudio(g.stream); err != nil {
+			return fmt.Errorf("音訊：%w", err)
+		}
+	}
 	eb.SetWindowTitle(cfg.Title)
 	eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)
 	eb.SetWindowResizingMode(eb.WindowResizingModeEnabled)
@@ -75,6 +85,10 @@ func (g *Game) Update() error {
 	g.updates++
 	g.m.Pad1.Buttons = buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)
 	g.m.RunUntilField(g.m.Field()+1, fieldCycleLimit)
+	g.pcm = g.m.TakeAudio(g.pcm[:0])
+	if g.stream != nil {
+		g.stream.push(g.pcm)
+	}
 	if _, err := g.card.tick(g.m.Card1, g.m.Field()); err != nil {
 		return fmt.Errorf("記憶卡存檔：%w", err)
 	}

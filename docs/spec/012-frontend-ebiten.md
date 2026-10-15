@@ -66,7 +66,12 @@ psgolem -bios <BIOS> -cue <cue> [-card <記憶卡檔>] [-scale N]
 | 視窗啟動 | 容器內 `xvfb-run` 跑 `psgolem -frames N -screenshot <png>`：跑 N 次 `Update` 後存下 Ebiten 實際畫出的畫面並結束；與 `psexe -screen` 在同一 field 的畫面一致 |
 | 實際遊玩 | 玩家在主機上執行，從開機玩到存檔點存檔（M4 驗收，由玩家確認） |
 
-`-frames`、`-screenshot` 只給驗收與除錯用。
+`-frames`、`-screenshot` 只給驗收與除錯用。`-mute` 不開音訊裝置（容器內沒有音效卡時用）。
+
+## 9. 聲音
+
+`013` §5：每次 `Update` 跑完一個 field 後取走 SPU 的取樣，送進 44.1 kHz 播放器（Ebiten `audio`，緩衝 60 毫秒）。
+排隊超過約 0.25 秒就丟掉最舊的；不夠時補靜音。
 
 ## 8. 驗收結果（2026-10-15）
 
