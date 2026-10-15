@@ -30,6 +30,7 @@ type Disc struct {
 	sectors int32 // bin 的扇區數 = lead-out LBA
 	Tracks  []Track
 	region  string
+	boot    string
 	// Fallback 記錄 cue 內檔名找不到、改用同目錄 .bin 的情形（給呼叫端回報）。
 	Fallback string
 }
@@ -66,7 +67,8 @@ func Open(cuePath string) (*Disc, error) {
 	}
 	d.f = f
 	d.sectors = int32(st.Size() / SectorSize)
-	d.region = d.detectRegion()
+	d.boot = d.detectBoot()
+	d.region = regionOf(d.boot)
 	return d, nil
 }
 
@@ -264,8 +266,8 @@ func (d *Disc) userData(lba int32) []byte {
 	return append([]byte(nil), s[24:24+2048]...)
 }
 
-// detectRegion 依 SYSTEM.CNF 的 BOOT 檔名判斷區域（009 §1）。
-func (d *Disc) detectRegion() string {
+// detectBoot 讀 SYSTEM.CNF 的 BOOT 檔名，去掉路徑與 ";1" 版本號（009 §1）。
+func (d *Disc) detectBoot() string {
 	cnf, err := d.ReadFile("SYSTEM.CNF")
 	if err != nil {
 		return ""
@@ -279,20 +281,30 @@ func (d *Disc) detectRegion() string {
 		if i := strings.LastIndexAny(v, ":\\/"); i >= 0 {
 			v = v[i+1:]
 		}
-		if len(v) < 3 {
-			return ""
-		}
-		switch v[2] {
-		case 'P', 'p':
-			return "SCEI"
-		case 'U', 'u':
-			return "SCEA"
-		case 'E', 'e':
-			return "SCEE"
-		}
+		v, _, _ = strings.Cut(v, ";")
+		return v
 	}
 	return ""
 }
+
+// regionOf 依開機檔名第 3 字元判斷區域（009 §1）。
+func regionOf(boot string) string {
+	if len(boot) < 3 {
+		return ""
+	}
+	switch boot[2] {
+	case 'P', 'p':
+		return "SCEI"
+	case 'U', 'u':
+		return "SCEA"
+	case 'E', 'e':
+		return "SCEE"
+	}
+	return ""
+}
+
+// BootFile 回傳 SYSTEM.CNF 指定的開機檔名（例如 SLPM_860.23）；不是 PS1 光碟回 ""。
+func (d *Disc) BootFile() string { return d.boot }
 
 // ReadFile 從 ISO9660 根目錄讀一個檔案（不分大小寫，忽略 ";1" 版本號）。
 func (d *Disc) ReadFile(name string) ([]byte, error) {

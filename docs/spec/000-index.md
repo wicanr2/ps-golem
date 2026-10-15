@@ -16,6 +16,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `009-cdrom.md` | CONFORMED | cue／bin、CD-ROM 控制器、DMA3 |
 | `010-pad-and-memcard.md` | READY（手把完成） | SIO0、數位手把、記憶卡、按鍵腳本 |
 | `011-mdec.md` | READY（實作完成，台帳見 §7） | MDEC 動畫解碼、DMA0／1 |
+| `012-frontend-ebiten.md` | READY（實作完成，待玩家遊玩驗收） | 視窗、鍵盤與手把、記憶卡自動存檔 |
 
 狀態定義：
 

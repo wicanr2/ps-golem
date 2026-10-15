@@ -23,6 +23,7 @@ func main() {
 	screenFlag := flag.String("screen", "", "結束時把目前顯示的畫面存成 PNG（007 §8）")
 	shotsFlag := flag.String("shots", "", "每隔 -shot-every 個 field 把畫面存到這個目錄")
 	shotEvery := flag.Uint64("shot-every", 60, "-shots 的間隔（field 數）")
+	stopField := flag.Uint64("fields", 0, "大於 0 時跑到第這麼多次 VBlank 就停（不超過 -cycles）")
 	state := flag.Bool("state", false, "結束時印出 PC、GPUSTAT 與部分暫存器到 stderr")
 	ramOut := flag.String("ram", "", "結束時把 2 MB 主記憶體存成檔案（除錯用）")
 	cuePath := flag.String("cue", "", "光碟映像的 cue 檔（docs/spec/009）")
@@ -33,7 +34,7 @@ func main() {
 	ramPath = *ramOut
 	cue = *cuePath
 	card = *cardPath
-	screenOut, shotsDir, shotStep = *screenFlag, *shotsFlag, *shotEvery
+	screenOut, shotsDir, shotStep, fieldLimit = *screenFlag, *shotsFlag, *shotEvery, *stopField
 	var err error
 	if presses, err = parsePresses(*pressSpec); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
@@ -139,10 +140,10 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 }
 
 var (
-	ramPath, cue, card  string
-	screenOut, shotsDir string
-	shotStep            uint64
-	presses             []press
+	ramPath, cue, card   string
+	screenOut, shotsDir  string
+	shotStep, fieldLimit uint64
+	presses              []press
 )
 
 func writeScreen(m *machine.Machine, path string) error {
@@ -157,7 +158,7 @@ func writeScreen(m *machine.Machine, path string) error {
 // runCycles 執行 n 個週期，每個 field 依按鍵腳本更新手把。
 func runCycles(m *machine.Machine, n uint64) {
 	end := m.Cycles() + n
-	for m.Cycles() < end {
+	for m.Cycles() < end && (fieldLimit == 0 || m.Field() < fieldLimit) {
 		m.Pad1.Buttons = buttonsAt(presses, m.Field())
 		f := m.Field() + 1
 		left := end - m.Cycles()

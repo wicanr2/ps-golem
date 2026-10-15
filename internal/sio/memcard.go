@@ -9,6 +9,8 @@ const MemcardSize = 1 << 17
 type Memcard struct {
 	Data  [MemcardSize]byte
 	Dirty bool
+	// Writes 是成功寫入的 frame 數（含內容沒變的寫入），前端用來判斷寫入是否告一段落。
+	Writes uint64
 
 	presenceNew bool
 	rwBuf       [128]byte
@@ -192,6 +194,7 @@ func (c *Memcard) Clock(txd bool) (bool, int64) {
 			default:
 				send('G')
 				c.presenceNew = false
+				c.Writes++
 				dst := c.Data[c.addr<<7 : c.addr<<7+128]
 				if !bytes.Equal(dst, c.rwBuf[:]) {
 					copy(dst, c.rwBuf[:])
