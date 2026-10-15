@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
@@ -19,9 +20,11 @@ func main() {
 	vramOut := flag.String("vram", "", "結束時把 VRAM 存成 PNG（docs/spec/007 §2.1 的展開方式）")
 	state := flag.Bool("state", false, "結束時印出 PC、GPUSTAT 與部分暫存器到 stderr")
 	ramOut := flag.String("ram", "", "結束時把 2 MB 主記憶體存成檔案（除錯用）")
+	cuePath := flag.String("cue", "", "光碟映像的 cue 檔（docs/spec/009）")
 	flag.Parse()
 
 	ramPath = *ramOut
+	cue = *cuePath
 	if err := run(*biosPath, *exePath, *boot, *cycles, *vramOut, *state); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
 		os.Exit(1)
@@ -36,6 +39,42 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	m, err := machine.New(bios)
 	if err != nil {
 		return err
+	}
+	if cue != "" {
+		d, err := disc.Open(cue)
+		if err != nil {
+			return err
+		}
+		if d.Fallback != "" {
+			fmt.Fprintln(os.Stderr, "psexe：", d.Fallback)
+		}
+		fmt.Fprintf(os.Stderr, "psexe：光碟 %d 軌，lead-out LBA %d，區域 %q\n", len(d.Tracks), d.LeadOut(), d.Region())
+		m.InsertDisc(d)
+	}
+	if n := os.Getenv("PSGOLEM_TRACE_CD"); n != "" {
+		var limit, count int
+		fmt.Sscan(n, &limit)
+		machine.CDTrace = func(w bool, reg uint32, idx uint8, v uint8) {
+			if !w && (reg == 0 || reg == 3) {
+				return // 輪詢狀態與中斷旗標的讀取太多，不記
+			}
+			if w && reg == 0 {
+				return // 切換 bank 也不記
+			}
+			if count < limit {
+				d := "R"
+				if w {
+					d = "W"
+				}
+				fmt.Fprintf(os.Stderr, "CD %s reg%d %02x  PC=%08x cyc=%d\n", d, reg, v, m.CPU.PC(), m.Cycles())
+			}
+			count++
+		}
+	}
+	if os.Getenv("PSGOLEM_TRACE_DMA") != "" {
+		machine.DMATrace = func(off, v, dicr uint32) {
+			fmt.Fprintf(os.Stderr, "DMA %02x <- %08x  DICR=%08x PC=%08x cyc=%d\n", off, v, dicr, m.CPU.PC(), m.Cycles())
+		}
 	}
 	if exePath == "" {
 		// 不側載：只跑 BIOS（看開機畫面用）。
@@ -67,7 +106,7 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	return finish(m, vramOut, state)
 }
 
-var ramPath string
+var ramPath, cue string
 
 func finish(m *machine.Machine, vramOut string, state bool) error {
 	fmt.Print(m.TTY())
@@ -79,7 +118,7 @@ func finish(m *machine.Machine, vramOut string, state bool) error {
 	if state {
 		c := m.CPU
 		fmt.Fprintf(os.Stderr, "PC=%08x RA=%08x SP=%08x V0=%08x A0=%08x SR=%08x CAUSE=%08x GPUSTAT=%08x fields=%d\n%s\n",
-			c.PC(), c.GPR(31), c.GPR(29), c.GPR(2), c.GPR(4), c.COP0(12), c.COP0(13), m.GPU.Status(), m.Field(), m.GPU.DebugState())
+			c.PC(), c.GPR(31), c.GPR(29), c.GPR(2), c.GPR(4), c.COP0(12), c.COP0(13), m.GPU.Status(), m.Field(), m.GPU.DebugState()+"\n"+m.DebugIO())
 	}
 	if vramOut != "" {
 		if err := os.WriteFile(vramOut, machine.VRAMPNG(m.VRAM()), 0o644); err != nil {

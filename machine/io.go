@@ -24,8 +24,6 @@ type ioState struct {
 
 	dma    dmaState
 	timers timerState
-
-	cdIndex uint8
 }
 
 func (s *ioState) reset() {
@@ -46,6 +44,13 @@ func (m *Machine) ioRead(p uint32, size int) uint32 {
 	if p >= 0x1F801800 && p < 0x1F801804 {
 		return uint32(m.cdRead(p))
 	}
+	if p >= 0x1F801040 && p < 0x1F801050 {
+		v := m.SIO.Read(p & 0xE)
+		if size < 4 {
+			v &= 1<<(8*size) - 1
+		}
+		return v
+	}
 	al := p &^ 3
 	v := m.ioRead32(al)
 	v >>= (p & 3) * 8
@@ -62,6 +67,10 @@ func (m *Machine) ioWrite(p uint32, v uint32, size int) {
 	}
 	if p >= 0x1F801800 && p < 0x1F801804 {
 		m.cdWrite(p, uint8(v))
+		return
+	}
+	if p >= 0x1F801040 && p < 0x1F801050 {
+		m.SIO.Write(p&0xE, v)
 		return
 	}
 	al := p &^ 3
@@ -98,7 +107,7 @@ func (m *Machine) ioPeek32(al uint32) uint32 {
 
 func (m *Machine) ioRead32(al uint32) uint32 {
 	switch {
-	case al == 0x1F801044 || al == 0x1F801054: // SIO 狀態：傳送就緒
+	case al == 0x1F801054: // SIO1 狀態：傳送就緒（SIO1 未實作）
 		return 0x00000005
 	case al == 0x1F801070:
 		return m.io.iStat
@@ -140,24 +149,24 @@ func (m *Machine) ioWrite32(al uint32, v uint32) {
 	}
 }
 
-// ---- CD-ROM（006 §2：只回報「無命令進行中」）----
+// ---- CD-ROM（009）----
+
+// CDTrace 不為 nil 時記錄 CD-ROM 暫存器存取（除錯用）。
+var CDTrace func(write bool, reg uint32, index uint8, v uint8)
 
 func (m *Machine) cdRead(p uint32) uint8 {
-	switch p & 3 {
-	case 0:
-		return 0x18 | m.io.cdIndex // 參數 FIFO 空且未滿
-	case 3:
-		if m.io.cdIndex&1 == 1 {
-			return 0xE0 // 中斷旗標：沒有待處理的中斷
-		}
+	v := m.CD.Read(p)
+	if CDTrace != nil {
+		CDTrace(false, p&3, 0, v)
 	}
-	return 0
+	return v
 }
 
 func (m *Machine) cdWrite(p uint32, v uint8) {
-	if p&3 == 0 {
-		m.io.cdIndex = v & 3
+	if CDTrace != nil {
+		CDTrace(true, p&3, 0, v)
 	}
+	m.CD.Write(p, v)
 }
 
 // ---- DMA ----
@@ -190,8 +199,9 @@ func (d *dmaState) read(al uint32) uint32 {
 }
 
 // updateMaster 重算 DICR bit 31：b15 或（b23 且任一旗標成立），不看通道遮罩（psx-spx dmachannels.md）。
-func (d *dmaState) updateMaster() (rising bool) {
-	old := d.dicr & (1 << 31)
+// old 是修改 DICR 之前的 bit 31；只有 0→1 才算上升緣。
+func (d *dmaState) updateMaster(old uint32) (rising bool) {
+	old &= 1 << 31
 	flags := (d.dicr >> 24) & 0x7F
 	on := d.dicr&(1<<15) != 0 || (d.dicr&(1<<23) != 0 && flags != 0)
 	d.dicr &^= 1 << 31
@@ -207,8 +217,14 @@ const (
 	chcrOTCWritable = 1<<24 | 1<<28 | 1<<30
 )
 
+// DMATrace 不為 nil 時記錄 DMA 暫存器寫入（除錯用）。
+var DMATrace func(off uint32, v uint32, dicrAfter uint32)
+
 func (m *Machine) dmaWrite(al uint32, v uint32) {
 	d := &m.io.dma
+	if DMATrace != nil {
+		defer func() { DMATrace(al-0x1F801080, v, d.dicr) }()
+	}
 	off := al - 0x1F801080
 	if off >= 0x70 {
 		switch off {
@@ -219,8 +235,9 @@ func (m *Machine) dmaWrite(al uint32, v uint32) {
 			// cpu/io-access-bitwidth 的實機紀錄是寫 0x78 讀回 0x38，bit 6 不可寫。
 			keep := v & 0x00FF803F
 			ack := v & 0x7F000000
+			before := d.dicr
 			d.dicr = keep | (d.dicr&0x7F000000)&^ack
-			if d.updateMaster() {
+			if d.updateMaster(before) {
 				m.io.raise(irqDMA)
 			}
 		}
@@ -262,6 +279,8 @@ func (m *Machine) dmaRun(ch int) {
 	switch ch {
 	case 2:
 		m.dmaGPU()
+	case 3:
+		m.dmaCD()
 	case 6:
 		addr := d.madr[6] & 0x1FFFFC
 		n := d.bcr[6] & 0xFFFF
@@ -278,11 +297,33 @@ func (m *Machine) dmaRun(ch int) {
 		}
 	}
 	d.chcr[ch] &^= 1<<24 | 1<<28
+	before := d.dicr
 	if d.dicr&(1<<(16+ch)) != 0 && d.dicr&(1<<23) != 0 {
 		d.dicr |= 1 << (24 + ch)
 	}
-	if d.updateMaster() {
+	if d.updateMaster(before) {
 		m.io.raise(irqDMA)
+	}
+}
+
+// dmaCD：channel 3，CD-ROM → RAM。字數：同步模式 0 為 BCR 低 16 位元，1 為區塊大小 × 區塊數。
+func (m *Machine) dmaCD() {
+	d := &m.io.dma
+	words := d.bcr[3] & 0xFFFF
+	if (d.chcr[3]>>9)&3 == 1 {
+		words *= d.bcr[3] >> 16
+	}
+	if words == 0 {
+		words = 0x10000
+	}
+	addr := d.madr[3] & 0x1FFFFC
+	for i := uint32(0); i < words; i++ {
+		binary.LittleEndian.PutUint32(m.ram[addr:], m.CD.DMARead())
+		addr = (addr + 4) & 0x1FFFFC
+	}
+	if (d.chcr[3]>>9)&3 == 1 {
+		d.madr[3] = addr
+		d.bcr[3] &= 0xFFFF
 	}
 }
 

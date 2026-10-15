@@ -13,6 +13,8 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `006-minimal-machine.md` | CONFORMED | 匯流排、BIOS 開機、PS-EXE 側載、TTY；週邊台帳 |
 | `007-gpu-and-dma.md` | READY（實作中） | GPU 原生光柵化、DMA2；M3 台帳 |
 | `008-cycle-model.md` | CONFORMED | 取指令、讀取、乘除法、GTE 的週期成本 |
+| `009-cdrom.md` | CONFORMED | cue／bin、CD-ROM 控制器、DMA3 |
+| `010-pad-and-memcard.md` | READY（手把完成） | SIO0、數位手把、記憶卡 |
 
 狀態定義：
 

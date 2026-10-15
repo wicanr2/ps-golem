@@ -7,8 +7,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/wicanr2/ps-golem/internal/cdrom"
 	"github.com/wicanr2/ps-golem/internal/cpu"
+	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/gpu"
+	"github.com/wicanr2/ps-golem/internal/sio"
 )
 
 const (
@@ -30,6 +33,10 @@ const (
 type Machine struct {
 	CPU *cpu.CPU
 	GPU *gpu.GPU
+	CD  *cdrom.CDROM
+	SIO *sio.SIO
+	// Pad1 是插在 1P 的數位手把；改 Buttons 就是按鍵。
+	Pad1 *sio.Gamepad
 
 	ram        [ramSize]byte
 	bios       [biosSize]byte
@@ -45,6 +52,8 @@ type Machine struct {
 	dotAcc   uint64
 	field    uint64
 	gpuIRQ   bool
+	cdIRQ    bool
+	sioIRQ   bool
 
 	tty []byte
 }
@@ -58,9 +67,16 @@ func New(bios []byte) (*Machine, error) {
 	copy(m.bios[:], bios)
 	m.io.reset()
 	m.GPU = gpu.New()
+	m.CD = cdrom.New()
+	m.SIO = sio.New()
+	m.Pad1 = &sio.Gamepad{}
+	m.SIO.Pads[0] = m.Pad1
 	m.CPU = cpu.New(m)
 	return m, nil
 }
+
+// InsertDisc 放入光碟（009 §5）。
+func (m *Machine) InsertDisc(d *disc.Disc) { m.CD.Insert(d) }
 
 // Clone 深拷貝整台機器（即時存檔的雛形；測試用來共用開機進 shell 的狀態）。
 func (m *Machine) Clone() *Machine {
@@ -70,6 +86,13 @@ func (m *Machine) Clone() *Machine {
 	n.GPU = &g
 	c := *m.CPU
 	n.CPU = &c
+	cd := m.CD.Clone()
+	n.CD = cd
+	pad := *m.Pad1
+	n.Pad1 = &pad
+	sioCopy := *m.SIO
+	n.SIO = &sioCopy
+	n.SIO.Pads[0] = n.Pad1
 	n.CPU.Rebind(&n)
 	return &n
 }
@@ -144,6 +167,20 @@ func (m *Machine) tick(n uint64) {
 		m.dotAcc -= dots * div
 	}
 	m.io.timers.tick(&m.io, n, dots, lines)
+	m.CD.Tick(int64(n))
+	m.SIO.Tick(int64(n))
+	if irq := m.SIO.IRQ(); irq != m.sioIRQ {
+		if irq {
+			m.io.raise(irqSIO0)
+		}
+		m.sioIRQ = irq
+	}
+	if irq := m.CD.IRQ(); irq != m.cdIRQ {
+		if irq {
+			m.io.raise(irqCDROM)
+		}
+		m.cdIRQ = irq
+	}
 	if irq := m.GPU.IRQ(); irq != m.gpuIRQ {
 		if irq {
 			m.io.raise(irqGPU)
@@ -339,4 +376,11 @@ func (m *Machine) ReadRAM(phys uint32, n int) []byte {
 		out[i] = m.ram[(phys+uint32(i))&(ramSize-1)]
 	}
 	return out
+}
+
+// DebugIO 回傳中斷與 DMA 的狀態（除錯用）。
+func (m *Machine) DebugIO() string {
+	d := &m.io.dma
+	return fmt.Sprintf("I_STAT=%03x I_MASK=%03x DICR=%08x DPCR=%08x CHCR3=%08x CHCR2=%08x CDIRQ=%v",
+		m.io.iStat, m.io.iMask, d.dicr, d.dpcr, d.chcr[3], d.chcr[2], m.CD.IRQ())
 }
