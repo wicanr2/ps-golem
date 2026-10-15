@@ -25,13 +25,13 @@ type ioState struct {
 	dma    dmaState
 	timers timerState
 
-	gpuOddField bool
-
 	cdIndex uint8
 }
 
 func (s *ioState) reset() {
 	*s = ioState{}
+	s.dma.dpcr = 0x07654321
+	s.dma.chcr[6] = 2
 }
 
 func (s *ioState) raise(bit uint) { s.iStat |= 1 << bit }
@@ -108,14 +108,10 @@ func (m *Machine) ioRead32(al uint32) uint32 {
 		return m.io.dma.read(al)
 	case al >= 0x1F801100 && al < 0x1F801130:
 		return m.io.timers.read(al)
-	case al == 0x1F801810: // GPUREAD
-		return 0
-	case al == 0x1F801814: // GPUSTAT：可收命令、可送 VRAM、可收 DMA
-		st := uint32(0x1C000000)
-		if m.io.gpuOddField {
-			st |= 1 << 31
-		}
-		return st
+	case al == 0x1F801810:
+		return m.GPU.ReadData()
+	case al == 0x1F801814:
+		return m.GPU.Status()
 	case al == 0x1F801824: // MDEC 狀態：輸出 FIFO 空
 		return 0x80040000
 	case al == 0x1F801DAC: // SPUSTAT 在 DAE，與 DAC（傳輸控制）同一個字
@@ -135,7 +131,10 @@ func (m *Machine) ioWrite32(al uint32, v uint32) {
 		m.dmaWrite(al, v)
 	case al >= 0x1F801100 && al < 0x1F801130:
 		m.io.timers.write(al, v)
-	case al == 0x1F801810 || al == 0x1F801814: // GP0／GP1：本階段忽略
+	case al == 0x1F801810:
+		m.GPU.WriteGP0(v)
+	case al == 0x1F801814:
+		m.GPU.WriteGP1(v)
 	default:
 		m.store32(al, v)
 	}
@@ -190,17 +189,23 @@ func (d *dmaState) read(al uint32) uint32 {
 	}
 }
 
+// updateMaster 重算 DICR bit 31：b15 或（b23 且任一旗標成立），不看通道遮罩（psx-spx dmachannels.md）。
 func (d *dmaState) updateMaster() (rising bool) {
 	old := d.dicr & (1 << 31)
 	flags := (d.dicr >> 24) & 0x7F
-	en := (d.dicr >> 16) & 0x7F
-	on := d.dicr&(1<<15) != 0 || (d.dicr&(1<<23) != 0 && flags&en != 0)
+	on := d.dicr&(1<<15) != 0 || (d.dicr&(1<<23) != 0 && flags != 0)
 	d.dicr &^= 1 << 31
 	if on {
 		d.dicr |= 1 << 31
 	}
 	return old == 0 && on
 }
+
+// CHCR 可寫的位元。channel 6（OTC）只有 24、28、30 可寫，bit 1 恆為 1。
+const (
+	chcrWritable    = 0x71770703
+	chcrOTCWritable = 1<<24 | 1<<28 | 1<<30
+)
 
 func (m *Machine) dmaWrite(al uint32, v uint32) {
 	d := &m.io.dma
@@ -210,6 +215,8 @@ func (m *Machine) dmaWrite(al uint32, v uint32) {
 		case 0x70:
 			d.dpcr = v
 		case 0x74:
+			// bit 0–5、15、16–23 可寫。psx-spx 寫 bit 0–6，但 ps1-tests
+			// cpu/io-access-bitwidth 的實機紀錄是寫 0x78 讀回 0x38，bit 6 不可寫。
 			keep := v & 0x00FF803F
 			ack := v & 0x7F000000
 			d.dicr = keep | (d.dicr&0x7F000000)&^ack
@@ -226,17 +233,36 @@ func (m *Machine) dmaWrite(al uint32, v uint32) {
 	case 0x4:
 		d.bcr[ch] = v
 	default:
-		d.chcr[ch] = v
-		if v&(1<<24) != 0 {
-			m.dmaRun(int(ch))
+		if ch == 6 {
+			d.chcr[ch] = v&chcrOTCWritable | 2
+		} else {
+			d.chcr[ch] = v & chcrWritable
 		}
+		m.dmaMaybeStart(int(ch))
 	}
 }
 
-// dmaRun 立即完成一次傳輸（006 §2）：channel 6 清表，其他不搬資料。
+// dmaMaybeStart：bit 24 成立、DPCR 的通道總開關開啟；同步模式 0 另需 bit 28（強制開始）。
+// 其他模式視為裝置一直要求資料（DREQ），立即開始。
+func (m *Machine) dmaMaybeStart(ch int) {
+	d := &m.io.dma
+	c := d.chcr[ch]
+	if c&(1<<24) == 0 || d.dpcr&(1<<(3+4*ch)) == 0 {
+		return
+	}
+	if (c>>9)&3 == 0 && c&(1<<28) == 0 {
+		return
+	}
+	m.dmaRun(ch)
+}
+
+// dmaRun 立即完成一次傳輸（006 §2、007 §1）：channel 2 送 GPU，channel 6 清表，其他不搬資料。
 func (m *Machine) dmaRun(ch int) {
 	d := &m.io.dma
-	if ch == 6 {
+	switch ch {
+	case 2:
+		m.dmaGPU()
+	case 6:
 		addr := d.madr[6] & 0x1FFFFC
 		n := d.bcr[6] & 0xFFFF
 		if n == 0 {
@@ -252,11 +278,68 @@ func (m *Machine) dmaRun(ch int) {
 		}
 	}
 	d.chcr[ch] &^= 1<<24 | 1<<28
-	if d.dicr&(1<<(16+ch)) != 0 {
+	if d.dicr&(1<<(16+ch)) != 0 && d.dicr&(1<<23) != 0 {
 		d.dicr |= 1 << (24 + ch)
 	}
 	if d.updateMaster() {
 		m.io.raise(irqDMA)
+	}
+}
+
+// dmaLinkedListLimit 是 linked list 走訪的上限，防止自我參照的串列卡死模擬器。
+const dmaLinkedListLimit = 1 << 20
+
+// dmaGPU：channel 2。CHCR bit 0 為方向（1=RAM→GPU），bit 9–10 為同步模式。
+func (m *Machine) dmaGPU() {
+	d := &m.io.dma
+	chcr := d.chcr[2]
+	toDevice := chcr&1 != 0
+	step := uint32(4)
+	if chcr&2 != 0 {
+		step = ^uint32(3) // -4
+	}
+	addr := d.madr[2] & 0x1FFFFC
+	switch (chcr >> 9) & 3 {
+	case 0, 1:
+		var words uint32
+		if (chcr>>9)&3 == 0 {
+			words = d.bcr[2] & 0xFFFF
+			if words == 0 {
+				words = 0x10000
+			}
+		} else {
+			bs := d.bcr[2] & 0xFFFF
+			if bs == 0 {
+				bs = 0x10000
+			}
+			words = bs * (d.bcr[2] >> 16)
+		}
+		for i := uint32(0); i < words; i++ {
+			if toDevice {
+				m.GPU.WriteGP0(binary.LittleEndian.Uint32(m.ram[addr:]))
+			} else {
+				binary.LittleEndian.PutUint32(m.ram[addr:], m.GPU.ReadData())
+			}
+			addr = (addr + step) & 0x1FFFFC
+		}
+		if (chcr>>9)&3 == 1 {
+			d.madr[2] = addr
+			d.bcr[2] &= 0xFFFF
+		}
+	case 2:
+		for n := 0; n < dmaLinkedListLimit; n++ {
+			hdr := binary.LittleEndian.Uint32(m.ram[addr:])
+			cnt := hdr >> 24
+			for i := uint32(0); i < cnt; i++ {
+				a := (addr + 4 + 4*i) & 0x1FFFFC
+				m.GPU.WriteGP0(binary.LittleEndian.Uint32(m.ram[a:]))
+			}
+			if hdr&0x800000 != 0 {
+				break
+			}
+			addr = hdr & 0x1FFFFC
+		}
+		d.madr[2] = 0x00FFFFFF
 	}
 }
 
@@ -308,14 +391,27 @@ func (ts *timerState) write(al uint32, v uint32) {
 	}
 }
 
-// tick 推進計時器。來源一律視為 system clock；timer2 的 /8 例外（006 §3 的簡化）。
-func (ts *timerState) tick(s *ioState, n uint64) {
+// tick 推進計時器。sys 為系統時脈週期，dots 為點時脈，lines 為 HBlank 次數（psx-spx timers.md）：
+// timer0 bit 8 選點時脈，timer1 bit 8 選 HBlank，timer2 bit 9 選系統時脈 ÷8。
+// 同步模式（bit 0–2）尚未實作。
+func (ts *timerState) tick(s *ioState, sys, dots, lines uint64) {
 	for i := range ts.t {
-		steps := n
-		if i == 2 && ts.t[i].mode&(1<<9) != 0 {
-			ts.divider += n
-			steps = ts.divider / 8
-			ts.divider %= 8
+		steps := sys
+		switch i {
+		case 0:
+			if ts.t[0].mode&(1<<8) != 0 {
+				steps = dots
+			}
+		case 1:
+			if ts.t[1].mode&(1<<8) != 0 {
+				steps = lines
+			}
+		case 2:
+			if ts.t[2].mode&(1<<9) != 0 {
+				ts.divider += sys
+				steps = ts.divider / 8
+				ts.divider %= 8
+			}
 		}
 		for k := uint64(0); k < steps; k++ {
 			ts.inc(s, i)

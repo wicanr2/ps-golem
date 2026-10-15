@@ -11,6 +11,8 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `004-cpu-r3000a.md` | CONFORMED | CPU；與參照實作的差異依實機紀錄修正 |
 | `005-cross-platform-delivery.md` | DRAFT | 三平台在 Linux docker 內建置 |
 | `006-minimal-machine.md` | CONFORMED | 匯流排、BIOS 開機、PS-EXE 側載、TTY；週邊台帳 |
+| `007-gpu-and-dma.md` | READY（實作中） | GPU 原生光柵化、DMA2；M3 台帳 |
+| `008-cycle-model.md` | READY | 取指令、讀取、乘除法、GTE 的週期成本 |
 
 狀態定義：
 

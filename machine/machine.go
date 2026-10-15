@@ -6,9 +6,9 @@ package machine
 import (
 	"encoding/binary"
 	"fmt"
-	"strings"
 
 	"github.com/wicanr2/ps-golem/internal/cpu"
+	"github.com/wicanr2/ps-golem/internal/gpu"
 )
 
 const (
@@ -29,6 +29,7 @@ const (
 // Machine 是一台 PlayStation。時間以 CPU 週期計。
 type Machine struct {
 	CPU *cpu.CPU
+	GPU *gpu.GPU
 
 	ram        [ramSize]byte
 	bios       [biosSize]byte
@@ -40,11 +41,12 @@ type Machine struct {
 	cycles uint64
 
 	// 影像時鐘累加器：每個 CPU 週期加 videoNum，滿 videoDen 進一個影像週期。
-	videoAcc   uint64
-	videoInFld uint64
-	field      uint64
+	videoAcc uint64
+	dotAcc   uint64
+	field    uint64
+	gpuIRQ   bool
 
-	tty strings.Builder
+	tty []byte
 }
 
 // New 建立一台機器並載入 BIOS（512 KB）。
@@ -55,18 +57,34 @@ func New(bios []byte) (*Machine, error) {
 	m := &Machine{}
 	copy(m.bios[:], bios)
 	m.io.reset()
+	m.GPU = gpu.New()
 	m.CPU = cpu.New(m)
 	return m, nil
+}
+
+// Clone 深拷貝整台機器（即時存檔的雛形；測試用來共用開機進 shell 的狀態）。
+func (m *Machine) Clone() *Machine {
+	n := *m
+	n.tty = append([]byte(nil), m.tty...)
+	g := *m.GPU
+	n.GPU = &g
+	c := *m.CPU
+	n.CPU = &c
+	n.CPU.Rebind(&n)
+	return &n
 }
 
 // Cycles 回傳開機以來的 CPU 週期數。
 func (m *Machine) Cycles() uint64 { return m.cycles }
 
+// VRAM 回傳 GPU 的 VRAM（1024×512，觀測用，勿改）。
+func (m *Machine) VRAM() []uint16 { return m.GPU.VRAM[:] }
+
 // Field 回傳開機以來經過的 VBlank 次數。
 func (m *Machine) Field() uint64 { return m.field }
 
 // TTY 回傳目前攔到的 TTY 輸出。
-func (m *Machine) TTY() string { return m.tty.String() }
+func (m *Machine) TTY() string { return string(m.tty) }
 
 // Step 執行一條指令並推進時間一個週期。
 func (m *Machine) Step() {
@@ -104,23 +122,34 @@ func (m *Machine) ttyHook() {
 	}
 	fn := m.CPU.GPR(9)
 	if (p == 0xA0 && fn == 0x3C) || (p == 0xB0 && fn == 0x3D) {
-		m.tty.WriteByte(byte(m.CPU.GPR(4)))
+		m.tty = append(m.tty, byte(m.CPU.GPR(4)))
 	}
 }
 
 func (m *Machine) tick(n uint64) {
 	m.cycles += n
-	m.io.timers.tick(&m.io, n)
+	var dots, lines uint64
 	m.videoAcc += n * videoNum
-	for m.videoAcc >= videoDen {
-		m.videoAcc -= videoDen
-		m.videoInFld++
-		if m.videoInFld == videoPerField {
-			m.videoInFld = 0
+	if m.videoAcc >= videoDen {
+		v := m.videoAcc / videoDen
+		m.videoAcc -= v * videoDen
+		vb, l := m.GPU.TickVideo(uint32(v))
+		lines = uint64(l)
+		for ; vb > 0; vb-- {
 			m.field++
-			m.io.gpuOddField = !m.io.gpuOddField
 			m.io.raise(irqVBlank)
 		}
+		m.dotAcc += v
+		div := uint64(m.GPU.DotDivider())
+		dots = m.dotAcc / div
+		m.dotAcc -= dots * div
+	}
+	m.io.timers.tick(&m.io, n, dots, lines)
+	if irq := m.GPU.IRQ(); irq != m.gpuIRQ {
+		if irq {
+			m.io.raise(irqGPU)
+		}
+		m.gpuIRQ = irq
 	}
 	m.CPU.SetIRQ(m.io.irqPending())
 }

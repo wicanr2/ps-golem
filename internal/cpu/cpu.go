@@ -100,6 +100,9 @@ func (c *CPU) Reset() {
 	c.cop0[CP0PRID] = 2
 }
 
+// Rebind 換掉 CPU 看到的匯流排（複製整台機器時用）。
+func (c *CPU) Rebind(bus Bus) { c.bus = bus }
+
 // PC 回傳下一條要執行的指令位址。
 func (c *CPU) PC() uint32 { return c.pc }
 

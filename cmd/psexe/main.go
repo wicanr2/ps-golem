@@ -16,24 +16,33 @@ func main() {
 	exePath := flag.String("exe", "", "PS-EXE 檔")
 	cycles := flag.Uint64("cycles", 200_000_000, "側載之後執行的 CPU 週期數")
 	boot := flag.Uint64("boot-cycles", 400_000_000, "等 BIOS 進入 shell 的週期上限")
+	vramOut := flag.String("vram", "", "結束時把 VRAM 存成 PNG（docs/spec/007 §2.1 的展開方式）")
+	state := flag.Bool("state", false, "結束時印出 PC、GPUSTAT 與部分暫存器到 stderr")
+	ramOut := flag.String("ram", "", "結束時把 2 MB 主記憶體存成檔案（除錯用）")
 	flag.Parse()
 
-	if err := run(*biosPath, *exePath, *boot, *cycles); err != nil {
+	ramPath = *ramOut
+	if err := run(*biosPath, *exePath, *boot, *cycles, *vramOut, *state); err != nil {
 		fmt.Fprintln(os.Stderr, "psexe:", err)
 		os.Exit(1)
 	}
 }
 
-func run(biosPath, exePath string, boot, cycles uint64) error {
+func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bool) error {
 	bios, err := os.ReadFile(biosPath)
 	if err != nil {
 		return err
 	}
-	exe, err := os.ReadFile(exePath)
+	m, err := machine.New(bios)
 	if err != nil {
 		return err
 	}
-	m, err := machine.New(bios)
+	if exePath == "" {
+		// 不側載：只跑 BIOS（看開機畫面用）。
+		m.Run(cycles)
+		return finish(m, vramOut, state)
+	}
+	exe, err := os.ReadFile(exePath)
 	if err != nil {
 		return err
 	}
@@ -44,7 +53,38 @@ func run(biosPath, exePath string, boot, cycles uint64) error {
 	if err := m.SideloadEXE(exe); err != nil {
 		return err
 	}
+	if n := os.Getenv("PSGOLEM_TRACE_GP0"); n != "" {
+		var limit, count int
+		fmt.Sscan(n, &limit)
+		m.GPU.Trace = func(v uint32) {
+			if count < limit {
+				fmt.Fprintf(os.Stderr, "GP0 %08x  PC=%08x cyc=%d\n", v, m.CPU.PC(), m.Cycles())
+			}
+			count++
+		}
+	}
 	m.Run(cycles)
+	return finish(m, vramOut, state)
+}
+
+var ramPath string
+
+func finish(m *machine.Machine, vramOut string, state bool) error {
 	fmt.Print(m.TTY())
+	if ramPath != "" {
+		if err := os.WriteFile(ramPath, m.ReadRAM(0, 2<<20), 0o644); err != nil {
+			return err
+		}
+	}
+	if state {
+		c := m.CPU
+		fmt.Fprintf(os.Stderr, "PC=%08x RA=%08x SP=%08x V0=%08x A0=%08x SR=%08x CAUSE=%08x GPUSTAT=%08x fields=%d\n%s\n",
+			c.PC(), c.GPR(31), c.GPR(29), c.GPR(2), c.GPR(4), c.COP0(12), c.COP0(13), m.GPU.Status(), m.Field(), m.GPU.DebugState())
+	}
+	if vramOut != "" {
+		if err := os.WriteFile(vramOut, machine.VRAMPNG(m.VRAM()), 0o644); err != nil {
+			return err
+		}
+	}
 	return nil
 }
