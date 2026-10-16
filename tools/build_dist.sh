@@ -69,6 +69,15 @@ bad=$(find "$STAGE" -type f \( -iname '*.bin' -o -iname '*.cue' -o -iname '*.iso
   -o -iname '*.mcd' -o -iname '*.mcr' -o -iname '*.chd' -o -iname '*.state' \) -print)
 [ -z "$bad" ] || { echo "包裡有不該出現的檔案：" >&2; echo "$bad" >&2; exit 1; }
 
+# 守門：每個執行檔都含這次的版號與設定畫面的字串，證明包進去的是這次編的程式（Mach-O 在 Linux 上只能這樣驗）。
+for b in "$STAGE"/linux/* "$STAGE"/windows/*.exe "$STAGE"/macos/psexe "$APP"/MacOS/psgolem; do
+  [ -f "$b" ] && [ -x "$b" ] || continue
+  grep -qaF "$VER" "$b" || { echo "$b 沒有版號 $VER" >&2; exit 1; }
+done
+for b in "$STAGE"/linux/psgolem "$STAGE"/windows/psgolem.exe "$APP"/MacOS/psgolem; do
+  grep -qaF "Drag and drop onto this window" "$b" || { echo "$b 沒有設定畫面" >&2; exit 1; }
+done
+
 echo "== 打包"
 PSGOLEM_GO_CMD=bash tools/go.sh -c "
   set -euo pipefail

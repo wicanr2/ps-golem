@@ -48,9 +48,10 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 | `ps-golem-<版號>-windows-amd64.zip` | `psgolem.exe`、`psexe.exe` |
 | `ps-golem-<版號>-macos-universal.zip` | `ps-golem.app`（`Contents/MacOS/psgolem`＋`Info.plist`，最低 macOS 11.0）、`psexe` |
 
+每個執行檔都要含該版號字串，視窗執行檔還要含設定畫面的字串，否則停止打包（Mach-O 在 Linux 上只能這樣確認包進去的是這次的程式）。
 每包另帶 `LICENSE`、`README.md`、`docs/play.md`。打包前檢查不得有 `.bin`、`.cue`、`.iso`、`.img`、`.chd`、`.mcd`、`.mcr`、`.state`。
 `.app` 不做 bundle 簽章（Linux 做不出 `_CodeSignature`）；arm64 執行檔帶 ld64 加的 ad-hoc 簽章。
-雙擊開啟沒有參數，BIOS 與光碟位置由設定畫面與設定檔處理（`012` §10）。
+雙擊開啟沒有參數，BIOS 與光碟位置由設定畫面與設定檔處理（`012` §9）。
 
 ## 6. 驗收
 
@@ -60,9 +61,9 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 | Windows | 同上，以 Wine 執行 `psgolem.exe`；另以 `psexe.exe` 跑 2B 週期，摘要與畫面和 Linux 版相同 |
 | macOS | `tools/verify_macos.sh` 四道全過；真機遊玩另外做 |
 
-## 7. 驗收結果（2026-10-16，v0.1.0，SCPH5500）
+## 7. 驗收結果（2026-10-16，v0.1.1，SCPH5500）
 
 - Linux：`ldd` 無缺庫；設定檔寫入後不帶參數開機，第 2000 次 `Update` 與 `psexe` 0 像素不同。
 - Windows（Wine 9，xvfb）：同上 0 像素不同；設定檔寫在 `%AppData%\ps-golem\settings.json`。
   `psexe.exe` 2B 週期摘要 `e6cca47ab31dc42c`、畫面 PNG 與 Linux 版逐位元相同。沒有音效裝置時（容器內無 ALSA 卡）照常執行。
-- macOS：`psgolem`、`psexe` 雙弧、arm64 有 `LC_CODE_SIGNATURE`、`minos 11.0`、只連系統動態庫。未在實機執行。
+- macOS：執行檔含 `v0.1.1` 與設定畫面字串；`psgolem`、`psexe` 雙弧、arm64 有 `LC_CODE_SIGNATURE`、`minos 11.0`、只連系統動態庫。未在實機執行。

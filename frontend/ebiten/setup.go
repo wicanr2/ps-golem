@@ -14,7 +14,7 @@ import (
 	"github.com/wicanr2/ps-golem/machine"
 )
 
-// biosSize 是 BIOS 映像的大小；拖進來的檔案用它認 BIOS（012 §10）。
+// biosSize 是 BIOS 映像的大小；拖進來的檔案用它認 BIOS（012 §9）。
 const biosSize = 512 * 1024
 
 // Session 是開好的一台機器與它的記憶卡位置。
@@ -28,7 +28,7 @@ type Session struct {
 // OpenFunc 依 BIOS 與 cue 的路徑開機；失敗時回傳錯誤，前端改顯示設定畫面。
 type OpenFunc func(biosPath, cuePath string) (*Session, error)
 
-// dropKind 依副檔名與大小判斷拖進的檔案是什麼（012 §10）。
+// dropKind 依副檔名與大小判斷拖進的檔案是什麼（012 §9）。
 func dropKind(name string, size int64) string {
 	switch {
 	case strings.EqualFold(filepath.Ext(name), ".cue"):

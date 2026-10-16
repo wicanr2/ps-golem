@@ -19,7 +19,7 @@ const fieldCycleLimit = 1_200_000
 
 // Config 是前端設定。
 type Config struct {
-	// Open 依 BIOS 與 cue 開機（012 §10）。BIOSPath、CuePath 是起始路徑，可以是空的。
+	// Open 依 BIOS 與 cue 開機（012 §9）。BIOSPath、CuePath 是起始路徑，可以是空的。
 	Open     OpenFunc
 	BIOSPath string
 	CuePath  string
@@ -37,7 +37,7 @@ type Game struct {
 	cfg  Config
 	sess *Session
 	m    *machine.Machine
-	// 設定畫面（012 §10）：m 為 nil 時顯示。
+	// 設定畫面（012 §9）：m 為 nil 時顯示。
 	biosPath, cuePath, setupErr string
 	text                        *eb.Image
 	card                        cardSaver
@@ -57,8 +57,10 @@ func Run(cfg Config) error {
 	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath}
 	if !cfg.Mute {
 		g.stream = &pcmStream{}
+		// 開不起音訊裝置時照常跑、不出聲：雙擊開啟的玩家看不到錯誤訊息，中止等於「點了沒反應」。
 		if _, err := newAudio(g.stream); err != nil {
-			return fmt.Errorf("音訊：%w", err)
+			fmt.Fprintln(os.Stderr, "psgolem：音訊裝置開不起來，改為靜音：", err)
+			g.stream = nil
 		}
 	}
 	eb.SetWindowTitle(cfg.Title)

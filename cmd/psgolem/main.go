@@ -1,4 +1,4 @@
-// psgolem 是玩家用的視窗執行檔（docs/spec/012-frontend-ebiten.md §2、§10）。
+// psgolem 是玩家用的視窗執行檔（docs/spec/012-frontend-ebiten.md §2、§9）。
 package main
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/wicanr2/ps-golem/machine"
 )
 
-// settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §10）。
+// settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §9）。
 type settings struct {
 	BIOS string `json:"bios"`
 	Cue  string `json:"cue"`

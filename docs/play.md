@@ -10,8 +10,20 @@ ps-golem 是 PlayStation 1 執行器。發行包不含 BIOS 與遊戲光碟，�
 | 平台 | 執行 |
 |---|---|
 | Windows | 解壓後雙擊 `psgolem.exe` |
-| macOS | 解壓後雙擊 `ps-golem.app`。第一次開啟若被擋下，在 Finder 對它按右鍵選「打開」；仍打不開時在終端機執行 `xattr -dr com.apple.quarantine ps-golem.app` |
+| macOS | 解壓後雙擊 `ps-golem.app`。程式沒有 Apple 公證，第一次開啟會被擋下，處理方式見下方 |
 | Linux | 解壓後執行 `./psgolem`。需要系統有 X11、OpenGL 與 ALSA 的程式庫（一般桌面環境都有） |
+
+### macOS 第一次開啟
+
+ps-golem 沒有經過 Apple 公證（notarization），從網路下載後第一次開啟會被 Gatekeeper 擋下。擇一處理：
+
+- 在終端機進到解壓的目錄，執行 `xattr -dr com.apple.quarantine ps-golem.app`，之後就能雙擊開啟。
+- macOS 15（Sequoia）以後：先雙擊一次讓它被擋，再到「系統設定 → 隱私權與安全性」頁面底部按「強制打開」。
+- macOS 14 以前：在 Finder 對它按右鍵選「打開」。
+
+macOS 15 拿掉了右鍵「打開」的繞過方式（[Macworld](https://www.macworld.com/article/2457844/what-to-do-when-you-cant-open-an-app-you-just-installed-in-macos-sequoia.html)）。
+
+## 設定 BIOS 與光碟
 
 第一次開啟會看到設定畫面。把 BIOS 檔與光碟的 `.cue` 檔拖進視窗，兩個都放進去後就會開機。
 路徑會記在設定檔，之後雙擊就直接開機。
