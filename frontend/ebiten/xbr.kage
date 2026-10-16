@@ -1,0 +1,120 @@
+//go:build ignore
+//kage:unit pixels
+
+// 移植 libretro/glsl-shaders xbr/shaders/xbr-lv2.glsl。
+// commit 148ce728155232a6b63be772c1810bd84728f359，MIT。
+// 使用 CORNER_C、SMOOTH_TIPS 與上游預設參數，保留 lv2 的四方向判斷。
+/*
+   Hyllian's xBR-lv2 Shader
+   
+   Copyright (C) 2011-2016 Hyllian - sergiogdb@gmail.com
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+
+   Incorporates some of the ideas from SABR shader. Thanks to Joshua Street.
+*/
+package main
+
+func df(a, b vec4) vec4 { return abs(a-b) }
+func diff(a, b vec4) vec4 { return vec4(1)-step(df(a,b),vec4(0)) }
+func eq(a, b vec4) vec4 { return step(df(a,b),vec4(15)) }
+func neq(a, b vec4) vec4 { return vec4(1)-eq(a,b) }
+func wd(a,b,c,d,e,f,g,h vec4) vec4 {
+    return df(a,b)+df(a,c)+df(d,e)+df(d,f)+4*df(g,h)
+}
+func cdf(a,b vec3) float {
+    d := abs(a-b)
+    return d.r+d.g+d.b
+}
+// 邊界複製與上游 CLAMP_TO_EDGE 相同，避免透明邊緣污染。
+func sample(p vec2) vec3 {
+    o := imageSrc0Origin()
+    p = clamp(floor(p)+vec2(0.5),o+vec2(0.5),o+imageSrc0Size()-vec2(0.5))
+    return imageSrc0At(p).rgb
+}
+func Fragment(dst vec4, p vec2, color vec4) vec4 {
+    fp := fract(p-imageSrc0Origin())
+    A1 := sample(p+vec2(-1,-2))
+    B1 := sample(p+vec2(0,-2))
+    C1 := sample(p+vec2(1,-2))
+    A := sample(p+vec2(-1,-1))
+    B := sample(p+vec2(0,-1))
+    C := sample(p+vec2(1,-1))
+    D := sample(p+vec2(-1,0))
+    E := sample(p)
+    F := sample(p+vec2(1,0))
+    G := sample(p+vec2(-1,1))
+    H := sample(p+vec2(0,1))
+    I := sample(p+vec2(1,1))
+    G5 := sample(p+vec2(-1,2))
+    H5 := sample(p+vec2(0,2))
+    I5 := sample(p+vec2(1,2))
+    A0 := sample(p+vec2(-2,-1))
+    D0 := sample(p+vec2(-2,0))
+    G0 := sample(p+vec2(-2,1))
+    C4 := sample(p+vec2(2,-1))
+    F4 := sample(p+vec2(2,0))
+    I4 := sample(p+vec2(2,1))
+    rgbw := vec3(14.352,28.176,5.472)
+    b := vec4(dot(B,rgbw),dot(D,rgbw),dot(H,rgbw),dot(F,rgbw))
+    c := vec4(dot(C,rgbw),dot(A,rgbw),dot(G,rgbw),dot(I,rgbw))
+    d := b.yzwx
+    e := vec4(dot(E,rgbw))
+    f := b.wxyz
+    g := c.zwxy
+    h := b.zwxy
+    i := c.wxyz
+    i4 := vec4(dot(I4,rgbw),dot(C1,rgbw),dot(A0,rgbw),dot(G5,rgbw))
+    i5 := vec4(dot(I5,rgbw),dot(C4,rgbw),dot(A1,rgbw),dot(G0,rgbw))
+    h5 := vec4(dot(H5,rgbw),dot(F4,rgbw),dot(B1,rgbw),dot(D0,rgbw))
+    f4 := h5.yzwx
+    fx := vec4(1,-1,-1,1)*fp.y+vec4(1,1,-1,-1)*fp.x
+    fxl := vec4(1,-1,-1,1)*fp.y+vec4(0.5,2,-0.5,-2)*fp.x
+    fxu := vec4(1,-1,-1,1)*fp.y+vec4(2,0.5,-2,-0.5)*fp.x
+    irlv0 := diff(e,f)*diff(e,h)
+    irlv1 := irlv0*(neq(f,b)*neq(f,c)+neq(h,d)*neq(h,g)+eq(e,i)*(neq(f,f4)*neq(f,i4)+neq(h,h5)*neq(h,i5))+eq(e,g)+eq(e,c))
+    irlv2l := diff(e,g)*diff(d,g)
+    irlv2u := diff(e,c)*diff(b,c)
+    delta := vec4(1.0/3.0)
+    dl := vec4(0.5/3.0,1.0/3.0,0.5/3.0,1.0/3.0)
+    du := dl.yxwz
+    co := vec4(1.5,0.5,-0.5,0.5)
+    fx45i := clamp((fx+delta-co-vec4(0.25))/(2*delta),vec4(0),vec4(1))
+    fx45 := clamp((fx+delta-co)/(2*delta),vec4(0),vec4(1))
+    fx30 := clamp((fxl+dl-vec4(1,1,-0.5,0))/(2*dl),vec4(0),vec4(1))
+    fx60 := clamp((fxu+du-vec4(2,0,-1,0.5))/(2*du),vec4(0),vec4(1))
+    wd1 := wd(e,c,g,i,h5,f4,h,f)
+    wd2 := wd(h,d,i5,f,i4,b,e,i)
+    edri := step(wd1,wd2)*irlv0
+    edr := step(wd1+vec4(0.1),wd2)*step(vec4(0.5),irlv1)
+    edrl := step(2*df(f,g),df(h,c))*irlv2l*edr
+    edru := step(2*df(h,c),df(f,g))*irlv2u*edr
+    fx45 *= edr
+    fx30 *= edrl
+    fx60 *= edru
+    fx45i *= edri
+    px := step(df(e,f),df(e,h))
+    m := max(max(fx30,fx60),max(fx45,fx45i))
+    res1 := mix(E,mix(H,F,px.x),m.x)
+    res1 = mix(res1,mix(B,D,px.z),m.z)
+    res2 := mix(E,mix(F,B,px.y),m.y)
+    res2 = mix(res2,mix(D,H,px.w),m.w)
+    res := mix(res1,res2,step(cdf(E,res1),cdf(E,res2)))
+    return vec4(res,1)
+}

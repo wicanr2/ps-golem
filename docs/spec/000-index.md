@@ -20,7 +20,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `013-spu-and-cd-audio.md` | READY（實作完成，待人工聆聽） | SPU、XA、CD-DA |
 | `014-cross-oracle.md` | READY | mednafen 交叉 oracle：時間表送鍵、平移比對截圖 |
 | `015-sotn-autoplay.md` | DRAFT（M4 驗收完成，見 §7） | 《月下》RAM 位址台帳、Clone 搜尋自動遊玩、M4 驗收 |
-| `016-hd-output.md` | READY（第 1、2 階段） | 影子 GPU 內部解析度放大、xBR 濾鏡；PGXP 與寬螢幕 DRAFT |
+| `016-hd-output.md` | READY（第 1、2 階段實作完成，驗收見 §7） | 影子 GPU 內部解析度放大、xBR 濾鏡；PGXP 與寬螢幕 DRAFT |
 
 狀態定義：
 

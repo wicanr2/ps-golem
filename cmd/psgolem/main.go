@@ -12,14 +12,17 @@ import (
 	"github.com/wicanr2/ps-golem/cmd/psgolem/early"
 	"github.com/wicanr2/ps-golem/frontend/ebiten"
 	"github.com/wicanr2/ps-golem/internal/disc"
+	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
 // settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §9）。
 type settings struct {
-	BIOS string `json:"bios"`
-	Cue  string `json:"cue"`
+	BIOS   string `json:"bios"`
+	Cue    string `json:"cue"`
+	HD     int    `json:"hd"`
+	Filter string `json:"filter"`
 }
 
 // version 見 early.Version。
@@ -37,6 +40,8 @@ func main() {
 	untilField := flag.Uint64("fields", 0, "跑到第這麼多次 VBlank 後存記憶卡並結束（驗收用）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	stats := flag.Bool("stats", false, "每 600 個 field 印出實際 FPS 與模擬耗時")
+	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；省略時取設定檔")
+	filterFlag := flag.String("filter", "none", "輸出濾鏡：none、xbr；省略時取設定檔")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
@@ -50,6 +55,19 @@ func main() {
 	}
 	dir = filepath.Join(dir, "ps-golem")
 	st := loadSettings(filepath.Join(dir, "settings.json"))
+	set := map[string]bool{}
+	flag.Visit(func(f *flag.Flag) { set[f.Name] = true })
+	if !set["hd"] {
+		*hdFlag = st.HD
+	}
+	if !set["filter"] && st.Filter != "" {
+		*filterFlag = st.Filter
+	}
+	shift, ok := gpu.HDShift(*hdFlag)
+	if !ok || (*filterFlag != "none" && *filterFlag != "xbr") {
+		fmt.Fprintln(os.Stderr, "psgolem：hd 必須是 0、1、2、4、8；filter 必須是 none、xbr")
+		os.Exit(2)
+	}
 	if *biosPath == "" {
 		*biosPath = st.BIOS
 	}
@@ -66,7 +84,13 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue}); err != nil {
+		if *hdFlag != 0 {
+			shadow := gpu.NewShadow(shift)
+			s.Machine.GPU.SetShadow(shadow)
+			closeSession := s.Close
+			s.Close = func() { s.Machine.GPU.SetShadow(nil); shadow.Close(); closeSession() }
+		}
+		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag}); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil
@@ -75,6 +99,7 @@ func main() {
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
 		Press: press, UntilField: *untilField, Stats: *stats,
+		Filter: *filterFlag,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)

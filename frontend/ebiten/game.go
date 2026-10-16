@@ -37,6 +37,8 @@ type Config struct {
 	UntilField uint64
 	// Stats 為 true 時每 600 個 field 在標準錯誤印出實際 FPS 與每個 field 的模擬耗時。
 	Stats bool
+	// Filter 是 none 或 xbr，只影響呈現。
+	Filter string
 }
 
 // Game 實作 ebiten.Game。
@@ -56,6 +58,7 @@ type Game struct {
 	finishing                   bool
 	err                         error
 	stream                      *pcmStream
+	xbr                         *eb.Shader
 }
 
 // Run 開視窗並執行到關閉。
@@ -64,6 +67,17 @@ func Run(cfg Config) error {
 		cfg.Scale = 3
 	}
 	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath}
+	if cfg.Filter != "" && cfg.Filter != "none" && cfg.Filter != "xbr" {
+		return fmt.Errorf("未知濾鏡 %q", cfg.Filter)
+	}
+	if cfg.Filter == "xbr" {
+		var err error
+		g.xbr, err = eb.NewShader(xbrSource)
+		if err != nil {
+			return fmt.Errorf("xBR shader：%w", err)
+		}
+		defer g.xbr.Deallocate()
+	}
 	if !cfg.Mute {
 		g.stream = &pcmStream{}
 		// 開不起音訊裝置時照常跑、不出聲：雙擊開啟的玩家看不到錯誤訊息，中止等於「點了沒反應」。
@@ -157,7 +171,14 @@ func (g *Game) Draw(screen *eb.Image) {
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))
 	op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 	op.Filter = eb.FilterNearest
-	screen.DrawImage(g.frame, op)
+	if g.xbr != nil {
+		shaderOp := &eb.DrawRectShaderOptions{}
+		shaderOp.GeoM = op.GeoM
+		shaderOp.Images[0] = g.frame
+		screen.DrawRectShader(b.Dx(), b.Dy(), g.xbr, shaderOp)
+	} else {
+		screen.DrawImage(g.frame, op)
+	}
 	if g.cfg.Screenshot != "" {
 		g.keepCanvas(screen)
 	}

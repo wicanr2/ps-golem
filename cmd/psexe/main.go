@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/wicanr2/ps-golem/internal/disc"
+	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
@@ -40,11 +41,17 @@ func main() {
 	cardPath := flag.String("card", "", "1P 記憶卡檔案（128 KB）；不存在就用空白卡，結束時有寫入就存回")
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
+	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；0 停用")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
 		return
 	}
+	if _, ok := gpu.HDShift(*hdFlag); !ok {
+		fmt.Fprintln(os.Stderr, "psexe：-hd 必須是 0、1、2、4、8")
+		os.Exit(2)
+	}
+	hdScale = *hdFlag
 	if *cpuProf != "" {
 		f, err := os.Create(*cpuProf)
 		if err != nil {
@@ -82,6 +89,12 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 		return err
 	}
 	m.ExactTiming = exactTiming
+	if hdScale != 0 {
+		shift, _ := gpu.HDShift(hdScale)
+		shadow := gpu.NewShadow(shift)
+		m.GPU.SetShadow(shadow)
+		defer func() { m.GPU.SetShadow(nil); shadow.Close() }()
+	}
 	if cue != "" {
 		d, err := disc.Open(cue)
 		if err != nil {
@@ -174,6 +187,7 @@ var (
 	wavOut                   string
 	wavPCM                   []int16
 	presses                  []press
+	hdScale                  int
 )
 
 func writeScreen(m *machine.Machine, path string) error {
@@ -182,7 +196,7 @@ func writeScreen(m *machine.Machine, path string) error {
 		return err
 	}
 	defer f.Close()
-	return png.Encode(f, m.GPU.Screen())
+	return png.Encode(f, m.GPU.OutputScreen())
 }
 
 // runCycles 執行 n 個週期，每個 field 依按鍵腳本更新手把。

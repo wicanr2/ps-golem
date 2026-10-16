@@ -116,7 +116,7 @@ func (e *emulator) run() {
 
 // publish 把目前畫面畫進後備緩衝再與前景交換。
 func (e *emulator) publish() {
-	e.back = e.m.GPU.ScreenInto(e.back)
+	e.back = e.m.GPU.OutputScreenInto(e.back)
 	e.mu.Lock()
 	e.front, e.back = e.back, e.front
 	e.frameNo++

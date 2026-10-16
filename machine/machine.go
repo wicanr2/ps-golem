@@ -101,8 +101,7 @@ func (m *Machine) InsertDisc(d *disc.Disc) { m.CD.Insert(d) }
 func (m *Machine) Clone() *Machine {
 	n := *m
 	n.tty = append([]byte(nil), m.tty...)
-	g := *m.GPU
-	n.GPU = &g
+	n.GPU = m.GPU.Clone()
 	c := *m.CPU
 	n.CPU = &c
 	cd := m.CD.Clone()
