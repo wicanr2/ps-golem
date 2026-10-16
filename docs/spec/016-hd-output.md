@@ -65,3 +65,104 @@ N 支援 1、2、4、8（Beetle 的 `upscale_shift` 0–3）。
 | 濾鏡 | `psgolem -filter xbr` 在 xvfb 下截圖，與 `none` 對照 |
 | 效能 | §3 效能列，附量測方式與主機負載 |
 | 交叉編譯 | `tools/build_dist.sh` 三平台照常通過（Kage shader 不需 cgo） |
+
+## 7. 驗收結果
+
+2026-10-17，實作 commit `4783e93`。第 1、2 階段已實作，第 3、4 階段維持 DRAFT。
+本節是 HD 的目前狀態表。§6 的圖像判準未通過，因此不標為 CONFORMED。
+
+### 7.1 輸入與工具
+
+- Docker：既有 `psgolem-go-ebiten:1.24-r1`，Go 1.24.13、Ebiten 2.9.9。
+- 原版輸入唯讀掛載於 `/orig`；ps1-tests `build-158` 的 `tests.zip` 唯讀掛載於 `/ps1tests`。
+  BIOS、cue、bin、測試包與按鍵腳本的 SHA-256 在 `workplace/hd/inputs.sha256`。
+- Beetle：指定 commit `e57860d82faa953dc0fc10f201fd583739bc2f7d` 的軟體渲染器確有 `upscale_shift`。
+  xBR：`libretro/glsl-shaders` commit `148ce728155232a6b63be772c1810bd84728f359`，
+  `xbr/shaders/xbr-lv2.glsl` 檔頭為 MIT，移植檔保留授權全文。
+  原始檔雜湊與工具版本在 `workplace/hd/references.log`。
+- 影子必須在第一筆開機輸入前以 `SetShadow` 接上，呼叫者負責卸下並 `Close`。
+  `Screen()`、`VRAM()` 與摘要仍讀原生狀態，呈現使用 `OutputScreen()`。
+  VRAM 複製依 §2 在放大座標保留子像素；上游該 commit 的 `Command_FBCopy` 仍先取原生 texel，
+  不把這部分宣稱為上游逐像素一致。
+
+### 7.2 驗收台帳
+
+| 項目 | 結果 | 證據，路徑以 repo 根目錄為準 |
+|---|---|---|
+| N=1，ps1-tests | 通過。`gpu/` 全部 17 個執行檔，從開機開始逐 field 比對完整 16 位元 VRAM | `machine/hd_test.go`、`workplace/hd/ps1-shadow.log` |
+| N=1，《月下》 | 通過。正常按鍵重播至 field 12000，每個 field 的完整 VRAM 相同 | `apps/sotn/hd_test.go`、`workplace/hd/sotn-determinism.log` |
+| M4 決定性 | 通過。原生與 HD2 都到 field 45784，摘要均為 `6c35c2701228722f`，完整記憶卡與原生畫面逐位元相同 | `apps/sotn/m4_test.go`、`workplace/hd/sotn-determinism.log` |
+| 九張截圖 | 已產生。標題 field 4320、序章王座廳 field 12000、城之入口 field 35000 | `workplace/hd/captures.log`、`workplace/hd/screenshots.sha256` |
+| 縮回只差邊緣 | 未通過。HD2 標題與王座廳零差異，入口有 147 個差異，其中 64 個距三角形邊界超過 1 個原生像素，最遠 8 像素 | `workplace/hd/entrance-diff.png`、`workplace/hd/entrance-edges.json`、`workplace/hd/edge-metrics.log` |
+| xBR | 通過。xvfb 下實際視窗截圖均為 960×720；none 與 xBR 有 265692 個像素不同，均非空白畫面 | `workplace/hd/filter-none.png`、`workplace/hd/filter-xbr.png`、`workplace/hd/filter-metrics.json` |
+| 效能 | 本次三輪最小值通過速度門檻，正常排程降幅 14.85%，固定雙 P 核心降幅 3.31% | §7.4、`workplace/hd/performance.json`、`workplace/hd/performance-pcores.json` |
+| 三平台建置 | 通過。`tools/build_dist.sh v0.2.0-hd`；macOS 雙架構、arm64 簽章與動態庫檢查通過，未做真機驗收 | `workplace/hd/build-dist.log`、`workplace/hd/packages.json`、`workplace/hd/package-smoke.log` |
+| 既有測試 | 全專案測試、影子資料競爭檢查、實際 CPU／GTE 語料通過 | `workplace/hd/unit-tests.log`、`workplace/hd/race-tests.log`、`workplace/hd/cpu-gte.log` |
+
+截圖名稱：`workplace/hd/{title,prologue,entrance}-{native,hd2,hd4}.png`。
+HD4 的標題與王座廳縮回亦零差異，入口有 242 個差異。三組原生狀態摘要在兩個倍率的重播中相同。
+截圖、原版輸入與量測輸出均未加入版控。
+
+本機驗收包位於 `dist/v0.2.0-hd/`，依本次指定命令與專案 `005` 的輸出契約產生，未發布：
+
+- `ps-golem-v0.2.0-hd-linux-amd64.tar.gz`
+- `ps-golem-v0.2.0-hd-windows-amd64.zip`
+- `ps-golem-v0.2.0-hd-macos-universal.zip`
+
+三包的 `SHA256SUMS`、檔案清單與原版素材排除檢查通過。Linux 無缺少的動態庫，Windows 包在 Wine 下啟動通過。
+
+### 7.3 圖像判準的限制
+
+**已證實**：上游 `gpu_polygon.c` 的 `DrawTriangle` 以
+`1 << (COORD_FBS - 1 - upscale_shift)` 設定 UV 初始偏移。
+N=1 是半個 texel，N=2 是四分之一個 texel。一般仿射貼圖的內部像素也可能取到不同 texel。
+
+不含原版素材的 [反例測試](../../render/hd/affine_test.go) 使用 XY `(0,0)、(60,0)、(0,60)`，
+UV `(0,0)、(100,0)、(0,100)`。原生位置 `(10,10)` 距幾何邊界至少 10 個像素，
+原生取樣 UV `(17,17)`，HD2 左上子像素取樣 UV `(16,16)`。
+結果在 `workplace/hd/affine-counterexample.log`。
+
+入口的 GP0 探測重播摘要仍是 `6d4dfd0579081d21`，與截圖重播相同。
+原生 VRAM 顯示起點核對為 `(0,0)`。最後一個繪圖 field 34999 有 36 個相交多邊形，
+147 個差異中有 64 個超出其三角形邊界一個原生像素。
+原始 GP0 在 `workplace/hd/entrance-gp0.json`，最後四個 field 在 `workplace/hd/entrance-gp0-last-fields.json`。
+
+反例證實「依指定上游取樣」不能保證「縮回只差幾何邊緣」。
+它不代表入口每個差異點的寫入來源都已定位；入口差異的逐點來源仍有未知。
+目前保留原判準與未通過結果，沒有為消除差異改寫取樣演算法。
+
+### 7.4 效能數據與重跑
+
+同一 BIOS 與 cue，從開機跑至 field 4400，週期上限 `400000000000`。
+順序為改動前基準、目前原生、HD2，交錯三輪，各取 CPU 與牆鐘時間的最小值。
+改動前基準為 commit `687b33bd6c9361e64591968b3577fd97186c9d5b`。
+
+| 排程 | 改動前 CPU／牆鐘秒 | 目前原生 CPU／牆鐘秒 | HD2 CPU／牆鐘秒 | 模擬速度降幅 |
+|---|---|---|---|---|
+| 系統排程 | 50.32／50.21 | 51.49／51.27 | 85.52／60.21 | 14.85% |
+| 固定 CPU 0、2 | 61.11／61.91 | 52.75／52.84 | 75.30／54.66 | 3.31% |
+
+速度降幅為 `1 - 原生牆鐘秒 / HD2牆鐘秒`。CPU 時間加總了原生與影子執行緒，HD2 的總 CPU 成本增加。
+正常排程下未開 HD 的 CPU 最小值比基準高 2.32%；固定核心組沒有觀察到退步，不能據此宣稱加速。
+每次執行的摘要都是 `030643de52be3c27`。
+
+主機為 Intel Core Ultra 7 165U，容器上限 4 CPU、4 GiB，主機另有工作負載。
+正常排程的一分鐘負載範圍為 9.88–27.15，固定核心組為 15.44–35.65。
+CPU 0、2 分屬兩個實體 P 核心；固定核心只控制測試子程序的親和性，未修改主機設定。
+正常排程數據接近 15% 門檻，不把本次量測外推為其他負載下的保證。
+
+效能工具：`PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_GO_CMD=python3 tools/go.sh tools/measure_hd.py`。
+預先以 `tools/go.sh build` 建立 `workplace/hd/psexe` 與基準版 `psexe-before`。
+固定核心組加 `--cpus 0,2 --output performance-pcores.json`。
+
+M4 與 N=1 遊戲重播：
+
+```sh
+PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_LONG=1 \
+PSGOLEM_BIOS=/orig/bios/SCPH5500.BIN SOTN_CUE=/orig/disc/sotn.cue \
+PSGOLEM_TIMEOUT=60m tools/go.sh test ./apps/sotn \
+  -run 'TestM4FirstSave|TestShadowBootPrologue' -v -timeout 60m
+```
+
+九張截圖：設定相同的 BIOS 與 cue，另設 `PSGOLEM_HD_EVIDENCE=/src/workplace/hd`，
+透過 `tools/go.sh test ./apps/sotn -run TestHDCaptures -v -timeout 60m` 重生。
