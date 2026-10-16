@@ -55,3 +55,6 @@ beetle-psx-libretro 的 libretro core 配上自寫的無頭前端，這片光碟
 | 王座廳開戰 | 14730 | 1257 | 德古拉現身動畫 |
 
 沒有發現動畫元素以外的差異。
+
+記憶卡：ps-golem 存的卡（`015` §7）以 `-filesys.fname_sav "%f%x"` 放成 mednafen 的 `sav/game0.mcr`，
+mednafen 的檔案選擇列出同一筆存檔，讀取後回到存檔室。

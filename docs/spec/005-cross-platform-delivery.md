@@ -67,3 +67,5 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 - Windows（Wine 9，xvfb）：同上 0 像素不同；設定檔寫在 `%AppData%\ps-golem\settings.json`。
   `psexe.exe` 2B 週期摘要 `e6cca47ab31dc42c`、畫面 PNG 與 Linux 版逐位元相同。沒有音效裝置時（容器內無 ALSA 卡）照常執行。
 - macOS：執行檔含 `v0.1.1` 與設定畫面字串；`psgolem`、`psexe` 雙弧、arm64 有 `LC_CODE_SIGNATURE`、`minos 11.0`、只連系統動態庫。未在實機執行。
+- 長時間重播（2026-10-16）：Wine 下的 `psexe.exe` 重播 M4 腳本（260 億週期，開機到入口區存檔），
+  摘要、記憶卡、最後畫面與 Linux 逐位元相同（`015` §7）。
