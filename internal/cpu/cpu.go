@@ -9,6 +9,7 @@
 package cpu
 
 import (
+	"encoding/binary"
 	"math/bits"
 
 	"github.com/wicanr2/ps-golem/internal/gte"
@@ -88,6 +89,9 @@ type CPU struct {
 	GTE  gte.GTE
 
 	bus Bus
+	// fram、fbios、fbiu 是匯流排以 FetchMemory 提供的記憶體，取指令的快速路徑用；nil 時一律走 bus。
+	fram, fbios []byte
+	fbiu        *uint32
 
 	// branched 為真時，本指令已自行設定 pc／nextPC（分支），結束時不再前進。
 	branched bool
@@ -115,14 +119,22 @@ var multTab24 = [24]uint8{
 
 // New 建立一顆上電狀態的 CPU。
 func New(bus Bus) *CPU {
-	c := &CPU{bus: bus}
+	c := &CPU{}
+	c.Rebind(bus)
 	c.Reset()
 	return c
 }
 
+// FetchMemory 是匯流排可選擇實作的介面：交出主記憶體（長度為 2 的冪，位址取餘數即鏡像）、
+// BIOS 與 BIU 暫存器，讓 CPU 從這兩處取指令時不經介面呼叫。結果必須與經 Bus 相同：
+// 這兩處取指令沒有匯流排錯誤，ReadCost 為主記憶體 4、BIOS 24，Read32 為小端讀取。
+type FetchMemory interface {
+	FetchMemory() (ram, bios []byte, biu *uint32)
+}
+
 // Reset 回到上電狀態：PC=BFC00000，SR 的 BEV、TS 成立。
 func (c *CPU) Reset() {
-	*c = CPU{bus: c.bus}
+	*c = CPU{bus: c.bus, fram: c.fram, fbios: c.fbios, fbiu: c.fbiu}
 	c.pc = 0xBFC00000
 	c.nextPC = c.pc + 4
 	c.ldWhich = ldNone
@@ -131,7 +143,13 @@ func (c *CPU) Reset() {
 }
 
 // Rebind 換掉 CPU 看到的匯流排（複製整台機器時用）。
-func (c *CPU) Rebind(bus Bus) { c.bus = bus }
+func (c *CPU) Rebind(bus Bus) {
+	c.bus = bus
+	c.fram, c.fbios, c.fbiu = nil, nil, nil
+	if f, ok := bus.(FetchMemory); ok {
+		c.fram, c.fbios, c.fbiu = f.FetchMemory()
+	}
+}
 
 // PC 回傳下一條要執行的指令位址。
 func (c *CPU) PC() uint32 { return c.pc }
@@ -249,6 +267,11 @@ func (c *CPU) fetchCost(pc uint32) uint64 {
 	if seg == 5 || c.bus.BIU()&0x800 == 0 {
 		return uint64(c.bus.ReadCost(pc, 4))
 	}
+	return c.icacheCost(pc)
+}
+
+// icacheCost 是經 i-cache 取指令的週期：命中 0，未命中填入本字到行尾。
+func (c *CPU) icacheCost(pc uint32) uint64 {
 	p := pc & 0x1FFFFFFF
 	l := &c.icache[(p>>4)&0xFF]
 	word := (p >> 2) & 3
@@ -284,13 +307,16 @@ func (c *CPU) step() {
 		return
 	}
 
-	if c.bus.InstructionBusError(pc) {
-		c.raise(ExcIBE, 0)
-		c.advance()
-		return
+	instr, ok := c.fastFetch(pc)
+	if !ok {
+		if c.bus.InstructionBusError(pc) {
+			c.raise(ExcIBE, 0)
+			c.advance()
+			return
+		}
+		c.cost += c.fetchCost(pc)
+		instr = c.bus.Read32(pc)
 	}
-	c.cost += c.fetchCost(pc)
-	instr := c.bus.Read32(pc)
 
 	// 中斷在指令邊界檢查；PC 指著 COP2 指令時不收（照參照實作，避開 GTE pipeline 細節）。
 	if c.interruptPending() && instr>>26 != 0x12 {
@@ -302,6 +328,41 @@ func (c *CPU) step() {
 
 	c.execute(instr)
 	c.advance()
+}
+
+// fastFetch 從 FetchMemory 的主記憶體或 BIOS 取指令並計入週期；位址不在這兩處時回傳 false。
+func (c *CPU) fastFetch(pc uint32) (uint32, bool) {
+	if c.fram == nil {
+		return 0, false
+	}
+	seg := pc >> 29
+	var p uint32
+	switch seg {
+	case 0:
+		p = pc
+	case 4, 5:
+		p = pc & 0x1FFFFFFF
+	default:
+		return 0, false
+	}
+	var mem []byte
+	var uncached uint64
+	switch {
+	case p < 0x00800000:
+		mem, uncached = c.fram, 4
+		p &= uint32(len(c.fram) - 1)
+	case p >= 0x1FC00000 && p-0x1FC00000 < uint32(len(c.fbios)):
+		mem, uncached = c.fbios, 24
+		p -= 0x1FC00000
+	default:
+		return 0, false
+	}
+	if seg == 5 || *c.fbiu&0x800 == 0 {
+		c.cost += uncached
+	} else {
+		c.cost += c.icacheCost(pc)
+	}
+	return binary.LittleEndian.Uint32(mem[p:]), true
 }
 
 func (c *CPU) advance() {

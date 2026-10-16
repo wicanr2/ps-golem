@@ -137,7 +137,10 @@ func (m *Machine) TTY() string { return string(m.tty) }
 
 // Step 執行一條指令。週期先累積，到了下一個週邊事件的期限才交給週邊（008 §2.5）。
 func (m *Machine) Step() {
-	m.ttyHook()
+	// 0xA0、0xB0 在三個區段的虛擬位址中段位元都是 0；先用遮罩濾掉絕大多數指令，省下函式呼叫。
+	if m.CPU.PC()&0x1FFFFF00 == 0 {
+		m.ttyHook()
+	}
 	n := uint64(m.CPU.Step())
 	m.cycles += n
 	m.pending += n
@@ -418,6 +421,9 @@ func (m *Machine) Write32(a uint32, v uint32) {
 
 // BIU 回傳快取控制暫存器。
 func (m *Machine) BIU() uint32 { return m.biu }
+
+// FetchMemory 實作 cpu.FetchMemory：與 Read32、ReadCost、InstructionBusError 對主記憶體與 BIOS 的結果相同。
+func (m *Machine) FetchMemory() (ram, bios []byte, biu *uint32) { return m.ram[:], m.bios[:], &m.biu }
 
 // ReadCost 依 008 §2.1 回傳讀取的額外週期（數值來自 ps1-tests cpu/access-time 實機紀錄）。
 func (m *Machine) ReadCost(a uint32, size int) int {
