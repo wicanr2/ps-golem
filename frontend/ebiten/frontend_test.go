@@ -75,3 +75,28 @@ func TestPCMStreamPadsSilenceAndDrops(t *testing.T) {
 		t.Fatalf("排隊 %d，應截到 %d", len(s.buf), maxQueued*2)
 	}
 }
+
+func TestDropKind(t *testing.T) {
+	cases := []struct {
+		name string
+		size int64
+		want string
+	}{
+		{"sotn.cue", 120, "cue"},
+		{"SOTN.CUE", 120, "cue"},
+		{"SCPH5500.BIN", biosSize, "bios"},
+		{"sotn.bin", 588799680, ""},
+		{"readme.txt", 10, ""},
+	}
+	for _, c := range cases {
+		if got := dropKind(c.name, c.size); got != c.want {
+			t.Errorf("dropKind(%q,%d) = %q，應為 %q", c.name, c.size, got, c.want)
+		}
+	}
+}
+
+func TestASCIIPath(t *testing.T) {
+	if got := asciiPath("/光碟/a.cue"); got != "/??/a.cue" {
+		t.Errorf("asciiPath = %q", got)
+	}
+}

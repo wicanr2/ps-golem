@@ -17,6 +17,9 @@ import (
 	"github.com/wicanr2/ps-golem/machine"
 )
 
+// version 由 tools/build_dist.sh 以 -ldflags "-X main.version=..." 寫入。
+var version = "dev"
+
 func main() {
 	biosPath := flag.String("bios", "", "BIOS 檔（512 KB）")
 	exePath := flag.String("exe", "", "PS-EXE 檔")
@@ -36,7 +39,12 @@ func main() {
 	cuePath := flag.String("cue", "", "光碟映像的 cue 檔（docs/spec/009）")
 	cardPath := flag.String("card", "", "1P 記憶卡檔案（128 KB）；不存在就用空白卡，結束時有寫入就存回")
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
+	showVersion := flag.Bool("version", false, "印出版號後結束")
 	flag.Parse()
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
 	if *cpuProf != "" {
 		f, err := os.Create(*cpuProf)
 		if err != nil {

@@ -29,7 +29,11 @@ tools/go.sh test ./internal/cpu -run TestXxx -v    # 單一測試
 PSGOLEM_EXTRA_MOUNTS="<BIOS 目錄>:/bios:ro" PSGOLEM_BIOS=/bios/SCPH5500.BIN tools/go.sh test ./machine/...   # 要 BIOS 的測試
 PSGOLEM_GO_CMD=gofmt tools/go.sh -l .
 PSGOLEM_ORIG=~/cht/castlevinia_x tools/go.sh test ./...   # 原版素材唯讀掛到 /orig
+tools/build_image.sh osxcross && tools/build_image.sh wine   # 交叉編譯 macOS、Wine 冒煙測試用的映像
+tools/build_dist.sh v0.1.0                    # 三平台發行包到 dist/v0.1.0/（005 §4）
 ```
+
+osxcross 映像含 macOS SDK，只留本機，不推送。
 
 測試讀的環境變數前綴 `PSGOLEM_`、`SOTN_`、`EBITEN_` 會傳進容器，值要寫容器內路徑。
 

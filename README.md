@@ -10,7 +10,10 @@
 
 ## 執行
 
-建置在 docker 內（`tools/go.sh build -o bin/psgolem ./cmd/psgolem`）。執行：
+發行包（Linux、Windows、macOS）用 `tools/build_dist.sh <版號>` 在 docker 內建出，放在 `dist/<版號>/`。
+雙擊 `psgolem` 後把 BIOS 與光碟的 `.cue` 拖進視窗即可開機，路徑會記住。遊玩說明見 [`docs/play.md`](docs/play.md)。
+
+開發時在 docker 內建置（`tools/go.sh build -o bin/psgolem ./cmd/psgolem`），也可以用參數執行：
 
 ```
 bin/psgolem -bios <BIOS> -cue <光碟 cue>

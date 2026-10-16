@@ -13,8 +13,10 @@ M4 的驗收是玩家走到第一個存檔點存檔（`001` §4）。序章要�
 `cmd/psgolem`：
 
 ```
-psgolem -bios <BIOS> -cue <cue> [-card <記憶卡檔>] [-scale N]
+psgolem [-bios <BIOS>] [-cue <cue>] [-card <記憶卡檔>] [-scale N]
 ```
+
+`-bios`、`-cue` 可以省略，改用設定檔或拖放（§10）。
 
 - `-card` 省略時用 `<使用者設定目錄>/ps-golem/<光碟開機檔名>.mcd`
   （Go `os.UserConfigDir`；本案例檔名 `SLPM_860.23.mcd`）。存檔屬玩家資料，不寫進素材目錄或 repo。
@@ -73,9 +75,26 @@ psgolem -bios <BIOS> -cue <cue> [-card <記憶卡檔>] [-scale N]
 `013` §5：每次 `Update` 跑完一個 field 後取走 SPU 的取樣，送進 44.1 kHz 播放器（Ebiten `audio`，緩衝 60 毫秒）。
 排隊超過約 0.25 秒就丟掉最舊的；不夠時補靜音。
 
+## 10. 啟動與設定檔
+
+Windows、macOS 的玩家通常用滑鼠雙擊開啟，沒有命令列參數，所以 BIOS 與光碟的位置要能記住。
+
+- 設定檔：`<使用者設定目錄>/ps-golem/settings.json`，內容 `{"bios": "<路徑>", "cue": "<路徑>"}`。
+- 決定路徑的順序：命令列參數優先，沒給的項目取設定檔。
+- 兩個路徑都有，且 BIOS 與光碟都開得起來，就開機；成功開機後把這組路徑寫回設定檔。
+- 缺任何一項，或開啟失敗，視窗顯示設定畫面：列出目前的 BIOS、cue 與錯誤訊息，
+  提示把檔案拖進視窗。畫面文字只用 ASCII（Ebiten 內建的除錯字型沒有中文字）。
+- 拖進的檔案依序判斷：副檔名 `.cue`（不分大小寫）當光碟；大小正好 512 KiB 當 BIOS；其他忽略。
+  兩項齊了就照上一條開機。
+- 拖放的實際路徑取自 Ebiten `DroppedFiles` 開出的 `*os.File` 的 `Name()`（Ebiten v2.9.9
+  `internal/file/file_notjs.go` 以 `os.Open` 開實際路徑）；拿不到實際路徑的檔案忽略。
+
 ## 8. 驗收結果（2026-10-15）
 
 - 按鍵對應、顯示比例、記憶卡等待安靜後存檔：`frontend/ebiten` 單元測試通過（`xvfb-run`）。
 - 視窗啟動：容器內 `xvfb-run psgolem -frames 2000`（960×720 視窗）與 `psexe -fields 2000 -screen`
   比對，依 4:3 置中規則對回 320×240 後 0 像素不同（KONAMI 標誌畫面）。
 - 實際遊玩：待玩家確認。
+- 設定畫面（2026-10-16）：`dropKind`、`asciiPath` 單元測試通過；容器內不帶參數開機顯示設定畫面，
+  路徑錯誤時列出錯誤；以參數開機後寫入 `settings.json`，再不帶參數開機，第 2000 次 `Update` 與 `psexe` 0 像素不同。
+  拖放在 xvfb 下無法模擬，由玩家在主機上確認。

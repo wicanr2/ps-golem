@@ -1,7 +1,8 @@
-// psgolem 是玩家用的視窗執行檔（docs/spec/012-frontend-ebiten.md §2）。
+// psgolem 是玩家用的視窗執行檔（docs/spec/012-frontend-ebiten.md §2、§10）。
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -12,63 +13,125 @@ import (
 	"github.com/wicanr2/ps-golem/machine"
 )
 
+// settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §10）。
+type settings struct {
+	BIOS string `json:"bios"`
+	Cue  string `json:"cue"`
+}
+
+// version 由 tools/build_dist.sh 以 -ldflags "-X main.version=..." 寫入。
+var version = "dev"
+
 func main() {
-	biosPath := flag.String("bios", "", "BIOS 映像（512 KB）")
-	cuePath := flag.String("cue", "", "光碟映像的 cue 檔")
+	biosPath := flag.String("bios", "", "BIOS 映像（512 KB）；省略時取設定檔")
+	cuePath := flag.String("cue", "", "光碟映像的 cue 檔；省略時取設定檔")
 	cardPath := flag.String("card", "", "1P 記憶卡檔案；省略時放在使用者設定目錄的 ps-golem/<開機檔名>.mcd")
 	scale := flag.Int("scale", 3, "起始視窗倍率")
 	frames := flag.Int("frames", 0, "跑這麼多次 Update 後結束（驗收用）")
 	shot := flag.String("screenshot", "", "配合 -frames：結束前存下畫面")
 	mute := flag.Bool("mute", false, "不開音訊裝置")
+	showVersion := flag.Bool("version", false, "印出版號後結束")
 	flag.Parse()
-	if err := run(*biosPath, *cuePath, *cardPath, *scale, *frames, *shot, *mute); err != nil {
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
+
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "psgolem:", err)
+		os.Exit(1)
+	}
+	dir = filepath.Join(dir, "ps-golem")
+	st := loadSettings(filepath.Join(dir, "settings.json"))
+	if *biosPath == "" {
+		*biosPath = st.BIOS
+	}
+	if *cuePath == "" {
+		*cuePath = st.Cue
+	}
+	open := func(bios, cue string) (*ebiten.Session, error) {
+		s, err := openSession(bios, cue, *cardPath, dir)
+		if err != nil {
+			return nil, err
+		}
+		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue}); err != nil {
+			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
+		}
+		return s, nil
+	}
+	err = ebiten.Run(ebiten.Config{
+		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
+		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
+	})
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
 		os.Exit(1)
 	}
 }
 
-func run(biosPath, cuePath, cardPath string, scale, frames int, shot string, mute bool) error {
-	if biosPath == "" || cuePath == "" {
-		return fmt.Errorf("需要 -bios 與 -cue")
+func loadSettings(path string) settings {
+	var st settings
+	if b, err := os.ReadFile(path); err == nil {
+		if err := json.Unmarshal(b, &st); err != nil {
+			fmt.Fprintln(os.Stderr, "psgolem：設定檔", path, "讀不懂：", err)
+		}
 	}
-	bios, err := os.ReadFile(biosPath)
+	return st
+}
+
+// saveSettings 先寫暫存檔再改名，避免寫到一半中斷留下壞檔。
+func saveSettings(path string, st settings) error {
+	b, err := json.MarshalIndent(st, "", "  ")
 	if err != nil {
 		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, append(b, '\n'), 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func openSession(biosPath, cuePath, cardPath, dir string) (*ebiten.Session, error) {
+	bios, err := os.ReadFile(biosPath)
+	if err != nil {
+		return nil, err
 	}
 	m, err := machine.New(bios)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	d, err := disc.Open(cuePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer d.Close()
 	if d.Fallback != "" {
 		fmt.Fprintln(os.Stderr, "psgolem：", d.Fallback)
 	}
 	m.InsertDisc(d)
 	if cardPath == "" {
-		dir, err := os.UserConfigDir()
-		if err != nil {
-			return err
-		}
 		name := d.BootFile()
 		if name == "" {
 			name = "card"
 		}
-		cardPath = filepath.Join(dir, "ps-golem", name+".mcd")
+		cardPath = filepath.Join(dir, name+".mcd")
 	}
 	if b, err := os.ReadFile(cardPath); err == nil {
 		if !m.Card1.Load(b) {
-			return fmt.Errorf("記憶卡 %s 不是 128 KB", cardPath)
+			d.Close()
+			return nil, fmt.Errorf("記憶卡 %s 不是 128 KB", cardPath)
 		}
 	} else if !os.IsNotExist(err) {
-		return err
+		d.Close()
+		return nil, err
 	}
 	fmt.Fprintln(os.Stderr, "psgolem：記憶卡", cardPath)
-	return ebiten.Run(ebiten.Config{
-		Machine: m, CardPath: cardPath, Scale: scale,
-		Title: "ps-golem " + d.BootFile(), Frames: frames, Screenshot: shot, Mute: mute,
-	})
+	return &ebiten.Session{
+		Machine: m, CardPath: cardPath, Title: "ps-golem " + d.BootFile(),
+		Close: func() { d.Close() },
+	}, nil
 }
