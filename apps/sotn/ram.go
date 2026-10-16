@@ -45,4 +45,6 @@ func EntityAt(m *machine.Machine, slot int) Entity {
 }
 
 // PlayerHP 讀玩家 HP。
-func PlayerHP(m *machine.Machine) int { return int(int32(binary.LittleEndian.Uint32(m.ReadRAM(StatusHP, 4)))) }
+func PlayerHP(m *machine.Machine) int {
+	return int(int32(binary.LittleEndian.Uint32(m.ReadRAM(StatusHP, 4))))
+}
