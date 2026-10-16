@@ -36,6 +36,23 @@ psgolem -bios <BIOS> -cue <光碟 cue> [-card <記憶卡檔>] [-scale <視窗倍
 
 要換 BIOS 或光碟，用命令列指定一次，或刪掉設定檔再開。
 
+## HD 與濾鏡
+
+```
+psgolem -hd 2 -filter xbr
+```
+
+| 參數 | 效果 |
+|---|---|
+| `-hd 0` | 原生解析度，預設值 |
+| `-hd 2`、`-hd 4`、`-hd 8` | 影子 GPU 以指定倍率繪圖，增加記憶體與 CPU 用量 |
+| `-filter none` | 最近鄰縮放，預設值 |
+| `-filter xbr` | xBR-lv2 濾鏡，可與 HD 疊加 |
+
+成功開機後，`hd` 與 `filter` 會存入 `settings.json`。命令列參數優先，可用 `-hd 0 -filter none` 關閉。
+HD 只影響輸出，存檔與模擬狀態相同。視窗維持 4:3，較寬的視窗左右補黑。
+`psexe -hd N -screen <PNG>` 可擷取放大畫面，`psexe` 不提供 xBR 濾鏡。
+
 ## 按鍵
 
 | PS 手把 | 鍵盤 |

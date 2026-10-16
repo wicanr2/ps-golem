@@ -35,6 +35,8 @@ type Config struct {
 	Press []padscript.Press
 	// UntilField 大於 0 時，機器跑到第這麼多次 VBlank 就存記憶卡、截圖並結束（驗收用）。
 	UntilField uint64
+	// Filter 是 none 或 xbr，只影響呈現。
+	Filter string
 }
 
 // Game 實作 ebiten.Game。
@@ -52,6 +54,7 @@ type Game struct {
 	err                         error
 	stream                      *pcmStream
 	pcm                         []int16
+	xbr                         *eb.Shader
 }
 
 // Run 開視窗並執行到關閉。
@@ -60,6 +63,17 @@ func Run(cfg Config) error {
 		cfg.Scale = 3
 	}
 	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath}
+	if cfg.Filter != "" && cfg.Filter != "none" && cfg.Filter != "xbr" {
+		return fmt.Errorf("未知濾鏡 %q", cfg.Filter)
+	}
+	if cfg.Filter == "xbr" {
+		var err error
+		g.xbr, err = eb.NewShader(xbrSource)
+		if err != nil {
+			return fmt.Errorf("xBR shader：%w", err)
+		}
+		defer g.xbr.Deallocate()
+	}
 	if !cfg.Mute {
 		g.stream = &pcmStream{}
 		// 開不起音訊裝置時照常跑、不出聲：雙擊開啟的玩家看不到錯誤訊息，中止等於「點了沒反應」。
@@ -131,7 +145,7 @@ func (g *Game) Draw(screen *eb.Image) {
 		g.keepCanvas(screen)
 		return
 	}
-	img := g.m.GPU.Screen()
+	img := g.m.GPU.OutputScreen()
 	b := img.Bounds()
 	if g.frame == nil || g.frame.Bounds().Size() != b.Size() {
 		g.frame = eb.NewImage(b.Dx(), b.Dy())
@@ -147,7 +161,14 @@ func (g *Game) Draw(screen *eb.Image) {
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))
 	op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 	op.Filter = eb.FilterNearest
-	g.canvas.DrawImage(g.frame, op)
+	if g.xbr != nil {
+		shaderOp := &eb.DrawRectShaderOptions{}
+		shaderOp.GeoM = op.GeoM
+		shaderOp.Images[0] = g.frame
+		g.canvas.DrawRectShader(b.Dx(), b.Dy(), g.xbr, shaderOp)
+	} else {
+		g.canvas.DrawImage(g.frame, op)
+	}
 	screen.DrawImage(g.canvas, nil)
 }
 

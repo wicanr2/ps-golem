@@ -105,7 +105,8 @@ type GPU struct {
 	ditherLUT [4][512][4]uint8
 
 	// Trace 不為 nil 時，每個 GP0 字都先交給它（除錯用）。
-	Trace func(v uint32)
+	Trace  func(v uint32)
+	shadow *Shadow
 }
 
 type texCacheLine struct {
@@ -205,6 +206,9 @@ func (g *GPU) IRQ() bool { return g.irqPending }
 
 // WriteGP1 處理控制命令。
 func (g *GPU) WriteGP1(v uint32) {
+	if g.shadow != nil {
+		g.shadow.GP1(v)
+	}
 	cmd := v >> 24
 	v &= 0x00FFFFFF
 	switch cmd {
@@ -396,10 +400,14 @@ func (g *GPU) endOfLine() bool {
 		g.inVBlank = true
 		started = true
 		g.curYOffset = 0
+		oldField := g.fieldRAMReadout
 		if g.displayMode&0x24 == 0x24 {
 			g.fieldRAMReadout = !g.field
 		} else {
 			g.fieldRAMReadout = false
+		}
+		if g.shadow != nil && oldField != g.fieldRAMReadout {
+			g.shadow.Field(g.fieldRAMReadout)
 		}
 	}
 	if g.scanline == g.vertStart && g.inVBlank {

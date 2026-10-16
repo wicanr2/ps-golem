@@ -46,6 +46,9 @@ func cmdLen(cmd uint32) int {
 
 // WriteGP0 寫一個字到 GP0（CPU 或 DMA）。
 func (g *GPU) WriteGP0(v uint32) {
+	if g.shadow != nil {
+		g.shadow.GP0(v)
+	}
 	if g.Trace != nil {
 		g.Trace(v)
 	}

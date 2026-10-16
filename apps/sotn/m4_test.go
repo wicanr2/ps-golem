@@ -1,6 +1,10 @@
 package sotn
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"github.com/wicanr2/ps-golem/internal/gpu"
+	"github.com/wicanr2/ps-golem/machine"
 	"os"
 	"strings"
 	"testing"
@@ -26,7 +30,7 @@ func TestM4FirstSave(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	RunScript(m, ps, 45784)
+	runM4Progress(t, m, ps)
 	if got, want := m.Digest(), "6c35c2701228722f"; !strings.HasSuffix(got, want) {
 		t.Errorf("摘要 %s，應以 %s 結尾", got, want)
 	}
@@ -34,5 +38,36 @@ func TestM4FirstSave(t *testing.T) {
 	dir := m.Card1.Data[0x80:0x100]
 	if dir[0] != 0x51 || string(dir[0x0A:0x1C]) != "BISLPM-86023DRAX00" {
 		t.Errorf("記憶卡目錄項不對：% x", dir[:0x20])
+	}
+	t.Logf("原生：%s，記憶卡 SHA256=%x，畫面 SHA256=%x", m.Digest(), sha256.Sum256(m.Card1.Data[:]), sha256.Sum256(m.GPU.Screen().Pix))
+	t.Run("HD2", func(t *testing.T) {
+		h, err := Boot(bios, cue, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := gpu.NewShadow(1)
+		h.GPU.SetShadow(s)
+		defer func() { h.GPU.SetShadow(nil); s.Close() }()
+		runM4Progress(t, h, ps)
+		if got := h.Digest(); got != m.Digest() {
+			t.Errorf("HD2 摘要不同：%s", got)
+		}
+		if !bytes.Equal(h.Card1.Data[:], m.Card1.Data[:]) {
+			t.Error("HD2 記憶卡不同")
+		}
+		if !bytes.Equal(h.GPU.Screen().Pix, m.GPU.Screen().Pix) {
+			t.Error("HD2 原生畫面不同")
+		}
+		t.Logf("HD2：%s，記憶卡 SHA256=%x，畫面 SHA256=%x", h.Digest(), sha256.Sum256(h.Card1.Data[:]), sha256.Sum256(h.GPU.Screen().Pix))
+	})
+}
+
+func runM4Progress(t *testing.T, m *machine.Machine, ps []Press) {
+	t.Helper()
+	for m.Field() < 45784 {
+		Step(m, ButtonsAt(ps, m.Field()))
+		if m.Field()%5000 == 0 {
+			t.Logf("已重播 field %d", m.Field())
+		}
 	}
 }
