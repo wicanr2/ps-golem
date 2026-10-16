@@ -18,6 +18,8 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `011-mdec.md` | READY（實作完成，台帳見 §7） | MDEC 動畫解碼、DMA0／1 |
 | `012-frontend-ebiten.md` | READY（實作完成，待玩家遊玩驗收） | 視窗、鍵盤與手把、記憶卡自動存檔、聲音輸出、設定畫面與拖放 |
 | `013-spu-and-cd-audio.md` | READY（實作完成，待人工聆聽） | SPU、XA、CD-DA |
+| `014-cross-oracle.md` | READY | mednafen 交叉 oracle：時間表送鍵、平移比對截圖 |
+| `015-sotn-autoplay.md` | DRAFT | 《月下》RAM 位址台帳、Clone 搜尋自動遊玩、M4 驗收進度 |
 
 狀態定義：
 

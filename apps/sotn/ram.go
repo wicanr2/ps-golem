@@ -13,7 +13,20 @@ const (
 	EntitySize = 0xBC
 	StatusHP   = 0x097BA0 // 玩家 HP（s32）
 	StatusMax  = 0x097BA4 // 玩家 HP 上限
+	RoomLeft   = 0x0730B0 // 目前房間在城堡地圖上的左格（假說）
+	RoomTop    = 0x0730B4 // 上格（假說）
+	RoomX      = 0x0973F0 // 玩家在房間內的 X（假說）
+	RoomY      = 0x0973F4 // 玩家在房間內的 Y（假說）
 )
+
+// PlayerRoomY 回傳玩家在房間內的 Y（越小越高）。
+func PlayerRoomY(m *machine.Machine) int { return int(s16(m, RoomY)) }
+
+// Room 回傳目前房間的地圖左、上格座標。
+func Room(m *machine.Machine) (int, int) { return int(s16(m, RoomLeft)), int(s16(m, RoomTop)) }
+
+// PlayerRoomX 回傳玩家在房間內的 X。
+func PlayerRoomX(m *machine.Machine) int { return int(s16(m, RoomX)) }
 
 // Entity 是一個實體槽的觀測值。
 type Entity struct {

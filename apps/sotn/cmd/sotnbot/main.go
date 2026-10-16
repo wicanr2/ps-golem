@@ -98,6 +98,75 @@ func bossPhase(slots []int) phase {
 	}
 }
 
+// cellKey 是探索用的格子：房間、房間內 X 每 32 像素、畫面 Y 每 32 像素。
+func cellKey(m *machine.Machine) [4]int {
+	l, t := sotn.Room(m)
+	return [4]int{l, t, sotn.PlayerRoomX(m) >> 5, sotn.PlayerRoomY(m) >> 5}
+}
+
+// explorePhase 往沒去過的房間與格子走；掉血重罰，死亡（HP ≤ 0）極重罰。
+// 每進一個新房間存一張截圖，存檔室由人看截圖判定（015 §5.2）。
+func explorePhase(visited map[[4]int]bool, rooms map[[2]int]bool, climb float64) phase {
+	acts := []action{
+		{"left", []step{{btn("LEFT"), 20}}},
+		{"right", []step{{btn("RIGHT"), 20}}},
+		{"jump-left", []step{{btn("CROSS+LEFT"), 16}, {btn("LEFT"), 4}}},
+		{"jump-right", []step{{btn("CROSS+RIGHT"), 16}, {btn("RIGHT"), 4}}},
+		{"jump", []step{{btn("CROSS"), 16}, {0, 4}}},
+		{"drop", []step{{btn("DOWN+CROSS"), 6}, {0, 14}}},
+		{"up", []step{{btn("UP"), 20}}},
+		{"attack-left", []step{{btn("LEFT"), 2}, {btn("SQUARE"), 4}, {0, 14}}},
+		{"attack-right", []step{{btn("RIGHT"), 2}, {btn("SQUARE"), 4}, {0, 14}}},
+		{"hop-left", []step{{btn("CROSS+LEFT"), 8}, {btn("CROSS"), 12}, {0, 20}}},
+		{"hop-right", []step{{btn("CROSS+RIGHT"), 8}, {btn("CROSS"), 12}, {0, 20}}},
+		{"high-jump", []step{{btn("CROSS"), 28}, {0, 12}}},
+		{"idle", []step{{0, 20}}},
+	}
+	if climb > 0 {
+		// 爬小石板要準：先往某方向挪 n 個 field，再按住跳，其中前 k 個 field 同時按方向。
+		for _, d := range []string{"LEFT", "RIGHT"} {
+			for _, back := range []string{"", "LEFT", "RIGHT"} {
+				for _, n := range []int{4, 10} {
+					if back == "" && n == 10 {
+						continue
+					}
+					for _, k := range []int{2, 5, 8, 12} {
+						seq := []step{}
+						if back != "" {
+							seq = append(seq, step{btn(back), n})
+						}
+						seq = append(seq, step{btn("CROSS+" + d), k}, step{btn("CROSS"), 22 - k}, step{0, 16})
+						acts = append(acts, action{fmt.Sprintf("hop-%s-%s%d-%d", d, back, n, k), seq})
+					}
+				}
+			}
+		}
+	}
+	return phase{
+		actions:   acts,
+		lookahead: 40,
+		score: func(b, a *machine.Machine) float64 {
+			if sotn.PlayerHP(a) <= 0 {
+				return -1e6
+			}
+			sc := -30 * float64(sotn.PlayerHP(b)-sotn.PlayerHP(a))
+			l, t := sotn.Room(a)
+			if !rooms[[2]int{l, t}] {
+				sc += 200
+			}
+			if !visited[cellKey(a)] {
+				sc += 20
+			}
+			// climb > 0 時偏好往上（房間內 Y 變小）；換房間時 Y 不可比，不計。
+			if lb, tb := sotn.Room(b); lb == l && tb == t {
+				sc += climb * float64(sotn.PlayerRoomY(b)-sotn.PlayerRoomY(a))
+			}
+			return sc
+		},
+		done: func(m *machine.Machine) bool { return false },
+	}
+}
+
 func apply(m *machine.Machine, a action, log *sotn.Log) {
 	for _, s := range a.seq {
 		for i := 0; i < s.n; i++ {
@@ -118,6 +187,7 @@ func main() {
 	slotList := flag.String("slots", "80", "boss 的實體槽，逗號分隔（序章德古拉 80；第二型態 85,86,87,88）")
 	out := flag.String("out", "", "輸出目錄")
 	maxFields := flag.Uint64("max-fields", 6000, "最多再跑幾個 field")
+	climb := flag.Float64("climb", 0, "explore：每往上 1 像素加的分數")
 	flag.Parse()
 
 	ps, err := sotn.ParseScript(*script)
@@ -129,13 +199,19 @@ func main() {
 		fail(err)
 	}
 	log := &sotn.Log{}
+	// 重播途中走過的房間也算去過，探索才不會往回走。
+	seen := map[[2]int]bool{}
 	for m.Field() < *at {
 		b := sotn.ButtonsAt(ps, m.Field())
 		log.Buttons = append(log.Buttons, b)
 		sotn.Step(m, b)
+		l, t := sotn.Room(m)
+		seen[[2]int{l, t}] = true
 	}
 	var ph phase
 	var watch []int
+	visited := map[[4]int]bool{}
+	rooms := seen
 	switch *phaseName {
 	case "boss":
 		var slots []int
@@ -148,6 +224,9 @@ func main() {
 		}
 		ph = bossPhase(slots)
 		watch = slots
+	case "explore":
+		ph = explorePhase(visited, rooms, *climb)
+		watch = []int{0}
 	default:
 		fail(fmt.Errorf("不認識的 phase %q", *phaseName))
 	}
@@ -174,6 +253,16 @@ func main() {
 			}
 		}
 		apply(m, ph.actions[best], log)
+		visited[cellKey(m)] = true
+		if l, t := sotn.Room(m); !rooms[[2]int{l, t}] {
+			rooms[[2]int{l, t}] = true
+			_ = sotn.SavePNG(m, filepath.Join(*out, "shots", fmt.Sprintf("room_%02d_%02d_f%06d.png", l, t, m.Field())))
+			fmt.Printf("newroom %d,%d field=%d\n", l, t, m.Field())
+		}
+		if sotn.PlayerHP(m) <= 0 {
+			fmt.Println("dead")
+			break
+		}
 		fmt.Printf("field=%d act=%s score=%.1f hp=%d boss=%d px=%d bx=%d\n",
 			m.Field(), ph.actions[best].name, scores[best], sotn.PlayerHP(m), bossHP(m, watch), sotn.EntityAt(m, 0).X, sotn.EntityAt(m, watch[0]).X)
 		if k%10 == 0 {
@@ -183,7 +272,7 @@ func main() {
 	}
 	_ = sotn.SavePNG(m, filepath.Join(*out, "shots", fmt.Sprintf("f%06d.png", m.Field())))
 	_ = os.WriteFile(filepath.Join(*out, "script.txt"), []byte(log.Script()+"\n"), 0o644)
-	fmt.Printf("end field=%d done=%v\n", m.Field(), ph.done(m))
+	fmt.Printf("end field=%d done=%v digest=%s\n", m.Field(), ph.done(m), m.Digest())
 }
 
 func fail(err error) {
