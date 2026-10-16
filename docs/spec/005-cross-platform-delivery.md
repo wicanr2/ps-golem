@@ -38,7 +38,8 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 | `tools/build_image.sh osxcross` | `psgolem-osxcross`：Ubuntu 24.04＋`crazymax/osxcross:15.5-debian`＋`psgolem-go-ebiten` 的 Go 1.24.13 |
 | `tools/build_image.sh wine` | `psgolem-wine-verify`：Ubuntu 24.04＋Wine＋xvfb，Windows 版冒煙測試 |
 
-版號以 `-ldflags "-X main.version=<版號>"` 寫進執行檔，`-version` 印出。
+版號以 `-ldflags "-X main.version=<版號>"` 寫進執行檔，`-version` 印出。psgolem 的版號在
+`cmd/psgolem/early.Version`：該套件在 Ebiten 初始化前處理 `-version`，Linux 沒有顯示器時也能印出。
 
 ## 5. 發行包
 

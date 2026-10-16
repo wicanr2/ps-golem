@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	// early 必須先於 Ebiten 初始化，才能在沒有顯示器時處理 -version。
+	"github.com/wicanr2/ps-golem/cmd/psgolem/early"
 	"github.com/wicanr2/ps-golem/frontend/ebiten"
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/padscript"
@@ -20,8 +22,8 @@ type settings struct {
 	Cue  string `json:"cue"`
 }
 
-// version 由 tools/build_dist.sh 以 -ldflags "-X main.version=..." 寫入。
-var version = "dev"
+// version 見 early.Version。
+var version = early.Version
 
 func main() {
 	biosPath := flag.String("bios", "", "BIOS 映像（512 KB）；省略時取設定檔")
@@ -34,6 +36,7 @@ func main() {
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...，取代鍵盤與手把（驗收用）")
 	untilField := flag.Uint64("fields", 0, "跑到第這麼多次 VBlank 後存記憶卡並結束（驗收用）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
+	stats := flag.Bool("stats", false, "每 600 個 field 印出實際 FPS 與模擬耗時")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
@@ -71,7 +74,7 @@ func main() {
 	err = ebiten.Run(ebiten.Config{
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
-		Press: press, UntilField: *untilField,
+		Press: press, UntilField: *untilField, Stats: *stats,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)

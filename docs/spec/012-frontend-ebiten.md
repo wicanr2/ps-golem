@@ -24,11 +24,16 @@ psgolem [-bios <BIOS>] [-cue <cue>] [-card <記憶卡檔>] [-scale N]
 
 ## 3. 時間
 
-- Ebiten 的 TPS 設為 60。每次 `Update` 讓機器跑到下一次 VBlank（`RunUntilField(field+1)`，
-  上限 2 個 field 的週期數，防止顯示關閉時卡住）。
+- 機器在自己的 goroutine 推進（`frontend/ebiten/emu.go`），每次跑到下一次 VBlank
+  （`RunUntilField(field+1)`，上限 2 個 field 的週期數，防止顯示關閉時卡住）。
+  Ebiten 的 `Update`／`Draw` 只交換按鍵與取最新畫面，畫面繪製的耗時不佔模擬時間。
+- 步調：模擬的週期數除以 33,868,800 Hz 換成實際時間，模擬超前就等待。SPU 每 768 週期出一組取樣，
+  所以聲音的產出速度與播放速度一致。落後實際時間超過 100 ms 時把基準移到現在，不追趕。
+- 機器狀態只由模擬 goroutine 改。按鍵在每個 field 開始前套用；按鍵腳本（`-press`）以 field 計，
+  重播結果與執行速度無關。
 - 機器的時間只由 CPU 週期決定（`001` §3.1）；前端不跳 field、不補 field。
   模擬比實機慢時，遊戲整體變慢；不改變任何決定性狀態。
-- NTSC 實機 field 率約 59.94，與 60 的差在前端可忽略。
+- `-stats` 每 600 個 field 在標準錯誤印出實際 FPS、每個 field 的模擬耗時（平均、最大）與基準重設次數。
 
 ## 4. 畫面
 

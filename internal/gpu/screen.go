@@ -3,7 +3,10 @@ package gpu
 import "image"
 
 // Screen 依顯示設定把目前顯示的區域取成 RGB 影像（docs/spec/007-gpu-and-dma.md §8）。
-func (g *GPU) Screen() *image.RGBA {
+func (g *GPU) Screen() *image.RGBA { return g.ScreenInto(nil) }
+
+// ScreenInto 同 Screen，dst 尺寸相同時重用它的記憶體（前端每個 field 呼叫，避免配置）。
+func (g *GPU) ScreenInto(dst *image.RGBA) *image.RGBA {
 	hres := [4]uint32{256, 320, 512, 640}[g.displayMode&3]
 	if g.displayMode&0x40 != 0 {
 		hres = 368
@@ -21,7 +24,10 @@ func (g *GPU) Screen() *image.RGBA {
 	if g.displayMode&0x04 != 0 && g.displayMode&dispInterlaced != 0 {
 		h *= 2
 	}
-	img := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+	img := dst
+	if img == nil || img.Bounds() != image.Rect(0, 0, int(w), int(h)) {
+		img = image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+	}
 	rgb24 := g.displayMode&0x10 != 0
 	for y := uint32(0); y < h; y++ {
 		vy := (g.displayYStart + y) & (VRAMHeight - 1)

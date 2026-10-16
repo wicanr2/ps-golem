@@ -35,6 +35,8 @@ type Config struct {
 	Press []padscript.Press
 	// UntilField 大於 0 時，機器跑到第這麼多次 VBlank 就存記憶卡、截圖並結束（驗收用）。
 	UntilField uint64
+	// Stats 為 true 時每 600 個 field 在標準錯誤印出實際 FPS 與每個 field 的模擬耗時。
+	Stats bool
 }
 
 // Game 實作 ebiten.Game。
@@ -42,16 +44,18 @@ type Game struct {
 	cfg  Config
 	sess *Session
 	m    *machine.Machine
+	emu  *emulator
 	// 設定畫面（012 §9）：m 為 nil 時顯示。
 	biosPath, cuePath, setupErr string
 	text                        *eb.Image
 	card                        cardSaver
 	frame                       *eb.Image
+	frameNo                     uint64
 	canvas                      *eb.Image
 	updates                     int
+	finishing                   bool
 	err                         error
 	stream                      *pcmStream
-	pcm                         []int16
 }
 
 // Run 開視窗並執行到關閉。
@@ -74,6 +78,12 @@ func Run(cfg Config) error {
 	eb.SetTPS(60)
 	g.tryOpen()
 	err := eb.RunGame(g)
+	if g.emu != nil {
+		g.emu.halt()
+		if g.emu.err != nil && err == nil {
+			err = g.emu.err
+		}
+	}
 	if g.m != nil {
 		if ferr := g.card.flush(g.m.Card1); ferr != nil && err == nil {
 			err = ferr
@@ -91,9 +101,9 @@ func Run(cfg Config) error {
 	return err
 }
 
-// Update 讀輸入、跑到下一次 VBlank、必要時存記憶卡。
+// Update 讀輸入交給模擬 goroutine；結束條件成立時多等一次 Draw 再存截圖並結束。
 func (g *Game) Update() error {
-	if (g.cfg.Frames > 0 && g.updates >= g.cfg.Frames) || (g.m != nil && g.cfg.UntilField > 0 && g.m.Field() >= g.cfg.UntilField) {
+	if g.finishing {
 		if g.cfg.Screenshot != "" && g.canvas != nil {
 			if err := savePNG(g.canvas, g.cfg.Screenshot); err != nil {
 				g.err = err
@@ -102,25 +112,22 @@ func (g *Game) Update() error {
 		return eb.Termination
 	}
 	g.updates++
-	if g.m == nil {
+	if g.cfg.Frames > 0 && g.updates >= g.cfg.Frames {
+		g.finishing = true
+	}
+	if g.emu == nil {
 		if g.takeDropped() {
 			g.tryOpen()
 		}
 		return nil
 	}
-	if g.cfg.Press != nil {
-		g.m.Pad1.Buttons = padscript.At(g.cfg.Press, g.m.Field())
-	} else {
-		g.m.Pad1.Buttons = buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)
+	select {
+	case <-g.emu.done:
+		// 跑到 -fields 或記憶卡存檔失敗；錯誤在 Run 收尾時回報。
+		g.finishing = true
+	default:
 	}
-	g.m.RunUntilField(g.m.Field()+1, fieldCycleLimit)
-	g.pcm = g.m.TakeAudio(g.pcm[:0])
-	if g.stream != nil {
-		g.stream.push(g.pcm)
-	}
-	if _, err := g.card.tick(g.m.Card1, g.m.Field()); err != nil {
-		return fmt.Errorf("記憶卡存檔：%w", err)
-	}
+	g.emu.buttons.Store(uint32(buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)))
 	return nil
 }
 
@@ -131,24 +138,29 @@ func (g *Game) Draw(screen *eb.Image) {
 		g.keepCanvas(screen)
 		return
 	}
-	img := g.m.GPU.Screen()
+	img, no := g.emu.frame()
+	if img == nil {
+		return
+	}
 	b := img.Bounds()
 	if g.frame == nil || g.frame.Bounds().Size() != b.Size() {
 		g.frame = eb.NewImage(b.Dx(), b.Dy())
+		g.frameNo = 0
 	}
-	g.frame.WritePixels(img.Pix)
+	if no != g.frameNo {
+		g.frame.WritePixels(img.Pix)
+		g.frameNo = no
+	}
 	sb := screen.Bounds()
-	if g.canvas == nil || g.canvas.Bounds().Size() != sb.Size() {
-		g.canvas = eb.NewImage(sb.Dx(), sb.Dy())
-	}
-	g.canvas.Clear()
 	r := fit(sb.Dx(), sb.Dy())
 	op := &eb.DrawImageOptions{}
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))
 	op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 	op.Filter = eb.FilterNearest
-	g.canvas.DrawImage(g.frame, op)
-	screen.DrawImage(g.canvas, nil)
+	screen.DrawImage(g.frame, op)
+	if g.cfg.Screenshot != "" {
+		g.keepCanvas(screen)
+	}
 }
 
 // keepCanvas 把設定畫面也留一份給 -screenshot。

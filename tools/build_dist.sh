@@ -20,7 +20,8 @@ STAGE="$ROOT/workplace/stage-$VER"
 [ ! -e "$STAGE" ] || { echo "$STAGE 已存在，先自行移走" >&2; exit 2; }
 mkdir -p "$OUT" "$STAGE"/{linux,windows,macos}
 REL="workplace/stage-$VER"
-LDF="-X main.version=$VER"
+# psgolem 的版號放在 cmd/psgolem/early（要在 Ebiten 初始化前印出）；psexe 沒有這個符號，連結器略過。
+LDF="-X main.version=$VER -X github.com/wicanr2/ps-golem/cmd/psgolem/early.Version=$VER"
 cd "$ROOT"
 
 echo "== linux/amd64"
