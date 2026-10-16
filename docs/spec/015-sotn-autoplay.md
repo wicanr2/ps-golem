@@ -94,6 +94,7 @@ Windows 的 `psexe.exe` 上重播，摘要與記憶卡要相同（`005` §6）�
 |---|---|
 | Linux `psexe` 重播 | 摘要 `6c35c2701228722f`；記憶卡、最後畫面與 `sotnlab` 寫出的逐位元相同 |
 | Windows `psexe.exe`（v0.1.1，Wine 9） | 摘要、記憶卡、最後畫面與 Linux 逐位元相同 |
+| 發行包視窗版 `psgolem`（v0.1.2，Linux 與 Wine 9，xvfb） | `-press` 重播到 field 45784，前端自動存下的記憶卡與 `psexe` 逐位元相同 |
 | 記憶卡內容 | 目錄項 `BISLPM-86023DRAX00`，存檔標題「ドラキュラX－１ ＡＬＵＣＡＲＤ 城入口 ２％」 |
 | ps-golem 讀檔 | 用這張卡開機，檔案選擇列出 ALUCARD／城之入口，讀取後回到存檔室 |
 | 交叉 oracle（mednafen 1.29） | 同一張卡放進 mednafen，檔案選擇列出同一筆存檔，讀取後回到存檔室（HP 70） |

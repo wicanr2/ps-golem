@@ -69,3 +69,5 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 - macOS：執行檔含 `v0.1.1` 與設定畫面字串；`psgolem`、`psexe` 雙弧、arm64 有 `LC_CODE_SIGNATURE`、`minos 11.0`、只連系統動態庫。未在實機執行。
 - 長時間重播（2026-10-16）：Wine 下的 `psexe.exe` 重播 M4 腳本（260 億週期，開機到入口區存檔），
   摘要、記憶卡、最後畫面與 Linux 逐位元相同（`015` §7）。
+- 視窗版（2026-10-16，v0.1.2）：解開發行包，Linux 的 `psgolem` 與 Wine 下的 `psgolem.exe` 以 `-press` 重播 M4 腳本，
+  前端自動存下的記憶卡與 `psexe` 逐位元相同。
