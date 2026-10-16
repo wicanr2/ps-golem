@@ -11,6 +11,7 @@ import (
 
 	eb "github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
@@ -30,6 +31,10 @@ type Config struct {
 	Screenshot string
 	// Mute 為 true 時不開音訊裝置（沒有音效卡的環境，例如容器內驗收）。
 	Mute bool
+	// Press 不為 nil 時用按鍵腳本取代鍵盤與手把（驗收用，012 §5）。
+	Press []padscript.Press
+	// UntilField 大於 0 時，機器跑到第這麼多次 VBlank 就存記憶卡、截圖並結束（驗收用）。
+	UntilField uint64
 }
 
 // Game 實作 ebiten.Game。
@@ -88,7 +93,7 @@ func Run(cfg Config) error {
 
 // Update 讀輸入、跑到下一次 VBlank、必要時存記憶卡。
 func (g *Game) Update() error {
-	if g.cfg.Frames > 0 && g.updates >= g.cfg.Frames {
+	if (g.cfg.Frames > 0 && g.updates >= g.cfg.Frames) || (g.m != nil && g.cfg.UntilField > 0 && g.m.Field() >= g.cfg.UntilField) {
 		if g.cfg.Screenshot != "" && g.canvas != nil {
 			if err := savePNG(g.canvas, g.cfg.Screenshot); err != nil {
 				g.err = err
@@ -103,7 +108,11 @@ func (g *Game) Update() error {
 		}
 		return nil
 	}
-	g.m.Pad1.Buttons = buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)
+	if g.cfg.Press != nil {
+		g.m.Pad1.Buttons = padscript.At(g.cfg.Press, g.m.Field())
+	} else {
+		g.m.Pad1.Buttons = buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)
+	}
 	g.m.RunUntilField(g.m.Field()+1, fieldCycleLimit)
 	g.pcm = g.m.TakeAudio(g.pcm[:0])
 	if g.stream != nil {

@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"image/png"
 	"os"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/wicanr2/ps-golem/internal/disc"
-	"github.com/wicanr2/ps-golem/internal/sio"
+	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
@@ -70,92 +68,21 @@ func SavePNG(m *machine.Machine, path string) error {
 	return png.Encode(f, m.GPU.Screen())
 }
 
-// ButtonNames 與 psexe 的 -press 相同。
-var ButtonNames = map[string]uint16{
-	"SELECT": sio.BtnSelect, "START": sio.BtnStart,
-	"UP": sio.BtnUp, "RIGHT": sio.BtnRight, "DOWN": sio.BtnDown, "LEFT": sio.BtnLeft,
-	"L1": sio.BtnL1, "R1": sio.BtnR1, "L2": sio.BtnL2, "R2": sio.BtnR2,
-	"TRIANGLE": sio.BtnTriangle, "CIRCLE": sio.BtnCircle, "CROSS": sio.BtnCross, "SQUARE": sio.BtnSquare,
-}
+// ParseButtons、FormatButtons、ParseScript、ButtonsAt 與 psexe 的 -press 相同（internal/padscript）。
+var (
+	ParseButtons  = padscript.ParseButtons
+	FormatButtons = padscript.FormatButtons
+	ParseScript   = padscript.Parse
+	ButtonsAt     = padscript.At
+)
 
-// ParseButtons 解析 "RIGHT+CROSS"；空字串是不按。
-func ParseButtons(s string) (uint16, error) {
-	var b uint16
-	if s == "" || s == "-" {
-		return 0, nil
-	}
-	for _, n := range strings.Split(s, "+") {
-		v, ok := ButtonNames[strings.ToUpper(n)]
-		if !ok {
-			return 0, fmt.Errorf("不認識的按鍵 %q", n)
-		}
-		b |= v
-	}
-	return b, nil
-}
-
-// FormatButtons 是 ParseButtons 的反向，名稱依字母排序。
-func FormatButtons(b uint16) string {
-	var names []string
-	for n, v := range ButtonNames {
-		if b&v != 0 {
-			names = append(names, n)
-		}
-	}
-	sort.Strings(names)
-	return strings.Join(names, "+")
-}
+// Press 是 psexe -press 的一項。
+type Press = padscript.Press
 
 // Log 記錄每個 field 按住的鍵（從 Start 開始），可以轉成 psexe 的 -press 腳本。
 type Log struct {
 	Start   uint64
 	Buttons []uint16
-}
-
-// Press 是 psexe -press 的一項。
-type Press struct {
-	At, Dur uint64
-	Buttons uint16
-}
-
-// ParseScript 解析 psexe 的 "FIELD:BTN[+BTN][:DUR],..."（DUR 預設 5）。
-func ParseScript(s string) ([]Press, error) {
-	var out []Press
-	if strings.TrimSpace(s) == "" {
-		return nil, nil
-	}
-	for _, item := range strings.Split(s, ",") {
-		f := strings.Split(strings.TrimSpace(item), ":")
-		if len(f) < 2 {
-			return nil, fmt.Errorf("按鍵格式不對：%q", item)
-		}
-		at, err := strconv.ParseUint(f[0], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		p := Press{At: at, Dur: 5}
-		if p.Buttons, err = ParseButtons(f[1]); err != nil {
-			return nil, err
-		}
-		if len(f) > 2 {
-			if p.Dur, err = strconv.ParseUint(f[2], 10, 64); err != nil {
-				return nil, err
-			}
-		}
-		out = append(out, p)
-	}
-	return out, nil
-}
-
-// ButtonsAt 回傳腳本在第 f 個 field 按住的鍵。
-func ButtonsAt(ps []Press, f uint64) uint16 {
-	var b uint16
-	for _, p := range ps {
-		if f >= p.At && f < p.At+p.Dur {
-			b |= p.Buttons
-		}
-	}
-	return b
 }
 
 // RunScript 依腳本跑到第 until 個 field。

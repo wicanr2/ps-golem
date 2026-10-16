@@ -64,6 +64,5 @@ exec timeout "${PSGOLEM_ORACLE_TIMEOUT:-3600}" docker run --rm --init --network 
     done < /out/plan.txt
     sleep 1; kill $P; wait $P 2>/dev/null
     cp -r /tmp/.mednafen/snaps /out/ 2>/dev/null || true
-    ls -la /tmp/.mednafen/sav > /out/sav-list.txt 2>&1
     cp /tmp/.mednafen/sav/game0.mcr /out/card.mcr 2>/dev/null || true
   '

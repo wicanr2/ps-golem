@@ -69,6 +69,8 @@ psgolem [-bios <BIOS>] [-cue <cue>] [-card <記憶卡檔>] [-scale N]
 | 實際遊玩 | 玩家在主機上執行，從開機玩到存檔點存檔（M4 驗收，由玩家確認） |
 
 `-frames`、`-screenshot` 只給驗收與除錯用。`-mute` 不開音訊裝置（容器內沒有音效卡時用）。
+`-press <腳本>` 以按鍵腳本（`010`，與 `psexe -press` 同格式，解析在 `internal/padscript`）取代鍵盤與手把，
+`-fields N` 跑到第 N 次 VBlank 就存記憶卡、截圖並結束；兩者用來讓發行包的視窗執行檔重播整段遊玩。
 
 ## 8. 聲音
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/wicanr2/ps-golem/frontend/ebiten"
 	"github.com/wicanr2/ps-golem/internal/disc"
+	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
 )
 
@@ -30,6 +31,8 @@ func main() {
 	frames := flag.Int("frames", 0, "跑這麼多次 Update 後結束（驗收用）")
 	shot := flag.String("screenshot", "", "配合 -frames：結束前存下畫面")
 	mute := flag.Bool("mute", false, "不開音訊裝置")
+	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...，取代鍵盤與手把（驗收用）")
+	untilField := flag.Uint64("fields", 0, "跑到第這麼多次 VBlank 後存記憶卡並結束（驗收用）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	flag.Parse()
 	if *showVersion {
@@ -50,6 +53,11 @@ func main() {
 	if *cuePath == "" {
 		*cuePath = st.Cue
 	}
+	press, err := padscript.Parse(*pressSpec)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "psgolem:", err)
+		os.Exit(2)
+	}
 	open := func(bios, cue string) (*ebiten.Session, error) {
 		s, err := openSession(bios, cue, *cardPath, dir)
 		if err != nil {
@@ -63,6 +71,7 @@ func main() {
 	err = ebiten.Run(ebiten.Config{
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
+		Press: press, UntilField: *untilField,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
