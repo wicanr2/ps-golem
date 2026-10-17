@@ -70,11 +70,11 @@ func (g *Renderer) drawSprite(xArg, yArg, w, h int32, uArg, vArg uint8, color ui
 			vInc = -1
 		}
 	}
-	if xStart < g.clipX0 {
+	if xStart < g.clipLeft() {
 		if textured {
-			u += uint8((g.clipX0 - xStart) * uInc)
+			u += uint8((g.clipLeft() - xStart) * uInc)
 		}
-		xStart = g.clipX0
+		xStart = g.clipLeft()
 	}
 	if yStart < g.clipY0 {
 		if textured {
@@ -82,8 +82,8 @@ func (g *Renderer) drawSprite(xArg, yArg, w, h int32, uArg, vArg uint8, color ui
 		}
 		yStart = g.clipY0
 	}
-	if xBound > g.clipX1+1 {
-		xBound = g.clipX1 + 1
+	if xBound > g.clipRight()+1 {
+		xBound = g.clipRight() + 1
 	}
 	if yBound > g.clipY1+1 {
 		yBound = g.clipY1 + 1
@@ -248,6 +248,9 @@ func (g *Renderer) drawLine(p [2]linePoint, gouraud bool, mode int) {
 	}
 	for i := int32(0); i <= k; i++ {
 		x := int32(cx>>lineXYFract) & 2047
+		if g.margin != 0 {
+			x = signExtend11(uint32(x))
+		}
 		y := int32(cy>>lineXYFract) & 2047
 		if !g.lineSkip(uint32(y)) {
 			var r, gg, b uint32
@@ -262,7 +265,7 @@ func (g *Renderer) drawLine(p [2]linePoint, gouraud bool, mode int) {
 			} else {
 				pix = 0x8000 | uint16(r>>3) | uint16(gg>>3)<<5 | uint16(b>>3)<<10
 			}
-			if x >= g.clipX0 && x <= g.clipX1 && y >= g.clipY0 && y <= g.clipY1 {
+			if x >= g.clipLeft() && x <= g.clipRight() && y >= g.clipY0 && y <= g.clipY1 {
 				g.plot(x, y, pix, mode, false)
 			}
 		}

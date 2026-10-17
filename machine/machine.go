@@ -107,6 +107,7 @@ func (m *Machine) Clone() *Machine {
 	c := *m.CPU
 	n.CPU = &c
 	n.CPU.SetPrecisionTracker(nil)
+	n.CPU.SetBreakHandler(nil)
 	n.CPU.GTE.SetProjectionObserver(nil)
 	n.precision = nil
 	cd := m.CD.Clone()

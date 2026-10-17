@@ -38,7 +38,8 @@ type Config struct {
 	// Stats 為 true 時每 600 個 field 在標準錯誤印出實際 FPS 與每個 field 的模擬耗時。
 	Stats bool
 	// Filter 是 none 或 xbr，只影響呈現。
-	Filter string
+	Filter     string
+	Widescreen bool
 }
 
 // Game 實作 ebiten.Game。
@@ -88,7 +89,11 @@ func Run(cfg Config) error {
 		}
 	}
 	eb.SetWindowTitle(cfg.Title)
-	eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)
+	if cfg.Widescreen {
+		eb.SetWindowSize(1280*cfg.Scale/3, 720*cfg.Scale/3)
+	} else {
+		eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)
+	}
 	eb.SetWindowResizingMode(eb.WindowResizingModeEnabled)
 	eb.SetTPS(60)
 	// 畫面沒有新內容時 Draw 直接返回，保留上一次的畫面（012 §4）。
@@ -176,6 +181,9 @@ func (g *Game) Draw(screen *eb.Image) {
 	g.shown = sb.Size()
 	screen.Clear()
 	r := fit(sb.Dx(), sb.Dy())
+	if g.cfg.Widescreen {
+		r = fitWide(sb.Dx(), sb.Dy())
+	}
 	op := &eb.DrawImageOptions{}
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))
 	op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))

@@ -11,3 +11,13 @@ func fit(w, h int) image.Rectangle {
 	x, y := (w-dw)/2, (h-dh)/2
 	return image.Rect(x, y, x+dw, y+dh)
 }
+
+// fitWide 依 16:9 比例置中。
+func fitWide(w, h int) image.Rectangle {
+	dw, dh := w, w*9/16
+	if dh > h {
+		dw, dh = h*16/9, h
+	}
+	x, y := (w-dw)/2, (h-dh)/2
+	return image.Rect(x, y, x+dw, y+dh)
+}

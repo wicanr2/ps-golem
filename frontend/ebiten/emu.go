@@ -23,12 +23,13 @@ const maxLag = 100 * time.Millisecond
 // emulator 在自己的 goroutine 推進機器（012 §3）。視窗執行緒只交換按鍵與取走最新畫面，
 // 不直接碰機器；機器狀態只由這個 goroutine 改。
 type emulator struct {
-	m      *machine.Machine
-	press  []padscript.Press
-	until  uint64
-	stream *pcmStream
-	card   *cardSaver
-	stats  bool
+	m          *machine.Machine
+	press      []padscript.Press
+	until      uint64
+	stream     *pcmStream
+	card       *cardSaver
+	stats      bool
+	afterField func(*machine.Machine) error
 
 	buttons atomic.Uint32 // 視窗執行緒寫入的按鍵
 	stop    chan struct{}
@@ -85,7 +86,12 @@ func (e *emulator) run() {
 			e.m.Pad1.Buttons = uint16(e.buttons.Load())
 		}
 		t0 := time.Now()
-		e.m.RunUntilField(e.m.Field()+1, fieldCycleLimit)
+		if reached := e.m.RunUntilField(e.m.Field()+1, fieldCycleLimit); reached && e.afterField != nil {
+			if err := e.afterField(e.m); err != nil {
+				e.err = err
+				return
+			}
+		}
 		pcm = e.m.TakeAudio(pcm[:0])
 		if e.stream != nil {
 			e.stream.push(pcm)

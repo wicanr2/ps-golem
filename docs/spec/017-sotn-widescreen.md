@@ -102,3 +102,25 @@ scrollX 小於 48 時 startTx 為負，原程式的 `tx < 0` 會跳過，與房�
   超出 16–64 像素的圖元每 16 像素一格由約 600 增為約 5000，左右各三格；每 field 圖塊約 385 → 480。
 - DRA 反組譯：`workplace/ws/dra35000.s`（由 field 35000 的 RAM 以 `mips-linux-gnu-objdump` 產生）。
 - `Xeeynamo/sotn-decomp`（AGPL-3.0，`002` §3）commit `8a42c0036e0609a1d0fda3cd8d10251bf86a82c0`：只查名稱、結構、常數，不搬程式碼。
+
+## 7. 驗收結果
+
+目前狀態表（2026-10-17）：實作已接上，完整重播、畫面與三平台驗收進行中。
+效能依本次使用者決定為「未量測」，不宣稱符合 §5 的 10% 門檻。
+
+| 項目 | 目前結果 | 證據 |
+|---|---|---|
+| 簽章與解除 | 無素材單元測試通過，包含不符時不寫入、正規化、DRA 重載與解除 | `apps/sotn/widescreen_test.go`、`workplace/ws/unit.log` |
+| BREAK | 手寫 PS-EXE 通過；核對位址、code、延遲槽、延遲載入與未掛處理器的 Bp | `apps/sotn/widescreen_test.go`、`workplace/ws/unit.log` |
+| 側邊畫布 | 倍率 1、2、4、8 的接縫測試通過；雙緩衝、填色、傳輸隔離、貼圖、混色與 mask 通過 | `render/hd/widescreen_test.go`、`workplace/ws/unit.log` |
+| CPU 熱路徑 | 與 main 比對通過，只有 BREAK 處理改動 | `workplace/ws/hot-path-check.log` |
+| 關閉模式完整驗收 | 進行中 | `workplace/ws/m4.log`、`workplace/ws/regression.log` |
+| 場景截圖 | 進行中 | `apps/sotn/widescreen_capture_test.go`、`workplace/ws/captures.log` |
+| 效能 | 未量測 | 使用者指定先確認可執行，後續再優化 |
+| 三平台 | 進行中，本機版本 `v0.4.0-ws` | `workplace/ws/build-dist.log` |
+
+實作入口為 `apps/sotn/widescreen.go`，通用 BREAK 介面為 `internal/cpu/break.go`，
+影子側邊畫布為 `render/hd/widescreen.go`。前端只在 field 結束後呼叫遊戲檢查，
+觀測 API 與 `Machine.Step` 沒有接入修改模式。玩家操作見 `docs/play.md`「《月下》寬螢幕」。
+
+新增驗收程式與實作檔均由本節收錄；工作歷程沿用 `WORKLOG.md`。

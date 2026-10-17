@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	// early 必須先於 Ebiten 初始化，才能在沒有顯示器時處理 -version。
+	"github.com/wicanr2/ps-golem/apps/sotn"
 	"github.com/wicanr2/ps-golem/cmd/psgolem/early"
 	"github.com/wicanr2/ps-golem/frontend/ebiten"
 	"github.com/wicanr2/ps-golem/internal/disc"
@@ -19,11 +20,12 @@ import (
 
 // settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §9）。
 type settings struct {
-	BIOS   string `json:"bios"`
-	Cue    string `json:"cue"`
-	HD     int    `json:"hd"`
-	Filter string `json:"filter"`
-	PGXP   bool   `json:"pgxp"`
+	BIOS       string `json:"bios"`
+	Cue        string `json:"cue"`
+	HD         int    `json:"hd"`
+	Filter     string `json:"filter"`
+	Widescreen bool   `json:"widescreen"`
+	PGXP       bool   `json:"pgxp"`
 }
 
 // version 見 early.Version。
@@ -44,6 +46,7 @@ func main() {
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；省略時取設定檔")
 	pgxpFlag := flag.Bool("pgxp", false, "PGXP 次像素精度；省略時取設定檔，需要 -hd 2 以上")
 	filterFlag := flag.String("filter", "none", "輸出濾鏡：none、xbr；省略時取設定檔")
+	wideFlag := flag.Bool("widescreen", false, "月下寬螢幕遊戲修改模式；預設關閉")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
@@ -64,6 +67,12 @@ func main() {
 	}
 	if !set["pgxp"] {
 		*pgxpFlag = st.PGXP
+	}
+	if !set["widescreen"] {
+		*wideFlag = st.Widescreen
+	}
+	if *wideFlag && *hdFlag == 0 {
+		*hdFlag = 1
 	}
 	if *pgxpFlag && *hdFlag < 2 {
 		fmt.Fprintln(os.Stderr, "psgolem：-pgxp 需要 -hd 2、4 或 8")
@@ -95,6 +104,9 @@ func main() {
 		}
 		if *hdFlag != 0 {
 			shadow := gpu.NewShadow(shift)
+			if *wideFlag {
+				shadow.SetSideMargin(48)
+			}
 			s.Machine.GPU.SetShadow(shadow)
 			closeSession := s.Close
 			s.Close = func() { s.Machine.DisablePGXP(); s.Machine.GPU.SetShadow(nil); shadow.Close(); closeSession() }
@@ -105,7 +117,13 @@ func main() {
 				return nil, err
 			}
 		}
-		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag}); err != nil {
+		if *wideFlag {
+			w := &sotn.Widescreen{}
+			s.AfterField = w.Check
+			closeSession := s.Close
+			s.Close = func() { w.Disable(s.Machine); closeSession() }
+		}
+		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag}); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil
@@ -114,7 +132,7 @@ func main() {
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
 		Press: press, UntilField: *untilField, Stats: *stats,
-		Filter: *filterFlag,
+		Filter: *filterFlag, Widescreen: *wideFlag,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)

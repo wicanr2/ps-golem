@@ -12,8 +12,8 @@
 # 版本目錄必須是新的，既有版本不覆寫。
 set -euo pipefail
 VER="${1:?用法：build_dist.sh <版號，例如 v0.1.0>}"
-# -hd、-pgxp 是 016 的本機驗收包，不建立 tag 或發布。
-[[ "$VER" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-hd|-pgxp)?$ ]] || { echo "版號格式 vX.Y.Z，或本機驗收用 vX.Y.Z-hd／vX.Y.Z-pgxp" >&2; exit 2; }
+# -hd、-pgxp、-ws 是 016 的本機驗收包，不建立 tag 或發布。
+[[ "$VER" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-hd|-pgxp|-ws)?$ ]] || { echo "版號格式 vX.Y.Z，或本機驗收用 vX.Y.Z-hd／vX.Y.Z-pgxp／vX.Y.Z-ws" >&2; exit 2; }
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="$ROOT/dist/$VER"
 [ ! -e "$OUT" ] || { echo "$OUT 已存在，不覆寫" >&2; exit 2; }

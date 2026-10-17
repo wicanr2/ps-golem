@@ -1,0 +1,93 @@
+package sotn
+
+import (
+	"crypto/sha256"
+	"encoding/binary"
+	"fmt"
+
+	"github.com/wicanr2/ps-golem/internal/cpu"
+	"github.com/wicanr2/ps-golem/machine"
+)
+
+// 017 §3，CPU 虛擬位址；名稱只供導覽，位址與原字保留作定位。
+const tilemapStart = 0x800ecc10
+const tilemapSize = 2332
+const widescreenBreakCode = 0x5753
+
+var tilemapHash = [32]byte{0x40, 0xdf, 0xd4, 0x0f, 0x6a, 0x99, 0x22, 0xdd, 0x5e, 0xd1, 0xb6, 0x9f, 0x1f, 0xd3, 0x2a, 0xda, 0x3f, 0x7a, 0x81, 0x39, 0xb7, 0x93, 0x98, 0x4f, 0x49, 0xd3, 0x73, 0xd3, 0xf3, 0x1b, 0x79, 0x7c}
+
+var widescreenWords = [...]struct{ addr, original, patched uint32 }{
+	{0x800ecd64, 0x00031c00, 0x2463ffd0},
+	{0x800ecd70, 0x00037d03, 0x00037903},
+	{0x800ed010, 0x29220011, 0x29220017},
+	{0x800ed194, 0x00021400, 0x2442ffd0},
+	{0x800ed198, 0x00027d03, 0x00027903},
+	{0x800ed428, 0x29220011, 0x29220017},
+	{0x800eccf0, 0xa6030000, widescreenBreakCode<<6 | 0x0d},
+}
+
+// Widescreen 只由遊玩端持有，不接入觀測 API 或 Machine.Step。
+// 零值可用；每個 field 結束後呼叫 Check，離開模式前呼叫 Disable。
+type Widescreen struct {
+	applied      bool
+	Applications uint64
+}
+
+// Check 把已知改字還原後驗簽。非原字或已知改字也算不符，不掩蓋未知改動。
+// DRA 尚未載入時等待；曾套用後失配則回報，讓玩家端停止，RAM 保持不動。
+func (w *Widescreen) Check(m *machine.Machine) error {
+	return w.check(m, tilemapHash)
+}
+
+func (w *Widescreen) check(m *machine.Machine, expected [32]byte) error {
+	b := m.ReadRAM(tilemapStart, tilemapSize)
+	valid := true
+	for _, p := range widescreenWords {
+		o := p.addr - tilemapStart
+		v := binary.LittleEndian.Uint32(b[o:])
+		if v != p.original && v != p.patched {
+			valid = false
+		}
+		if v == p.patched {
+			binary.LittleEndian.PutUint32(b[o:], p.original)
+		}
+	}
+	actual := sha256.Sum256(b)
+	if !valid || actual != expected {
+		if w.applied {
+			return fmt.Errorf("寬螢幕：field %d RenderTilemap 簽章不符：%x", m.Field(), actual)
+		}
+		return nil
+	}
+	changed := false
+	for _, p := range widescreenWords {
+		if m.Read32(p.addr) != p.patched {
+			m.Write32(p.addr, p.patched)
+			changed = true
+		}
+	}
+	if changed {
+		w.Applications++
+	}
+	m.CPU.SetBreakHandler(widescreenTrap)
+	w.applied = true
+	return nil
+}
+
+func widescreenTrap(c *cpu.CPU, pc, code uint32) bool {
+	if pc != 0x800eccf0 || code != widescreenBreakCode {
+		return false
+	}
+	c.StoreHalf(c.GPR(16), c.GPR(3)-48)
+	return true
+}
+
+func (w *Widescreen) Disable(m *machine.Machine) {
+	if w.applied {
+		for _, p := range widescreenWords {
+			m.Write32(p.addr, p.original)
+		}
+	}
+	m.CPU.SetBreakHandler(nil)
+	w.applied = false
+}

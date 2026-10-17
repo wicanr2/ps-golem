@@ -53,6 +53,20 @@ psgolem -hd 2 -filter xbr
 HD 只影響輸出，存檔與模擬狀態相同。視窗維持 4:3，較寬的視窗左右補黑。
 `psexe -hd N -screen <PNG>` 可擷取放大畫面，`psexe` 不提供 xBR 濾鏡。
 
+## 《月下》寬螢幕
+
+```
+psgolem -hd 2 -widescreen
+```
+
+`-widescreen` 開啟 16:9 遊戲修改模式，預設關閉。未指定 HD 時自動使用倍率 1，
+也可疊加 `-filter xbr`。成功開機後，設定記在 `settings.json` 的 `widescreen` 欄位。
+下次啟動用 `-widescreen=false` 關閉。
+
+此模式會修改《月下》的圖塊繪製範圍，記憶卡照常讀寫。HUD、選單與部分效果仍在中央，
+房間邊界外與特殊背景可能留黑。程式只套用已核對簽章的版本，遊玩中簽章失配會停止並回報。
+`psexe -widescreen -hd 2 -screen <PNG>` 只供截圖，開啟時不印機器摘要。
+
 ## 按鍵
 
 | PS 手把 | 鍵盤 |

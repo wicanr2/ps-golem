@@ -81,6 +81,9 @@ func (g *Renderer) WriteGP0(v uint32) {
 
 func (g *Renderer) execute(cb []uint32) {
 	cmd := cb[0] >> 24
+	if cmd == 0x02 || cmd >= 0x20 && cmd < 0x80 {
+		g.prepareSides()
+	}
 	switch {
 	case cmd == 0x01:
 		g.invalidateCache()
@@ -112,6 +115,9 @@ func (g *Renderer) execute(cb []uint32) {
 		g.twy = (cb[0] >> 15) & 0x1F
 		g.recalcTexWindow()
 	case cmd == 0xE3:
+		if g.clipX0 != int32(cb[0]&1023) || g.clipY0 != int32((cb[0]>>10)&1023) {
+			g.clearSide = true
+		}
 		g.clipX0 = int32(cb[0] & 1023)
 		g.clipY0 = int32((cb[0] >> 10) & 1023)
 	case cmd == 0xE4:
@@ -176,6 +182,9 @@ func (g *Renderer) fbFill(cb []uint32) {
 	destY := (cb[1] >> 16) & 0x3FF
 	w := ((cb[2] & 0x3FF) + 0xF) &^ 0xF
 	h := (cb[2] >> 16) & 0x1FF
+	if g.margin != 0 {
+		g.fillSides(destX, destY, w, h, fill)
+	}
 	for y := uint32(0); y < h; y++ {
 		dy := (y + destY) & 511
 		if g.lineSkip(dy) {

@@ -13,6 +13,7 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"github.com/wicanr2/ps-golem/apps/sotn"
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/machine"
@@ -43,10 +44,15 @@ func main() {
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；0 停用")
 	pgxpFlag := flag.Bool("pgxp", false, "啟用 PGXP 次像素精度，需要 -hd 2、4 或 8")
+	wideFlag := flag.Bool("widescreen", false, "月下寬螢幕遊戲修改模式；只供截圖，不產生摘要")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
 		return
+	}
+	wideEnabled = *wideFlag
+	if wideEnabled && *hdFlag == 0 {
+		*hdFlag = 1
 	}
 	if _, ok := gpu.HDShift(*hdFlag); !ok {
 		fmt.Fprintln(os.Stderr, "psexe：-hd 必須是 0、1、2、4、8")
@@ -72,7 +78,7 @@ func main() {
 	cue = *cuePath
 	card = *cardPath
 	screenOut, shotsDir, shotStep, fieldLimit = *screenFlag, *shotsFlag, *shotEvery, *stopField
-	exactTiming, printDigest = *exact, *digest
+	exactTiming, printDigest = *exact, *digest && !wideEnabled
 	wavOut = *wavFlag
 	var err error
 	if presses, err = parsePresses(*pressSpec); err != nil {
@@ -98,6 +104,9 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	if hdScale != 0 {
 		shift, _ := gpu.HDShift(hdScale)
 		shadow := gpu.NewShadow(shift)
+		if wideEnabled {
+			shadow.SetSideMargin(48)
+		}
 		m.GPU.SetShadow(shadow)
 		defer func() { m.DisablePGXP(); m.GPU.SetShadow(nil); shadow.Close() }()
 	}
@@ -162,7 +171,9 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	}
 	if exePath == "" {
 		// 不側載：只跑 BIOS（或以光碟開機）。
-		runCycles(m, cycles)
+		if err := runCycles(m, cycles); err != nil {
+			return err
+		}
 		return finish(m, vramOut, state)
 	}
 	exe, err := os.ReadFile(exePath)
@@ -186,7 +197,9 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 			count++
 		}
 	}
-	runCycles(m, cycles)
+	if err := runCycles(m, cycles); err != nil {
+		return err
+	}
 	return finish(m, vramOut, state)
 }
 
@@ -200,6 +213,7 @@ var (
 	presses                  []press
 	hdScale                  int
 	pgxpEnabled              bool
+	wideEnabled              bool
 )
 
 func writeScreen(m *machine.Machine, path string) error {
@@ -212,7 +226,11 @@ func writeScreen(m *machine.Machine, path string) error {
 }
 
 // runCycles 執行 n 個週期，每個 field 依按鍵腳本更新手把。
-func runCycles(m *machine.Machine, n uint64) {
+func runCycles(m *machine.Machine, n uint64) error {
+	var wide *sotn.Widescreen
+	if wideEnabled {
+		wide = &sotn.Widescreen{}
+	}
 	end := m.Cycles() + n
 	speedLog := os.Getenv("PSGOLEM_SPEEDLOG") != ""
 	lastT, lastC := time.Now(), m.Cycles()
@@ -227,6 +245,11 @@ func runCycles(m *machine.Machine, n uint64) {
 			lastT, lastC = now, m.Cycles()
 		}
 		reached := m.RunUntilField(f, left)
+		if reached && wide != nil {
+			if err := wide.Check(m); err != nil {
+				return err
+			}
+		}
 		if wavOut != "" {
 			wavPCM = m.TakeAudio(wavPCM)
 		}
@@ -236,6 +259,7 @@ func runCycles(m *machine.Machine, n uint64) {
 			}
 		}
 	}
+	return nil
 }
 
 func finish(m *machine.Machine, vramOut string, state bool) error {

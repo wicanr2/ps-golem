@@ -114,3 +114,20 @@
   收據 `workplace/pgxp/containers-final.log`、`root-files-final.log`、`ownership-final.log`。
   只使用既有映像與一次性 `--rm` 容器，沒有新增或刪除映像，也沒有操作其他專案容器。
 - 本機封包保留於 `dist/v0.3.0-pgxp/`，未發布；原版素材、截圖與量測輸出均未加入 Git。
+
+## 2026-10-17：017 寬螢幕遊戲修改模式
+
+- 開工確認工作樹乾淨，main 已含 PGXP 實作 `10dd85b` 與驗收 `d889b78`，從 main 建立 `widescreen`。
+- 路由命中 READY 規格實作，載入 `retro-remake-spec-gated-workflow.md` 與文件職責。
+  依使用者本次指定，沿用 `dist/v0.4.0-ws/` 作本機驗收包，不發布、不更動授權。
+- 目前狀態表設於 `017-sotn-widescreen.md` §7。既有 `workplace/` 下建立指定的 `ws/` 保存本輪證據，
+  素材透過 `/orig` 唯讀掛載。沒有新增研究根目錄。
+- `apps/sotn/widescreen.go` 實作完整函式雜湊、七字修改、重載重套與解除。
+  CPU 僅在 BREAK 冷路徑處理選用陷阱，保留原位址與 code 比對、SH 與延遲載入語意。
+  `render/hd/widescreen.go` 實作獨立側邊畫布，貼圖與 CLUT 仍只讀影子 VRAM。
+- 玩家 CLI 與設定檔新增預設關閉的 `widescreen`，沒有 HD 時自動選倍率 1。
+  `psexe` 修改模式不印摘要，前端每個 field 結束才檢查簽章，失配回報錯誤。
+- 無素材單元測試與熱路徑核對通過，證據為 `workplace/ws/unit.log`、`hot-path-check.log`。
+  首輪全專案編譯發現設定 literal 重複欄位，修正後乾淨重跑；未改任何既有測試預期。
+- M4、N=1、完整語料回歸、指定場景重播與三平台建置進行中。
+  效能依使用者決定未量測。所有結果回填 017 §7 後才判定完成。

@@ -52,5 +52,8 @@ func (g *Renderer) Screen() *image.RGBA {
 			img.Pix[o+3] = 0xFF
 		}
 	}
+	if g.margin != 0 {
+		return g.wideScreen(img)
+	}
 	return img
 }

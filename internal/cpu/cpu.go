@@ -85,9 +85,10 @@ type CPU struct {
 	ldWhich uint32
 	ldValue uint32
 
-	cop0      [32]uint32
-	GTE       gte.GTE
-	precision PrecisionTracker
+	cop0         [32]uint32
+	GTE          gte.GTE
+	precision    PrecisionTracker
+	breakHandler BreakHandler
 
 	bus Bus
 	// fram、fbios、fbiu 是匯流排以 FetchMemory 提供的記憶體，取指令的快速路徑用；nil 時一律走 bus。
@@ -423,8 +424,7 @@ func (c *CPU) execute(instr uint32) {
 			c.doLDS()
 			c.raise(ExcSYSCALL, instr)
 		case 0x0D: // BREAK
-			c.doLDS()
-			c.raise(ExcBP, instr)
+			c.handleBreak(instr)
 		case 0x10: // MFHI
 			c.doLDS()
 			c.waitUntil(c.muldivDone)

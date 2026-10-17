@@ -39,6 +39,14 @@ func blend(mode int, bg, fore uint16) uint16 {
 // plot 畫一個像素（Beetle PlotPixel／PlotNativePixel）。
 // textured 為假時寫入去掉 bit 15；mask 檢查依 maskEvalAND。
 func (g *Renderer) plot(x, y int32, fore uint16, mode int, textured bool) {
+	if g.margin != 0 && (x < g.clipX0 || x > g.clipX1) {
+		for dy := int32(0); dy < 1<<g.shift; dy++ {
+			for dx := int32(0); dx < 1<<g.shift; dx++ {
+				g.plotSide((x<<g.shift)+dx, (y<<g.shift)+dy, fore, mode, textured)
+			}
+		}
+		return
+	}
 	ux, uy := uint32(x)&1023, uint32(y)&511
 	bg := g.texel(ux, uy)
 	if mode >= 0 && fore&0x8000 != 0 {
@@ -124,6 +132,10 @@ func (g *Renderer) modTexel(dy, dx uint32, t uint16, r, gg, b uint32) uint16 {
 
 // plotScaled 對應 Beetle gpu_common.h 的 PlotPixel，座標已經放大。
 func (g *Renderer) plotScaled(x, y int32, fore uint16, mode int, textured bool) {
+	if g.margin != 0 && (x < g.clipX0<<g.shift || x >= (g.clipX1+1)<<g.shift) {
+		g.plotSide(x, y, fore, mode, textured)
+		return
+	}
 	ux := uint32(x) & ((1024 << g.shift) - 1)
 	uy := uint32(y) & ((512 << g.shift) - 1)
 	idx := uy<<(10+g.shift) | ux

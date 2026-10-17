@@ -23,6 +23,8 @@ type Session struct {
 	CardPath string
 	Title    string
 	Close    func()
+	// AfterField 是選用遊戲修改，只在完成 field 後由模擬執行緒呼叫。
+	AfterField func(*machine.Machine) error
 }
 
 // OpenFunc 依 BIOS 與 cue 的路徑開機；失敗時回傳錯誤，前端改顯示設定畫面。
@@ -93,6 +95,7 @@ func (g *Game) start(s *Session) {
 	g.m = s.Machine
 	g.card = cardSaver{path: s.CardPath}
 	g.emu = newEmulator(g.m, g.cfg, g.stream, &g.card)
+	g.emu.afterField = s.AfterField
 	go g.emu.run()
 	if s.Title != "" {
 		eb.SetWindowTitle(s.Title)

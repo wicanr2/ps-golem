@@ -11,6 +11,16 @@ import (
 	"github.com/wicanr2/ps-golem/internal/sio"
 )
 
+func TestFitWide(t *testing.T) {
+	for _, c := range []struct{ w,h int; want image.Rectangle }{
+		{1280,720,image.Rect(0,0,1280,720)},
+		{960,720,image.Rect(0,90,960,630)},
+		{1600,720,image.Rect(160,0,1440,720)},
+	} {
+		if got:=fitWide(c.w,c.h);got!=c.want { t.Fatalf("fitWide(%d,%d)=%v，應為 %v",c.w,c.h,got,c.want) }
+	}
+}
+
 func TestButtons(t *testing.T) {
 	keys := map[eb.Key]bool{eb.KeyX: true, eb.KeyArrowUp: true}
 	pads := []eb.GamepadID{0}

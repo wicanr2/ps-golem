@@ -320,14 +320,14 @@ func (g *Renderer) drawSpan(y, xStart, xBound int32, ig iGroup, idl *iDeltas, f 
 	xAdj := xStart
 	w := xBound - xStart
 	x := g.signCoord(uint32(xStart))
-	if x < (g.clipX0 << g.shift) {
-		d := (g.clipX0 << g.shift) - x
+	if x < (g.clipLeft() << g.shift) {
+		d := (g.clipLeft() << g.shift) - x
 		xAdj += d
 		x += d
 		w -= d
 	}
-	if x+w > (g.clipX1<<g.shift)+1 {
-		w = (g.clipX1 << g.shift) + 1 - x
+	if x+w > (g.clipRight()<<g.shift)+1 {
+		w = (g.clipRight() << g.shift) + 1 - x
 	}
 	if w <= 0 {
 		return
