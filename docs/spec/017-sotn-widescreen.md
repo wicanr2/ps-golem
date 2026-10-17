@@ -1,6 +1,6 @@
 # 017 《月下》寬螢幕 16:9
 
-狀態：`READY`
+狀態：`READY`（實作驗收未通過，見 §7）
 
 ## 1. 為什麼要改遊戲
 
@@ -105,7 +105,12 @@ scrollX 小於 48 時 startTx 為負，原程式的 `tx < 0` 會跳過，與房�
 
 ## 7. 驗收結果
 
-目前狀態表（2026-10-17）：實作已接上，完整重播、畫面與三平台驗收進行中。
+目前狀態表（2026-10-17）：**畫面驗收未通過，已依使用者停止條件停工**。
+field 15000 的寬螢幕畫面中，背景王座、樓梯與柱子相對人物約向右偏移 48 個原生像素，
+左右延伸區仍大幅留黑。x=0、x=256 處未取得所要求的背景延伸連續性。
+人物位置與背景的相對關係已不同於補黑版；不能以房間邊界、HUD 或 overlay 限制解釋此整體偏移。
+這是目視確認的失敗；根因尚未確認，不把它歸咎於規格或特定位址。
+沒有繼續猜補修改，尚在執行的 M4 與截圖重播已停止。
 效能依本次使用者決定為「未量測」，不宣稱符合 §5 的 10% 門檻。
 
 | 項目 | 目前結果 | 證據 |
@@ -114,13 +119,43 @@ scrollX 小於 48 時 startTx 為負，原程式的 `tx < 0` 會跳過，與房�
 | BREAK | 手寫 PS-EXE 通過；核對位址、code、延遲槽、延遲載入與未掛處理器的 Bp | `apps/sotn/widescreen_test.go`、`workplace/ws/unit.log` |
 | 側邊畫布 | 倍率 1、2、4、8 的接縫測試通過；雙緩衝、填色、傳輸隔離、貼圖、混色與 mask 通過 | `render/hd/widescreen_test.go`、`workplace/ws/unit.log` |
 | CPU 熱路徑 | 與 main 比對通過，只有 BREAK 處理改動 | `workplace/ws/hot-path-check.log` |
-| 關閉模式完整驗收 | 進行中 | `workplace/ws/m4.log`、`workplace/ws/regression.log` |
-| 場景截圖 | 進行中 | `apps/sotn/widescreen_capture_test.go`、`workplace/ws/captures.log` |
+| 既有測試與 N=1 GPU 語料 | 完整回歸通過，唯讀掛載指定 BIOS 與 ps1-tests，包含 CPU／GTE 與 17 個 GPU 執行檔 | `workplace/ws/regression.log` |
+| N=1 遊戲轉送 | 開機至序章 12000 個 field 的完整 VRAM 逐位元相同 | `workplace/ws/m4.log` |
+| M4 摘要、記憶卡 | 未完成。原生重播最後進度為 field 20000，因畫面停止條件取消；沒有取得本輪 `6c35c2701228722f` 收據 | `workplace/ws/m4.log` |
+| 序章王座廳樓梯 | 未通過。field 15000、HD2，補黑與寬螢幕各一張，均為 684×480；背景相對人物偏移 | `workplace/ws/stairs-hd2-padded.png`、`workplace/ws/stairs-hd2-wide.png`、`workplace/ws/screenshots.sha256` |
+| 城之入口 | 未完成。到 field 15000 後因前項失敗停止，未到 field 34500 | `workplace/ws/captures-wide.log`、`workplace/ws/captures-padded.log` |
+| 遊玩簽章 | field 1205 首次相符並套用，至最後紀錄未見失配；僅限本輪已跑區段 | `workplace/ws/captures-wide.log` |
+| 前端與資料競爭 | 16:9 比例單元測試及新增核心測試的 race 檢查通過 | `workplace/ws/frontend-unit.log`、`workplace/ws/race.log` |
 | 效能 | 未量測 | 使用者指定先確認可執行，後續再優化 |
-| 三平台 | 進行中，本機版本 `v0.4.0-ws` | `workplace/ws/build-dist.log` |
+| 三平台建置 | 通過，本機版本 `v0.4.0-ws`；macOS 雙架構、簽章與動態庫結構通過，未做真機驗收 | `workplace/ws/build-dist.log` |
+| 三包內容 | 檔案清單、SHA-256、平台架構、版號、文件與素材排除檢查通過 | `workplace/ws/packages.json`、`workplace/ws/package-validation.log` |
+| Linux 封包啟動 | 通過，寬螢幕自動 N=1、不印摘要、HD2-xBR 視窗 1280×720、設定重讀畫面相同，明確關閉後為 960×720 | `workplace/ws/package-smoke-linux.json`、`workplace/ws/linux-ldd.log` |
+| Windows 封包啟動 | 未完成。Wine 環境拒絕暫存設定目錄的擁有權，尚未取得程式啟動收據 | `workplace/ws/windows-psexe.log`、`workplace/ws/package-smoke-windows-shell.log` |
 
 實作入口為 `apps/sotn/widescreen.go`，通用 BREAK 介面為 `internal/cpu/break.go`，
 影子側邊畫布為 `render/hd/widescreen.go`。前端只在 field 結束後呼叫遊戲檢查，
 觀測 API 與 `Machine.Step` 沒有接入修改模式。玩家操作見 `docs/play.md`「《月下》寬螢幕」。
 
 新增驗收程式與實作檔均由本節收錄；工作歷程沿用 `WORKLOG.md`。
+
+### 重生入口與證據邊界
+
+實作提交為 `3c86695`。原版輸入與腳本的 SHA-256 在 `workplace/ws/inputs.sha256`。
+建置使用既有 `psgolem-go-ebiten:1.24-r1`、Go 1.24.13 與既有 osxcross、Wine 映像，沒有新建或刪除映像。
+本機三包位於 `dist/v0.4.0-ws/`，因畫面未通過，不能稱為驗收完成的交付包，未發布。
+
+截圖入口為 `apps/sotn/widescreen_capture_test.go`，需要原版唯讀掛載與下列環境：
+
+```sh
+PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_BIOS=/orig/bios/SCPH5500.BIN \
+SOTN_CUE=/orig/disc/sotn.cue PSGOLEM_WS_EVIDENCE=/src/workplace/ws \
+PSGOLEM_TIMEOUT=95m tools/go.sh test ./apps/sotn \
+  -run TestWidescreenCaptures -v -count=1 -timeout 90m
+```
+
+本輪為了使用最終繪圖區清除順序，取消早先的 `captures.log`，
+改以 `/wide` 與 `/padded` 子測試分別重跑，正式目視證據來自兩份分開的 log。
+`workplace/ws/verify_packages.py` 檢查封包；`package_smoke.py` 為 Linux 啟動檢查，
+`package_smoke_windows.sh` 為尚未完成的 Wine 檢查。這些本機工具與截圖均未加入版控。
+Docker 收尾沒有本輪殘留容器，沒有 root-owned 檔案或異常 `.md` 目錄；
+證據在 `workplace/ws/containers-final.log`、`root-files-final.log` 與 `ownership-final.log`。
