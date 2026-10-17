@@ -1,6 +1,6 @@
 # 016 HD 輸出
 
-狀態：`READY`（第 1、2、3 階段）；第 4 階段（寬螢幕）為 `DRAFT`
+狀態：`READY`（第 1、2、3 階段實作完成，驗收見 §7）；第 4 階段（寬螢幕）為 `DRAFT`
 
 ## 1. 為什麼
 
@@ -109,8 +109,9 @@ GPU 只看得到整數座標，所以多邊形在移動時會抖動。PGXP 在 G
 
 ## 7. 驗收結果
 
-2026-10-17，實作 commit `4783e93`。第 1、2 階段已實作，第 3、4 階段維持 DRAFT。
-本節是 HD 的目前狀態表。第 1、2 階段的 §6 驗收全部通過；macOS 未做實機驗收。
+第 1、2 階段的實作 commit 為 `4783e93`，§6 驗收全部通過；macOS 未做實機驗收。
+第 3 階段 PGXP 的現況見 §7.5。第 4 階段不在本次實作範圍。
+本節是 HD 的目前狀態表。
 
 ### 7.1 輸入與工具
 
@@ -207,3 +208,99 @@ PSGOLEM_TIMEOUT=60m tools/go.sh test ./apps/sotn \
 
 九張截圖：設定相同的 BIOS 與 cue，另設 `PSGOLEM_HD_EVIDENCE=/src/workplace/hd`，
 透過 `tools/go.sh test ./apps/sotn -run TestHDCaptures -v -timeout 60m` 重生。
+
+### 7.5 PGXP 驗收
+
+PGXP 實作為 `10dd85b`，已接上選用追蹤器、GTE 投影、CPU／DMA2 搬移與影子多邊形光柵化。
+CLI 為 `psexe -hd 2 -pgxp`、`psgolem -hd 2 -pgxp`，設定檔欄位 `pgxp` 預設為 false。
+追蹤器不進摘要，`Machine.Clone` 不複製追蹤器或影子。
+
+| 項目 | 目前結果 | 證據 |
+|---|---|---|
+| 無素材指令鏈與回退 | 通過；RTPS → SWC2 → LW → SW → GP0，小數實際影響影子畫面，改字後回退 | `machine/pgxp_test.go`、`workplace/pgxp/unit.log` |
+| DMA2、部分字、延遲載入與跨批次 | 通過 | `internal/pgxp/tracker_test.go`、`render/hd/pgxp_test.go`、`workplace/pgxp/unit.log` |
+| GTE 實機語料 | 啟用 PGXP 後 1150 筆各 64 個暫存器全部相符 | `internal/gte/pgxp_test.go`、`workplace/pgxp/gte-pgxp.log` |
+| 既有測試及 N=1 GPU 語料 | 最終全專案測試通過，包含指定 BIOS、ps1-tests 與新增 PGXP 測試 | `workplace/pgxp/regression-final.log` |
+| 資料競爭 | 通過 | `workplace/pgxp/race.log` |
+| N=1 遊戲重播 | 通過；開機到序章 12000 個 field，完整 VRAM 逐位元相同 | `workplace/pgxp/m4.log` |
+| M4 決定性 | 原生、HD2、HD2-PGXP 均到 field 45784，摘要均為 `6c35c2701228722f`；完整記憶卡與原生畫面相同 | `workplace/pgxp/m4.log` |
+| 逐 field 調查 | 完整 45784 列，零次投影、零命中均保留；總頂點命中率 30.8815% | `workplace/pgxp/m4-fields.csv`、`workplace/pgxp/survey.json` |
+| 場景截圖 | 30 組連續抽樣，每個變體 89 張；89 個抽樣點原生摘要相同，68 組 PNG 完全相同，其餘差異在多邊形與特效，未見整體錯位或缺塊 | `apps/sotn/pgxp_test.go`、`workplace/pgxp/capture-selection.json`、`workplace/pgxp/capture-metrics.json` |
+| 效能 | 本次測段通過；PGXP 速度降幅 17.23%，關閉時差異落在實測雜訊內，雜訊很大 | `tools/measure_pgxp.py`、`workplace/pgxp/performance.json` |
+| 三平台建置 | `tools/build_dist.sh v0.3.0-pgxp` 通過；macOS 雙架構、arm64 簽章與動態庫檢查通過，未做真機驗收 | `workplace/pgxp/build-dist.log`、`workplace/pgxp/packages.json` |
+| 封包啟動 | Linux 與 Wine 下 Windows 均以 HD2-PGXP 開機到 field 800；摘要 `11b64e7524053051`、PNG 相同；設定儲存與重新開啟通過 | `workplace/pgxp/package-smoke.json`、`workplace/pgxp/package-*-window.png` |
+
+光柵化參照指定 Beetle commit 的 `PGXP_LIT` 軟體路徑：浮點座標加繪圖偏移並放大後，
+轉為整數子像素交給既有仿射光柵化。未加入透視校正、顏色／霧、頂點快取或 NCLIP 改寫。
+
+#### 逐 field 與截圖證據
+
+| 計數 | 總數 |
+|---|---|
+| RTPS／RTPT | 2214454／389736 |
+| 有效附件頂點／全部多邊形頂點 | 2202698／7132733 |
+| 零投影／零命中 field | 31718／37588 |
+
+CSV 的 field 是完成後的 VBlank 計數，每列涵蓋前一個到當前 VBlank 的輸入。
+命中率以命令流的有效附件頂點／全部多邊形頂點計算。
+抽樣覆蓋全部連續活躍區間；長於 2000 field 的區間再分段，各取連續三個 field。
+原始截圖為 `workplace/pgxp/field-<六位數 field>-{hd4,hd4-pgxp}.png`，共 178 張。
+縮圖對照為 `workplace/pgxp/review-00.png` 至 `review-05.png`，左 HD4、右 HD4-PGXP；原始 PNG 未修改。
+逐像素差異介於 0 至 454378，32 組抽樣兩側均為轉場黑畫面。
+HD4 完整重播收據在 `workplace/pgxp/captures.log`，HD4-PGXP 完整重播收據在 `workplace/pgxp/captures-pgxp.log`。
+
+#### 2D 容差決定
+
+不移植 `psx_pgxp_2d_tol`。指定 Beetle commit 的 `gpu_polygon.c` 只在
+`psx_pgxp_2d_tol >= 0` 且三角形缺少有效 W 時，依座標差異退回整數；`libretro.c` 的停用與預設值均設為 `-1`。
+本階段只保存 XY，沿用上游預設停用。前述 HD4／HD4-PGXP 的完整前後抽樣未見 2D 場景整體偏移或缺塊。
+此判斷限於本次 M4 路線與抽樣。
+
+#### 輸入、工具與重生入口
+
+輸入 SHA-256 在 `workplace/pgxp/inputs.sha256`，Beetle 原始碼雜湊在 `workplace/pgxp/references.sha256`。
+使用既有 `psgolem-go-ebiten:1.24-r1`、Go 1.24.13；建置另沿用既有 osxcross 與 Wine 映像。
+GTE 原生結果以實機語料確認；高精度投影與光柵化依指定 Beetle 原始碼移植，不宣稱 PGXP 浮點值為硬體輸出。
+
+M4 與 N=1 遊戲重播：
+
+```sh
+PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_LONG=1 \
+PSGOLEM_BIOS=/orig/bios/SCPH5500.BIN SOTN_CUE=/orig/disc/sotn.cue \
+PSGOLEM_PGXP_EVIDENCE=/src/workplace/pgxp PSGOLEM_TIMEOUT=95m \
+tools/go.sh test ./apps/sotn -run 'TestM4FirstSave|TestShadowBootPrologue' -v -timeout 90m
+```
+
+截圖以相同 BIOS、cue 與證據目錄，加上 `PSGOLEM_PGXP_FIELDS` 的逗號分隔 field 清單，
+執行 `tools/go.sh test ./apps/sotn -run TestPGXPCaptures -v -timeout 90m`。
+本次清單保存在 `workplace/pgxp/capture-selection.json`，選樣腳本為 `workplace/pgxp/choose_captures.py`。
+
+效能工具是 `tools/measure_pgxp.py`。改動前基準為 `b68b4c7` 的 `workplace/pgxp/psexe-before`，
+目前程式為 `workplace/pgxp/psexe`。兩者由同一映像建置，從開機到 field 4400，
+固定 `PSGOLEM_CPUSET=0-3`、容器內 `GOMAXPROCS=2`，交錯三輪並取總 CPU 時間最小值。
+同時比較未開 HD、HD2 的改動前後差異，以及 HD2-PGXP 相對 HD2 的速度降幅。
+每組雜訊範圍為三次 CPU 時間的最大值／最小值減一，A/B 採兩側較大的範圍。
+
+| 變體 | 三輪 CPU 時間最小值，秒 | 三輪觀察雜訊範圍 |
+|---|---|---|
+| 改動前原生 | 67.499726 | 57.79% |
+| 目前原生 | 38.979963 | 199.59% |
+| 改動前 HD2 | 90.940961 | 64.32% |
+| 目前 HD2 | 61.733758 | 150.90% |
+| HD2-PGXP | 74.581245 | 93.69% |
+
+關閉 PGXP 時，原生與 HD2 的 CPU 最小值變化分別為 −42.25% 與 −32.12%，
+均落在對應的實測雜訊範圍 199.59% 與 150.90% 內。
+開啟 PGXP 的速度降幅為 `1 − 61.733758 / 74.581245 = 17.23%`，低於 25%。
+CPU 時間包含影子執行緒，15 次執行的摘要均為 `030643de52be3c27`。
+主機 Core Ultra 7 165U 的一分鐘負載介於 7.36 至 64.97，這輪波動限制小幅差異的辨識。
+數據僅支持本次開機到 field 4400 的門檻判定，不作為加速或其他負載下的保證。
+逐次 CPU 時間、主機負載、執行順序與兩個執行檔的 SHA-256 都在 `workplace/pgxp/performance.json`。
+
+```sh
+PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_CPUSET=0-3 \
+PSGOLEM_GO_CMD=python3 tools/go.sh tools/measure_pgxp.py
+```
+
+本機驗收包為 `dist/v0.3.0-pgxp/`，依本次指定版本與 `005` 契約產生。
+包內只有程式、授權與文件，檔案清單、SHA-256 與素材排除檢查通過。
