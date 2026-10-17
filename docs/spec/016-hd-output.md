@@ -76,7 +76,7 @@ GPU 只看得到整數座標，所以多邊形在移動時會抖動。PGXP 在 G
 | 送到 GPU | GP0 字不論來自 CPU 寫入 GP0 埠或 DMA2，都以來源位址查記憶體影子，連同字一起轉給影子 GPU |
 | 光柵化 | 影子 GPU 的多邊形頂點在高精度值有效、且原值與收到的字相同時，用浮點座標（加繪圖偏移）放大後光柵化；否則用整數座標。線段、矩形、sprite 不用。Beetle `gpu_polygon.c` 的 `psx_pgxp_2d_tol` 路徑（用多邊形畫的 2D 元素）要讀過並決定是否移植，決定與前後對照截圖寫進 §7 |
 | 不做 | 透視校正貼圖、頂點快取（`PGXP_VERTEX_CACHE`）、顏色與霧的高精度（`PGXP_GetColor`、`PGXP_GetFog`）、NCLIP 改寫 |
-| 程式位置 | 追蹤器放 `internal/pgxp`（不依賴 machine）；CPU 以選用介面呼叫。掛點只能放在載入、儲存、COP2 搬移指令與 GTE RTPS／RTPT 的處理裡，不得放進 `step`、`fastFetch`、`execute` 的分派或 `Machine.Step` |
+| 程式位置 | 追蹤器放 `internal/pgxp`（不依賴 machine）；CPU 以選用介面呼叫。掛點只能放在載入、儲存、COP2 搬移指令、`ADDU` 在 `rt` 為 0 時的分支與 GTE RTPS／RTPT 的處理裡，不得放進 `step`、`fastFetch`、`execute` 的分派或 `Machine.Step` |
 | 決定性 | 追蹤器只讀機器狀態，不寫回 CPU、RAM、GTE 或原生 GPU。GTE 掛點在原生計算之後、只讀暫存器；`003` 的 1150 筆 GTE 實機紀錄與原生 GPU 測試照常通過。原生 GPU 不看高精度值 |
 | 啟用條件 | 只在影子 GPU 存在時接上（`-hd` 為 2 以上）；`Machine.Clone` 不複製追蹤器 |
 | CLI | `psexe -pgxp`、`psgolem -pgxp`、設定檔 `pgxp` 欄位（布林，預設 false）。沒有 `-hd` 時給 `-pgxp` 印錯誤結束 |
