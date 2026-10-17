@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	// early 必須先於 Ebiten 初始化，才能在沒有顯示器時處理 -version。
 	"github.com/wicanr2/ps-golem/apps/sotn"
@@ -59,7 +60,13 @@ func main() {
 		os.Exit(1)
 	}
 	dir = filepath.Join(dir, "ps-golem")
-	st := loadSettings(filepath.Join(dir, "settings.json"))
+	exe, err := os.Executable()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "psgolem:", err)
+		os.Exit(1)
+	}
+	location := locateSettings(portableDirectory(runtime.GOOS, exe, os.Getenv("APPIMAGE")), dir)
+	st := loadSettings(location.path)
 	set := map[string]bool{}
 	flag.Visit(func(f *flag.Flag) { set[f.Name] = true })
 	if !set["hd"] {
@@ -86,12 +93,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "psgolem：hd 必須是 0、1、2、4、8；filter 必須是 none、xbr")
 		os.Exit(2)
 	}
-	if *biosPath == "" {
-		*biosPath = st.BIOS
-	}
-	if *cuePath == "" {
-		*cuePath = st.Cue
-	}
+	*biosPath, *cuePath = location.mediaPaths(*biosPath, *cuePath, st)
 	press, err := padscript.Parse(*pressSpec)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
@@ -123,7 +125,7 @@ func main() {
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }
 		}
-		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag}); err != nil {
+		if err := saveSettings(location.path, location.forSave(settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag})); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil
