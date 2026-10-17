@@ -1,9 +1,81 @@
 package hd
 
 import (
+	"image/color"
 	"slices"
 	"testing"
 )
+
+func TestSideCanvasDisplayOffsetAndHorizontalBuffers(t *testing.T) {
+	for shift := uint(0); shift <= 3; shift++ {
+		g := wideRenderer(shift)
+		n := 1 << shift
+		// 遊玩雙緩衝沿 x 排列，繪圖區比顯示起點低 20 列。
+		for buffer, rgb := range []uint32{0x0000ff, 0x00ff00} {
+			x := uint32(buffer * 256)
+			send(g, 0xe3000000|20<<10|x, 0xe4000000|226<<10|(x+255))
+			send(g, 0x60000000|rgb, 20<<16|((x-8)&0xffff), 16|207<<16)
+			send(g, 0x60000000|rgb, 20<<16|(x+248), 16|207<<16)
+		}
+		for buffer, want := range []color.RGBA{{R: 255, A: 255}, {G: 255, A: 255}} {
+			// 非零顯示 y 同樣以相對列對齊。
+			for _, displayY := range []int{0, 10} {
+				g.WriteGP1(0x05000000 | uint32(displayY)<<10 | uint32(buffer*256))
+				s := g.Screen()
+				for _, seam := range []int{43 * n, (43 + 256) * n} {
+					for x := seam - 8*n; x < seam+8*n; x++ {
+						for y := (20 - displayY) * n; y < (227-displayY)*n; y++ {
+							if got := s.RGBAAt(x, y); got != want {
+								t.Fatalf("倍率=%d buffer=%d 顯示y=%d (%d,%d)=%v，預期%v", n, buffer, displayY, x, y, got, want)
+							}
+						}
+					}
+				}
+				for _, y := range []int{(20-displayY)*n - 1, (227 - displayY) * n} {
+					for _, x := range []int{42 * n, 299 * n} {
+						if got := s.RGBAAt(x, y); got != (color.RGBA{A: 255}) {
+							t.Fatalf("繪圖區外未補黑 (%d,%d)=%v", x, y, got)
+						}
+					}
+				}
+			}
+		}
+		// y1 在顯示範圍之前或恰好落在下界時都不能合成。
+		g.WriteGP1(0x05000000 | 21<<10)
+		if got := g.Screen().RGBAAt(42*n, 0); got != (color.RGBA{A: 255}) {
+			t.Fatal("y1 在顯示範圍前仍被選入", got)
+		}
+		send(g, 0xe3000000|240<<10, 0xe4000000|255<<10|255, 0x600000ff, 240<<16|0xffff, 1|1<<16)
+		g.WriteGP1(0x05000000)
+		// 原 y=20 區仍符合；移除它後只剩 y=240 的不符合區。
+		delete(g.sides, [4]int32{0, 20, 255, 226})
+		if got := g.Screen().RGBAAt(42*n, 0); got != (color.RGBA{A: 255}) {
+			t.Fatal("y1 在顯示下界仍被選入", got)
+		}
+	}
+}
+
+func TestSideCanvasMostRecentDraw(t *testing.T) {
+	g := wideRenderer(1)
+	// 兩塊寬度相同而 y1 不同的繪圖區都符合，最近一次實際寫入者優先。
+	send(g, 0xe3000000|20<<10, 0xe4000000|226<<10|255, 0x600000ff, 20<<16|0xffff, 1|10<<16)
+	send(g, 0xe3000000|24<<10, 0xe4000000|226<<10|255, 0x6000ff00, 24<<16|0xffff, 1|10<<16)
+	for i := 0; i < 30; i++ {
+		if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{G: 255, A: 255}) {
+			t.Fatal("未選最近繪圖區", got)
+		}
+	}
+	// 中央圖元也算畫進；回到舊區會依既有 E3 契約先清黑。
+	send(g, 0xe3000000|20<<10, 0x600000ff, 20<<16, 1|1<<16)
+	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{A: 255}) {
+		t.Fatal("中央圖元未更新選區，或 E3 未清黑", got)
+	}
+	// 切換狀態、零尺寸與完全被裁掉的圖元不能搶走最近繪圖區。
+	send(g, 0xe3000000|24<<10, 0x6000ff00, 24<<16, 0, 0x6000ff00, 0, 1|1<<16)
+	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{A: 255}) {
+		t.Fatal("未畫進的圖元影響選區", got)
+	}
+}
 
 func wideRenderer(shift uint) *Renderer {
 	g := newRenderer(shift)

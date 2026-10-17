@@ -59,6 +59,7 @@ func (g *Renderer) plot(x, y int32, fore uint16, mode int, textured bool) {
 		fore &= 0x7FFF
 	}
 	g.put(ux, uy, fore|g.maskSetOR)
+	g.markSideDraw()
 }
 
 // updateCLUT 載入 CLUT 快取。tm 為 2 以上（15 位元）時不用 CLUT。
@@ -150,4 +151,5 @@ func (g *Renderer) plotScaled(x, y int32, fore uint16, mode int, textured bool) 
 		fore &= 0x7fff
 	}
 	g.VRAM[idx] = fore | g.maskSetOR
+	g.markSideDraw()
 }

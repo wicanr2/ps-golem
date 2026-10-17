@@ -9,6 +9,7 @@ import (
 type sideCanvas struct {
 	rect        [4]int32
 	left, right []uint16
+	lastDraw    uint64
 }
 
 // SetSideMargin 只供呈現端設定，單位為原生像素；0 關閉。
@@ -55,6 +56,14 @@ func (g *Renderer) prepareSides() {
 		g.clearSide = false
 	}
 	g.side = a
+	g.sideDrawOrder++
+}
+
+// markSideDraw 只在圖元實際寫入像素時更新；空圖元與狀態切換不參與選區。
+func (g *Renderer) markSideDraw() {
+	if g.side != nil {
+		g.side.lastDraw = g.sideDrawOrder
+	}
 }
 
 func (g *Renderer) sidePixel(x, y int32) *uint16 {
@@ -92,6 +101,7 @@ func (g *Renderer) plotSide(x, y int32, fore uint16, mode int, textured bool) {
 		fore &= 0x7fff
 	}
 	*p = fore | g.maskSetOR
+	g.markSideDraw()
 }
 
 func (g *Renderer) fillSides(x, y, w, h uint32, fill uint16) {
@@ -135,18 +145,25 @@ func (g *Renderer) wideScreen(src *image.RGBA) *image.RGBA {
 	if g.displayMode&0x10 != 0 {
 		return out
 	}
+	var selected *sideCanvas
 	for _, a := range g.sides {
-		if uint32(a.rect[0]) != g.displayXStart || uint32(a.rect[1]) != g.displayYStart || int(a.rect[2]-a.rect[0]+1)*n != w {
+		yoff := (int(a.rect[1]) - int(g.displayYStart)) * n
+		if uint32(a.rect[0]) != g.displayXStart || yoff < 0 || yoff >= h || int(a.rect[2]-a.rect[0]+1)*n != w || a.lastDraw == 0 {
 			continue
 		}
+		if selected == nil || a.lastDraw > selected.lastDraw {
+			selected = a
+		}
+	}
+	if a := selected; a != nil {
+		yoff := (int(a.rect[1]) - int(g.displayYStart)) * n
 		stride := int(g.margin) * n
-		for y := 0; y < min(h, int(a.rect[3]-a.rect[1]+1)*n); y++ {
+		for y := 0; y < min(h-yoff, int(a.rect[3]-a.rect[1]+1)*n); y++ {
 			for x := 0; x < xoff && x < stride; x++ {
-				putRGB(out, xoff-1-x, y, a.left[y*stride+stride-1-x])
-				putRGB(out, xoff+w+x, y, a.right[y*stride+x])
+				putRGB(out, xoff-1-x, y+yoff, a.left[y*stride+stride-1-x])
+				putRGB(out, xoff+w+x, y+yoff, a.right[y*stride+x])
 			}
 		}
-		break
 	}
 	return out
 }

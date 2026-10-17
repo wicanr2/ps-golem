@@ -36,12 +36,13 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type Renderer struct {
-	VRAM      []uint16
-	shift     uint
-	margin    int32
-	sides     map[[4]int32]*sideCanvas
-	side      *sideCanvas
-	clearSide bool
+	VRAM          []uint16
+	shift         uint
+	margin        int32
+	sides         map[[4]int32]*sideCanvas
+	side          *sideCanvas
+	clearSide     bool
+	sideDrawOrder uint64
 
 	// 命令緩衝
 	precise                       [16]pgxp.Value
