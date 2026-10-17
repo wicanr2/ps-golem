@@ -42,6 +42,7 @@ func main() {
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；0 停用")
+	pgxpFlag := flag.Bool("pgxp", false, "啟用 PGXP 次像素精度，需要 -hd 2、4 或 8")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
@@ -52,6 +53,11 @@ func main() {
 		os.Exit(2)
 	}
 	hdScale = *hdFlag
+	if *pgxpFlag && *hdFlag < 2 {
+		fmt.Fprintln(os.Stderr, "psexe：-pgxp 需要 -hd 2、4 或 8")
+		os.Exit(2)
+	}
+	pgxpEnabled = *pgxpFlag
 	if *cpuProf != "" {
 		f, err := os.Create(*cpuProf)
 		if err != nil {
@@ -93,7 +99,12 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 		shift, _ := gpu.HDShift(hdScale)
 		shadow := gpu.NewShadow(shift)
 		m.GPU.SetShadow(shadow)
-		defer func() { m.GPU.SetShadow(nil); shadow.Close() }()
+		defer func() { m.DisablePGXP(); m.GPU.SetShadow(nil); shadow.Close() }()
+	}
+	if pgxpEnabled {
+		if err := m.EnablePGXP(); err != nil {
+			return err
+		}
 	}
 	if cue != "" {
 		d, err := disc.Open(cue)
@@ -188,6 +199,7 @@ var (
 	wavPCM                   []int16
 	presses                  []press
 	hdScale                  int
+	pgxpEnabled              bool
 )
 
 func writeScreen(m *machine.Machine, path string) error {

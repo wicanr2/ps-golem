@@ -4,7 +4,10 @@
 // 本套光柵化只寫影子 VRAM，不參與機器狀態與時序。規格：016-hd-output §2–3。
 package hd
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/wicanr2/ps-golem/internal/pgxp"
+)
 
 // VRAM 尺寸。
 const (
@@ -37,9 +40,12 @@ type Renderer struct {
 	shift uint
 
 	// 命令緩衝
-	buf    [16]uint32
-	bufLen int
-	need   int // 目前命令需要的字數，0 表示還沒開始
+	precise                       [16]pgxp.Value
+	nextPrecision                 pgxp.Value
+	pgxpVertices, polygonVertices uint64
+	buf                           [16]uint32
+	bufLen                        int
+	need                          int // 目前命令需要的字數，0 表示還沒開始
 
 	inCmd int
 	// FB 讀寫的矩形與游標

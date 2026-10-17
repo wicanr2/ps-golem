@@ -203,7 +203,7 @@ func (m *Machine) ioWrite32(al uint32, v uint32) {
 	case al >= 0x1F801100 && al < 0x1F801130:
 		m.io.timers.write(al, v)
 	case al == 0x1F801810:
-		m.GPU.WriteGP0(v)
+		m.writeGP0(v, al)
 	case al == 0x1F801814:
 		m.GPU.WriteGP1(v)
 	case al == 0x1F801820 || al == 0x1F801824:
@@ -527,7 +527,7 @@ func (m *Machine) dmaGPU() {
 		}
 		for i := uint32(0); i < words; i++ {
 			if toDevice {
-				m.GPU.WriteGP0(binary.LittleEndian.Uint32(m.ram[addr:]))
+				m.writeGP0(binary.LittleEndian.Uint32(m.ram[addr:]), addr)
 			} else {
 				binary.LittleEndian.PutUint32(m.ram[addr:], m.GPU.ReadData())
 			}
@@ -543,7 +543,7 @@ func (m *Machine) dmaGPU() {
 			cnt := hdr >> 24
 			for i := uint32(0); i < cnt; i++ {
 				a := (addr + 4 + 4*i) & 0x1FFFFC
-				m.GPU.WriteGP0(binary.LittleEndian.Uint32(m.ram[a:]))
+				m.writeGP0(binary.LittleEndian.Uint32(m.ram[a:]), a)
 			}
 			if hdr&0x800000 != 0 {
 				break

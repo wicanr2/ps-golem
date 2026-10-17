@@ -49,6 +49,10 @@ func (g *GPU) WriteGP0(v uint32) {
 	if g.shadow != nil {
 		g.shadow.GP0(v)
 	}
+	g.writeGP0(v)
+}
+
+func (g *GPU) writeGP0(v uint32) {
 	if g.Trace != nil {
 		g.Trace(v)
 	}

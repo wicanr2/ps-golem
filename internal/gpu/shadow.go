@@ -1,6 +1,7 @@
 package gpu
 
 import (
+	"github.com/wicanr2/ps-golem/internal/pgxp"
 	"github.com/wicanr2/ps-golem/render/hd"
 	"image"
 )
@@ -13,6 +14,18 @@ func NewShadow(shift uint) *Shadow { return hd.NewShadow(shift) }
 // SetShadow 在開機輸入送入前接上影子；nil 卸下影子，不負責 Close。
 // 影子從上電狀態重播，不能在執行途中接上空白影子。
 func (g *GPU) SetShadow(s *Shadow) { g.shadow = s }
+
+func (g *GPU) PrecisionSupported() bool { return g.shadow != nil && g.shadow.Scale() >= 2 }
+
+// WriteGP0Precision 的附件只送影子，原生處理只讀 v。
+// 參照 beetle-psx-libretro mednafen/psx/gpu.c PGXP_WriteCB／PGXP_WriteFIFO，
+// commit e57860d82faa953dc0fc10f201fd583739bc2f7d，GPL-2.0-or-later。
+func (g *GPU) WriteGP0Precision(v uint32, p pgxp.Value) {
+	if g.shadow != nil {
+		g.shadow.GP0Precision(v, p)
+	}
+	g.writeGP0(v)
+}
 
 // OutputScreen 只供呈現；Screen 與 VRAM 保持原生觀測語意。
 func (g *GPU) OutputScreen() *image.RGBA {

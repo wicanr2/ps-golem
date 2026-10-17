@@ -4,7 +4,7 @@
 //
 // 參照 beetle-psx-libretro mednafen/psx/gte.c
 // (commit e57860d82faa953dc0fc10f201fd583739bc2f7d)，GPL-2.0-or-later。
-// 只搬架構狀態的計算；PGXP 與寬螢幕的影子路徑屬 HD，不在這裡。
+// 架構狀態只用整數計算；PGXP 僅在 RTPS／RTPT 完成後觀測，見 016 §5。
 package gte
 
 import "math/bits"
@@ -47,9 +47,10 @@ const flagErrorMask = 0x7f87e000
 
 // GTE 是一顆 GTE 的完整狀態。零值等同上電後的狀態。
 type GTE struct {
-	dr    [32]uint32
-	cr    [32]uint32
-	flags uint32 // 命令執行中累積的旗標，結束時寫回 cr[31]
+	projection ProjectionObserver
+	dr         [32]uint32
+	cr         [32]uint32
+	flags      uint32 // 命令執行中累積的旗標，結束時寫回 cr[31]
 }
 
 // unrTable 是除法用的牛頓法初值表（UNR table），由公式產生。
@@ -583,6 +584,9 @@ func (g *GTE) rtp(v int, f fields, dq bool) {
 	g.transformXY(h)
 	if dq {
 		g.transformDQ(h)
+	}
+	if g.projection != nil {
+		g.observeProjection(v, dq)
 	}
 }
 

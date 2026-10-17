@@ -71,6 +71,15 @@ func (g *Renderer) drawPolygon(cb []uint32) {
 		y := signExtend11(uint32(int16(cb[i] >> 16)))
 		vs[n].x = (x + g.offsX) << g.shift
 		vs[n].y = (y + g.offsY) << g.shift
+		g.polygonVertices++
+		// 參照 beetle-psx-libretro mednafen/psx/gpu_polygon.c PGXP_LIT，
+		// commit e57860d82faa953dc0fc10f201fd583739bc2f7d，GPL-2.0-or-later。
+		// 與軟體渲染器相同，浮點座標加偏移及放大後轉為整數子像素。
+		if p := g.precise[i]; p.Valid(cb[i]) {
+			vs[n].x = int32((p.X + float32(g.offsX)) * float32(uint32(1)<<g.shift))
+			vs[n].y = int32((p.Y + float32(g.offsY)) * float32(uint32(1)<<g.shift))
+			g.pgxpVertices++
+		}
 		i++
 		if f.textured {
 			vs[n].u = int32(cb[i] & 0xFF)

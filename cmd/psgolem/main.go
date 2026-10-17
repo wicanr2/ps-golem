@@ -23,6 +23,7 @@ type settings struct {
 	Cue    string `json:"cue"`
 	HD     int    `json:"hd"`
 	Filter string `json:"filter"`
+	PGXP   bool   `json:"pgxp"`
 }
 
 // version 見 early.Version。
@@ -41,6 +42,7 @@ func main() {
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	stats := flag.Bool("stats", false, "每 600 個 field 印出實際 FPS 與模擬耗時")
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；省略時取設定檔")
+	pgxpFlag := flag.Bool("pgxp", false, "PGXP 次像素精度；省略時取設定檔，需要 -hd 2 以上")
 	filterFlag := flag.String("filter", "none", "輸出濾鏡：none、xbr；省略時取設定檔")
 	flag.Parse()
 	if *showVersion {
@@ -59,6 +61,13 @@ func main() {
 	flag.Visit(func(f *flag.Flag) { set[f.Name] = true })
 	if !set["hd"] {
 		*hdFlag = st.HD
+	}
+	if !set["pgxp"] {
+		*pgxpFlag = st.PGXP
+	}
+	if *pgxpFlag && *hdFlag < 2 {
+		fmt.Fprintln(os.Stderr, "psgolem：-pgxp 需要 -hd 2、4 或 8")
+		os.Exit(2)
 	}
 	if !set["filter"] && st.Filter != "" {
 		*filterFlag = st.Filter
@@ -88,9 +97,15 @@ func main() {
 			shadow := gpu.NewShadow(shift)
 			s.Machine.GPU.SetShadow(shadow)
 			closeSession := s.Close
-			s.Close = func() { s.Machine.GPU.SetShadow(nil); shadow.Close(); closeSession() }
+			s.Close = func() { s.Machine.DisablePGXP(); s.Machine.GPU.SetShadow(nil); shadow.Close(); closeSession() }
 		}
-		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag}); err != nil {
+		if *pgxpFlag {
+			if err := s.Machine.EnablePGXP(); err != nil {
+				s.Close()
+				return nil, err
+			}
+		}
+		if err := saveSettings(filepath.Join(dir, "settings.json"), settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag}); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil

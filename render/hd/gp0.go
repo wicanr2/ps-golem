@@ -4,6 +4,8 @@
 // 本套光柵化只寫影子 VRAM，不參與機器狀態與時序。規格：016-hd-output §2–3。
 package hd
 
+import "github.com/wicanr2/ps-golem/internal/pgxp"
+
 // cmdLen 回傳 GP0 命令的字數（含命令字）。折線回傳第一段的長度。
 func cmdLen(cmd uint32) int {
 	switch {
@@ -50,6 +52,8 @@ func cmdLen(cmd uint32) int {
 
 // WriteGP0 寫一個字到 GP0（CPU 或 DMA）。
 func (g *Renderer) WriteGP0(v uint32) {
+	p := g.nextPrecision
+	g.nextPrecision = pgxp.Value{}
 	if g.Trace != nil {
 		g.Trace(v)
 	}
@@ -64,6 +68,7 @@ func (g *Renderer) WriteGP0(v uint32) {
 	if g.bufLen == 0 {
 		g.need = cmdLen(v >> 24)
 	}
+	g.precise[g.bufLen] = p
 	g.buf[g.bufLen] = v
 	g.bufLen++
 	if g.bufLen < g.need {

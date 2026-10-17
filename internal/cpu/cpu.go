@@ -85,8 +85,9 @@ type CPU struct {
 	ldWhich uint32
 	ldValue uint32
 
-	cop0 [32]uint32
-	GTE  gte.GTE
+	cop0      [32]uint32
+	GTE       gte.GTE
+	precision PrecisionTracker
 
 	bus Bus
 	// fram、fbios、fbiu 是匯流排以 FetchMemory 提供的記憶體，取指令的快速路徑用；nil 時一律走 bus。
@@ -486,6 +487,11 @@ func (c *CPU) execute(instr uint32) {
 			}
 		case 0x21: // ADDU
 			r := g[rs] + g[rt]
+			if rt == 0 {
+				if c.precision != nil {
+					c.precision.Move(rd, rs, g[rs], c.now)
+				}
+			}
 			c.doLDS()
 			g[rd] = r
 		case 0x22: // SUB
@@ -611,6 +617,9 @@ func (c *CPU) execute(instr uint32) {
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, uint32(int32(int8(c.read8(a)))))
+		if c.precision != nil {
+			c.precision.Load(rt, a, c.ldValue, op, c.now, c.now+c.cost)
+		}
 	case 0x21: // LH
 		a := g[rs] + imm
 		if a&1 != 0 {
@@ -621,6 +630,9 @@ func (c *CPU) execute(instr uint32) {
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, uint32(int32(int16(c.read16(a)))))
+		if c.precision != nil {
+			c.precision.Load(rt, a, c.ldValue, op, c.now, c.now+c.cost)
+		}
 	case 0x22: // LWL
 		a := g[rs] + imm
 		v := c.mergeBase(rt)
@@ -639,6 +651,9 @@ func (c *CPU) execute(instr uint32) {
 			r = w
 		}
 		c.startLoad(rt, r)
+		if c.precision != nil {
+			c.precision.Load(rt, a, r, op, c.now, c.now+c.cost)
+		}
 	case 0x23: // LW
 		a := g[rs] + imm
 		if a&3 != 0 {
@@ -649,11 +664,17 @@ func (c *CPU) execute(instr uint32) {
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, c.read32(a))
+		if c.precision != nil {
+			c.precision.Load(rt, a, c.ldValue, op, c.now, c.now+c.cost)
+		}
 	case 0x24: // LBU
 		a := g[rs] + imm
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, uint32(c.read8(a)))
+		if c.precision != nil {
+			c.precision.Load(rt, a, c.ldValue, op, c.now, c.now+c.cost)
+		}
 	case 0x25: // LHU
 		a := g[rs] + imm
 		if a&1 != 0 {
@@ -664,6 +685,9 @@ func (c *CPU) execute(instr uint32) {
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, uint32(c.read16(a)))
+		if c.precision != nil {
+			c.precision.Load(rt, a, c.ldValue, op, c.now, c.now+c.cost)
+		}
 	case 0x26: // LWR
 		a := g[rs] + imm
 		v := c.mergeBase(rt)
@@ -681,8 +705,14 @@ func (c *CPU) execute(instr uint32) {
 			r = v&0xFFFFFF00 | w>>24
 		}
 		c.startLoad(rt, r)
+		if c.precision != nil {
+			c.precision.Load(rt, a, r, op, c.now, c.now+c.cost)
+		}
 	case 0x28: // SB
 		a := g[rs] + imm
+		if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+			c.precision.Store(rt, a, g[rt], op, c.now)
+		}
 		c.write(a, g[rt], 1)
 		c.doLDS()
 	case 0x29: // SH
@@ -690,6 +720,9 @@ func (c *CPU) execute(instr uint32) {
 		if a&1 != 0 {
 			c.addressError(ExcADES, a, instr)
 		} else {
+			if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+				c.precision.Store(rt, a, g[rt], op, c.now)
+			}
 			c.write(a, g[rt], 2)
 		}
 		c.doLDS()
@@ -708,6 +741,9 @@ func (c *CPU) execute(instr uint32) {
 		case 3:
 			w = v
 		}
+		if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+			c.precision.Store(rt, a, g[rt], op, c.now)
+		}
 		c.write(al, w, 4)
 		c.doLDS()
 	case 0x2B: // SW
@@ -715,6 +751,9 @@ func (c *CPU) execute(instr uint32) {
 		if a&3 != 0 {
 			c.addressError(ExcADES, a, instr)
 		} else {
+			if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+				c.precision.Store(rt, a, g[rt], op, c.now)
+			}
 			c.write(a, g[rt], 4)
 		}
 		c.doLDS()
@@ -732,6 +771,9 @@ func (c *CPU) execute(instr uint32) {
 			w = w&0x0000FFFF | v<<16
 		case 3:
 			w = w&0x00FFFFFF | v<<24
+		}
+		if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+			c.precision.Store(rt, a, g[rt], op, c.now)
 		}
 		c.write(al, w, 4)
 		c.doLDS()
@@ -755,7 +797,11 @@ func (c *CPU) execute(instr uint32) {
 			c.addressError(ExcADEL, a, instr)
 		} else {
 			c.waitUntil(c.gteDone)
-			c.GTE.Write(int(rt), c.read32(a))
+			v := c.read32(a)
+			c.GTE.Write(int(rt), v)
+			if c.precision != nil {
+				c.precision.LoadCOP2(int(rt), a, v)
+			}
 		}
 	case 0x38, 0x39, 0x3B: // SWC0、SWC1、SWC3
 		a := g[rs] + imm
@@ -775,7 +821,11 @@ func (c *CPU) execute(instr uint32) {
 			c.addressError(ExcADES, a, instr)
 		} else {
 			c.waitUntil(c.gteDone)
-			c.write(a, c.GTE.Read(int(rt)), 4)
+			v := c.GTE.Read(int(rt))
+			if c.precision != nil && c.cop0[CP0SR]&srIsC == 0 {
+				c.precision.StoreCOP2(int(rt), a, v)
+			}
+			c.write(a, v, 4)
 		}
 		c.doLDS()
 	default:
@@ -917,16 +967,28 @@ func (c *CPU) cop2Op(instr uint32) {
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, c.GTE.Read(rd))
+		if c.precision != nil {
+			c.precision.ReadCOP2(rt, rd, c.ldValue, c.now, c.now+c.cost)
+		}
 	case sub == 0x02: // CFC2
 		c.cancelLoadTo(rt)
 		c.doLDS()
 		c.startLoad(rt, c.GTE.Read(32+rd))
+		if c.precision != nil {
+			c.precision.ReadCOP2(rt, 32+rd, c.ldValue, c.now, c.now+c.cost)
+		}
 	case sub == 0x04: // MTC2
 		c.doLDS()
 		c.GTE.Write(rd, val)
+		if c.precision != nil {
+			c.precision.WriteCOP2(rt, rd, val, c.GTE.Read(rd), c.now)
+		}
 	case sub == 0x06: // CTC2
 		c.doLDS()
 		c.GTE.Write(32+rd, val)
+		if c.precision != nil {
+			c.precision.WriteCOP2(rt, 32+rd, val, c.GTE.Read(32+rd), c.now)
+		}
 	case sub == 0x08 || sub == 0x0C:
 		c.doLDS()
 		c.branch(instr&(1<<16) == 0, uint32(int32(int16(instr)))<<2, ^uint32(0), 0, false)

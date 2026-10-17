@@ -12,6 +12,7 @@ import (
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/internal/mdec"
+	"github.com/wicanr2/ps-golem/internal/pgxp"
 	"github.com/wicanr2/ps-golem/internal/sio"
 	"github.com/wicanr2/ps-golem/internal/spu"
 )
@@ -33,10 +34,11 @@ const (
 
 // Machine 是一台 PlayStation。時間以 CPU 週期計。
 type Machine struct {
-	CPU *cpu.CPU
-	GPU *gpu.GPU
-	CD  *cdrom.CDROM
-	SIO *sio.SIO
+	precision *pgxp.Tracker
+	CPU       *cpu.CPU
+	GPU       *gpu.GPU
+	CD        *cdrom.CDROM
+	SIO       *sio.SIO
 	// MDEC 是動畫解碼器（011）。
 	MDEC *mdec.MDEC
 	// SPU 是音效處理器（013）。
@@ -104,6 +106,9 @@ func (m *Machine) Clone() *Machine {
 	n.GPU = m.GPU.Clone()
 	c := *m.CPU
 	n.CPU = &c
+	n.CPU.SetPrecisionTracker(nil)
+	n.CPU.GTE.SetProjectionObserver(nil)
+	n.precision = nil
 	cd := m.CD.Clone()
 	n.CD = cd
 	pad := *m.Pad1

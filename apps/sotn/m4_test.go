@@ -40,32 +40,46 @@ func TestM4FirstSave(t *testing.T) {
 		t.Errorf("記憶卡目錄項不對：% x", dir[:0x20])
 	}
 	t.Logf("原生：%s，記憶卡 SHA256=%x，畫面 SHA256=%x", m.Digest(), sha256.Sum256(m.Card1.Data[:]), sha256.Sum256(m.GPU.Screen().Pix))
-	t.Run("HD2", func(t *testing.T) {
-		h, err := Boot(bios, cue, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		s := gpu.NewShadow(1)
-		h.GPU.SetShadow(s)
-		defer func() { h.GPU.SetShadow(nil); s.Close() }()
-		runM4Progress(t, h, ps)
-		if got := h.Digest(); got != m.Digest() {
-			t.Errorf("HD2 摘要不同：%s", got)
-		}
-		if !bytes.Equal(h.Card1.Data[:], m.Card1.Data[:]) {
-			t.Error("HD2 記憶卡不同")
-		}
-		if !bytes.Equal(h.GPU.Screen().Pix, m.GPU.Screen().Pix) {
-			t.Error("HD2 原生畫面不同")
-		}
-		t.Logf("HD2：%s，記憶卡 SHA256=%x，畫面 SHA256=%x", h.Digest(), sha256.Sum256(h.Card1.Data[:]), sha256.Sum256(h.GPU.Screen().Pix))
-	})
+	for _, mode := range []string{"HD2", "HD2-PGXP"} {
+		t.Run(mode, func(t *testing.T) {
+			h, err := Boot(bios, cue, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			s := gpu.NewShadow(1)
+			h.GPU.SetShadow(s)
+			defer func() { h.DisablePGXP(); h.GPU.SetShadow(nil); s.Close() }()
+			var observe func()
+			if mode == "HD2-PGXP" {
+				if err := h.EnablePGXP(); err != nil {
+					t.Fatal(err)
+				}
+				observe = recordPGXPFields(t, h, s)
+			}
+			runM4Progress(t, h, ps, observe)
+			if got := h.Digest(); got != m.Digest() {
+				t.Errorf("%s 摘要不同：%s", mode, got)
+			}
+			if !bytes.Equal(h.Card1.Data[:], m.Card1.Data[:]) {
+				t.Errorf("%s 記憶卡不同", mode)
+			}
+			if !bytes.Equal(h.GPU.Screen().Pix, m.GPU.Screen().Pix) {
+				t.Errorf("%s 原生畫面不同", mode)
+			}
+			t.Logf("%s：%s，記憶卡 SHA256=%x，畫面 SHA256=%x", mode, h.Digest(), sha256.Sum256(h.Card1.Data[:]), sha256.Sum256(h.GPU.Screen().Pix))
+		})
+	}
 }
 
-func runM4Progress(t *testing.T, m *machine.Machine, ps []Press) {
+func runM4Progress(t *testing.T, m *machine.Machine, ps []Press, observers ...func()) {
 	t.Helper()
 	for m.Field() < 45784 {
 		Step(m, ButtonsAt(ps, m.Field()))
+		for _, observe := range observers {
+			if observe != nil {
+				observe()
+			}
+		}
 		if m.Field()%5000 == 0 {
 			t.Logf("已重播 field %d", m.Field())
 		}

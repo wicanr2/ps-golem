@@ -1,13 +1,16 @@
 package hd
 
 import (
+	"github.com/wicanr2/ps-golem/internal/pgxp"
 	"image"
+	"math"
 	"sync"
 )
 
 // Shadow 由一個機器執行緒寫入；Screen、VRAMCopy、Close 也由該執行緒呼叫。
 // 輸入以批次送給獨立 goroutine。生產端只交換佇列，不等待光柵化。
 type Shadow struct {
+	scale      int
 	pending    *batch
 	n          int
 	mu         sync.Mutex
@@ -33,7 +36,7 @@ func NewShadow(shift uint) *Shadow {
 	if shift > 3 {
 		panic("影子 GPU 的 shift 必須介於 0 與 3")
 	}
-	s := &Shadow{wake: make(chan struct{}, 1), done: make(chan struct{})}
+	s := &Shadow{scale: 1 << shift, wake: make(chan struct{}, 1), done: make(chan struct{})}
 	s.pool.New = func() any { return new(batch) }
 	s.pending = s.pool.Get().(*batch)
 	go s.run(newRenderer(shift))
@@ -53,6 +56,24 @@ func (s *Shadow) append(v uint64) {
 
 // GP0、GP1、Field 保留原生入口的順序與原始字，不解碼或改寫輸入。
 func (s *Shadow) GP0(v uint32) { s.append(uint64(v)) }
+
+func (s *Shadow) Scale() int { return s.scale }
+
+// GP0Precision 複製精度值，避免消費端讀到之後被遊戲覆寫的記憶體影子。
+func (s *Shadow) GP0Precision(v uint32, p pgxp.Value) {
+	if p.Valid(v) {
+		s.append(3<<32 | uint64(math.Float32bits(p.X)))
+		s.append(4<<32 | uint64(math.Float32bits(p.Y)))
+		s.append(5<<32 | uint64(v))
+	}
+	s.GP0(v)
+}
+
+// PrecisionStats 同步後回傳累計命中與多邊形頂點數。
+func (s *Shadow) PrecisionStats() (hits, vertices uint64) {
+	s.read(func(g *Renderer) { hits, vertices = g.pgxpVertices, g.polygonVertices })
+	return
+}
 func (s *Shadow) GP1(v uint32) { s.append(1<<32 | uint64(v)) }
 func (s *Shadow) Field(v bool) {
 	var b uint64
@@ -103,6 +124,12 @@ func (s *Shadow) run(g *Renderer) {
 					g.WriteGP1(uint32(v))
 				case 2:
 					g.SetField(v&1 != 0)
+				case 3:
+					g.nextPrecision.X = math.Float32frombits(uint32(v))
+				case 4:
+					g.nextPrecision.Y = math.Float32frombits(uint32(v))
+				case 5:
+					g.nextPrecision.Raw, g.nextPrecision.Flags = uint32(v), pgxp.ValidXY
 				}
 			}
 			if b.read != nil {
