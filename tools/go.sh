@@ -56,7 +56,7 @@ for v in GOOS GOARCH CGO_ENABLED; do
   [[ -n "${!v:-}" ]] && PASS+=(-e "$v=${!v}")
 done
 PASS_PREFIXES='^(PSGOLEM_|SOTN_|EBITEN_)'
-SELF='^PSGOLEM_(GO_|ORIG$|EXTRA_MOUNT|NETWORK$|TIMEOUT$|MEM$|CPUS$|RUN_)'
+SELF='^PSGOLEM_(GO_|ORIG$|EXTRA_MOUNT|NETWORK$|TIMEOUT$|MEM$|CPUS$|CPUSET$|RUN_)'
 while IFS= read -r v; do
   if [[ "$v" =~ $PASS_PREFIXES && ! "$v" =~ $SELF ]]; then
     PASS+=(-e "$v=${!v}")
@@ -88,9 +88,13 @@ if [[ -n "${PSGOLEM_EXTRA_MOUNTS:-}" ]]; then
   done
 fi
 
+# PSGOLEM_CPUSET 把容器釘在指定核心（例 `0-3`），量效能時避開效率核心。
+CPUSET=()
+[[ -n "${PSGOLEM_CPUSET:-}" ]] && CPUSET=(--cpuset-cpus "$PSGOLEM_CPUSET")
+
 # --init：讓 tini 當 PID 1。xvfb-run 當 PID 1 時等不到 Xvfb 的就緒訊號，會一直卡住。
 exec timeout "${PSGOLEM_TIMEOUT:-30m}" docker run --rm --init --network "${PSGOLEM_NETWORK:-none}" \
-  --memory "${PSGOLEM_MEM:-4g}" --cpus "${PSGOLEM_CPUS:-4}" --pids-limit 256 \
+  --memory "${PSGOLEM_MEM:-4g}" --cpus "${PSGOLEM_CPUS:-4}" --pids-limit 256 "${CPUSET[@]}" \
   --log-opt max-size=10m --log-opt max-file=3 \
   -u "$RUN_UID:$RUN_GID" \
   -v "$ROOT:/src" \
