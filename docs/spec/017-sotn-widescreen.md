@@ -60,10 +60,11 @@ scrollX 小於 48 時 startTx 為負。原程式每列只在列首算一次圖�
 三個陷阱位址前後沒有可用的空位，各改成一條 `BREAK` 指令，code 欄位各取專用值。CPU 執行 `BREAK` 時（冷路徑），
 若有掛上的處理器且位址與 code 相符，就模擬替換後的動作、PC 前進一條，不進例外；否則照原本進 Bp 例外。
 
-| 位址 | 模擬 |
-|---|---|
-| `0x800ECCF0` | `sh` 寫入 `v1 − 48` 到 `s0` |
-| `0x800ECE80`、`0x800ED260` | `v0 = max(int32(t7), 0) + t4` |
+| 位址 | BREAK code | 模擬 |
+|---|---|---|
+| `0x800ECCF0` | `0x5753` | `sh` 寫入 `v1 − 48` 到 `s0` |
+| `0x800ECE80` | `0x5754` | `v0 = max(int32(t7), 0) + t4`，32 位元相加 |
+| `0x800ED260` | `0x5755` | 同上 |
 
 三處都不在延遲槽，前一條指令都不是載入 `v0`。每 field 約 1 次加 2 × 16 列次。
 不得在 `step`、`fastFetch`、`execute` 分派或 `Machine.Step` 加判斷。
@@ -100,10 +101,10 @@ scrollX 小於 48 時 startTx 為負。原程式每列只在列首算一次圖�
 | 項目 | 判準 |
 |---|---|
 | 關閉時 | `TestM4FirstSave` 摘要 `6c35c2701228722f`；`016` 的轉送自我檢查與全部既有測試照常通過 |
-| 簽章 | 單元測試（不用原版素材）：雜湊不符時不套用；套用後再解除，7 個字回到原字 |
-| 陷阱 | 單元測試：手寫 PS-EXE 片段在指定位址執行 `BREAK`，處理器模擬 `sh` 並減 48；沒有處理器時進 Bp 例外，與現行行為相同 |
+| 簽章 | 單元測試（不用原版素材）：雜湊不符時不套用；套用後再解除，9 個字回到原字 |
+| 陷阱 | 單元測試：手寫 PS-EXE 片段在指定位址執行 `BREAK`，處理器模擬 `sh` 並減 48，以及兩處列首指標計算；沒有處理器時進 Bp 例外，與現行行為相同 |
 | 畫面 | 序章王座廳樓梯（約 field 15000）、城之入口（約 field 34500）各存一組 `-hd 2` 截圖：原畫面補黑版、寬螢幕版；目視背景圖塊在 x=0 與 x=256 接縫處連續、實體在延伸區正常出現 |
-| 效能 | `psexe -hd 2 -widescreen` 與 `-hd 2` 同段 CPU 時間，降幅在 10% 以內（`012` §3 量測方法） |
+| 效能 | 本輪依使用者決定不量測，不判定原訂的 10% 降幅門檻（`012` §3 量測方法） |
 | 交叉編譯 | `tools/build_dist.sh` 三平台通過 |
 
 ## 6. 證據
@@ -117,57 +118,52 @@ scrollX 小於 48 時 startTx 為負。原程式每列只在列首算一次圖�
 
 ## 7. 驗收結果
 
-目前狀態表（2026-10-17）：**畫面驗收未通過，已依使用者停止條件停工**。
-field 15000 的寬螢幕畫面中，背景王座、樓梯與柱子相對人物約向右偏移 48 個原生像素，
-左右延伸區仍大幅留黑。x=0、x=256 處未取得所要求的背景延伸連續性。
-人物位置與背景的相對關係已不同於補黑版；不能以房間邊界、HUD 或 overlay 限制解釋此整體偏移。
-這是目視確認的失敗；根因尚未確認，不把它歸咎於規格或特定位址。
-沒有繼續猜補修改，尚在執行的 M4 與截圖重播已停止。
-效能依本次使用者決定為「未量測」，不宣稱符合 §5 的 10% 門檻。
+目前狀態表（2026-10-17）：**列首指標修正已完成，畫面延伸驗收未通過；依規格衝突停止**。
+效能未量測。實作入口為 `apps/sotn/widescreen.go`。
 
 | 項目 | 目前結果 | 證據 |
 |---|---|---|
-| 簽章與解除 | 無素材單元測試通過，包含不符時不寫入、正規化、DRA 重載與解除 | `apps/sotn/widescreen_test.go`、`workplace/ws/unit.log` |
-| BREAK | 手寫 PS-EXE 通過；核對位址、code、延遲槽、延遲載入與未掛處理器的 Bp | `apps/sotn/widescreen_test.go`、`workplace/ws/unit.log` |
-| 側邊畫布 | 倍率 1、2、4、8 的接縫測試通過；雙緩衝、填色、傳輸隔離、貼圖、混色與 mask 通過 | `render/hd/widescreen_test.go`、`workplace/ws/unit.log` |
-| CPU 熱路徑 | 與 main 比對通過，只有 BREAK 處理改動 | `workplace/ws/hot-path-check.log` |
-| 既有測試與 N=1 GPU 語料 | 完整回歸通過，唯讀掛載指定 BIOS 與 ps1-tests，包含 CPU／GTE 與 17 個 GPU 執行檔 | `workplace/ws/regression.log` |
-| N=1 遊戲轉送 | 開機至序章 12000 個 field 的完整 VRAM 逐位元相同 | `workplace/ws/m4.log` |
-| M4 摘要、記憶卡 | 未完成。原生重播最後進度為 field 20000，因畫面停止條件取消；沒有取得本輪 `6c35c2701228722f` 收據 | `workplace/ws/m4.log` |
-| 序章王座廳樓梯 | 未通過。field 15000、HD2，補黑與寬螢幕各一張，均為 684×480；背景相對人物偏移 | `workplace/ws/stairs-hd2-padded.png`、`workplace/ws/stairs-hd2-wide.png`、`workplace/ws/screenshots.sha256` |
-| 城之入口 | 未完成。到 field 15000 後因前項失敗停止，未到 field 34500 | `workplace/ws/captures-wide.log`、`workplace/ws/captures-padded.log` |
-| 遊玩簽章 | field 1205 首次相符並套用，至最後紀錄未見失配；僅限本輪已跑區段 | `workplace/ws/captures-wide.log` |
-| 前端與資料競爭 | 16:9 比例單元測試及新增核心測試的 race 檢查通過 | `workplace/ws/frontend-unit.log`、`workplace/ws/race.log` |
-| 效能 | 未量測 | 使用者指定先確認可執行，後續再優化 |
-| 三平台建置 | 通過，本機版本 `v0.4.0-ws`；macOS 雙架構、簽章與動態庫結構通過，未做真機驗收 | `workplace/ws/build-dist.log` |
-| 三包內容 | 檔案清單、SHA-256、平台架構、版號、文件與素材排除檢查通過 | `workplace/ws/packages.json`、`workplace/ws/package-validation.log` |
-| Linux 封包啟動 | 通過，寬螢幕自動 N=1、不印摘要、HD2-xBR 視窗 1280×720、設定重讀畫面相同，明確關閉後為 960×720 | `workplace/ws/package-smoke-linux.json`、`workplace/ws/linux-ldd.log` |
-| Windows 封包啟動 | 未完成。Wine 環境拒絕暫存設定目錄的擁有權，尚未取得程式啟動收據 | `workplace/ws/windows-psexe.log`、`workplace/ws/package-smoke-windows-shell.log` |
+| 簽章與解除 | 通過；九字正規化、重載、解除、未知改字拒絕與原字／改字混用 | `apps/sotn/widescreen_test.go`、`workplace/ws/unit-fixed.log` |
+| BREAK | 三處陷阱通過；列首陷阱涵蓋負值、零、正值、溢位、位址／code 配對與 Bp 例外 | `workplace/ws/unit-fixed.log` |
+| 側邊畫布 | 倍率 1、2、4、8 接縫、雙緩衝、填色、傳輸隔離、貼圖、混色與 mask 通過 | `render/hd/widescreen_test.go`、`workplace/ws/regression-fixed.log` |
+| CPU 熱路徑 | 與 main 核對通過；step、fastFetch、Machine.Step 相同，execute 僅有既存的 BREAK 冷路徑呼叫 | `workplace/ws/hot-path-fixed.json`、`workplace/ws/core-main-fixed.diff` |
+| 既有測試與 CPU／GTE／GPU 語料 | 全專案回歸通過，包含指定 BIOS、1150 筆 GTE 實機紀錄與 17 個 N=1 GPU 語料 | `workplace/ws/regression-fixed.log` |
+| N=1 遊戲轉送 | 開機至序章 12000 個 field 的完整 VRAM 逐位元相同 | `workplace/ws/m4-fixed.log` |
+| M4 原生摘要、記憶卡 | PSGOLEM_LONG=1，正常輸入完成 field 45784；摘要 `6c35c2701228722f`，記憶卡目錄檢查通過，SHA-256 為 `5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36` | `workplace/ws/m4-fixed.log` |
+| M4 HD2、HD2-PGXP 比較 | 未完成；HD2 重播因畫面驗收停止，HD2-PGXP 未執行，整個 TestM4FirstSave 沒有通過收據 | `workplace/ws/m4-fixed.log` |
+| 王座廳樓梯 field 15000 | 未通過延伸驗收；兩張 HD2 圖均為 684×480，中央與整張 PNG 完全相同，兩側非黑像素均為 0 | `workplace/ws/stairs-hd2-padded.png`、`workplace/ws/stairs-hd2-wide.png`、`workplace/ws/visual-stairs-fixed.json` |
+| 城之入口 field 34500 | 補黑版已取得；寬螢幕重播最後紀錄為 field 25000，因停止條件取消，尚無本輪寬螢幕圖 | `workplace/ws/entrance-hd2-padded.png`、`workplace/ws/captures-fixed.log` |
+| 遊玩簽章 | field 1205 首次相符並套用九字；截至最後紀錄未見失配，僅限已跑區段 | `workplace/ws/captures-fixed.log` |
+| 前端與資料競爭 | 全專案前端測試及陷阱／側邊畫布的 race 檢查通過 | `workplace/ws/regression-fixed.log`、`workplace/ws/race-fixed.log` |
+| 效能 | 未量測，不宣稱符合 10% 門檻 | 本輪使用者決定 |
+| 三平台建置 | 通過；本機驗收版 `v0.4.0-ws`，macOS 雙架構、簽章與動態庫結構通過，未做真機驗收 | `workplace/ws/build-dist-fixed.log` |
+| 三包內容 | 檔案清單、SHA-256、架構、版號、文件與素材排除通過 | `workplace/ws/packages.json`、`workplace/ws/package-validation-fixed.log` |
+| Linux 封包啟動 | 通過；寬螢幕自動 HD1、不印摘要、HD2-xBR 視窗 1280×720、設定重讀畫面相同，明確關閉後為 960×720 | `workplace/ws/package-smoke-linux.json`、`workplace/ws/package-smoke-linux-fixed.log`、`workplace/ws/linux-ldd-fixed.log` |
+| Windows 封包啟動 | Wine 環境在啟動前拒絕 `/tmp` 擁有權，未取得啟動收據 | `workplace/ws/windows-psexe.log`、`workplace/ws/package-smoke-windows-fixed.log` |
 
-實作入口為 `apps/sotn/widescreen.go`，通用 BREAK 介面為 `internal/cpu/break.go`，
-影子側邊畫布為 `render/hd/widescreen.go`。前端只在 field 結束後呼叫遊戲檢查，
-觀測 API 與 `Machine.Step` 沒有接入修改模式。玩家操作見 `docs/play.md`「《月下》寬螢幕」。
+### 畫面與停止原因
 
-新增驗收程式與實作檔均由本節收錄；工作歷程沿用 `WORKLOG.md`。
+- 已證實：樓梯圖中，王座、樓梯、柱子、德古拉與 Richter 的位置和補黑版完全相同，右偏 48 已消失。
+  原生 x=0、x=256 對應 PNG x=86、x=598。左延伸區黑色符合 scrollX=0 的房間外限制；
+  右延伸區也全黑，沒有取得背景延伸與延伸區實體的驗收證據。兩張圖 SHA-256 同為
+  `e0d6d0b8927d73bb2f5a79ef279d0a9f87cc332f06bc68c1e75a52a034933cb3`。
+- 已證實：`render/hd/widescreen.go` 的 wideScreen 依 §4，要求側邊畫布的繪圖區左上角與顯示起點完全相同，
+  且寬度相同，才把側邊接到輸出；其他情況只補黑。
+- 強證據：此匹配條件擋住正常遊玩畫面的側邊輸出。既有正常輸入 GP0 收據在 field 15000、34500
+  有 `E3005000`、`E40388FF`，繪圖區為原生 VRAM 座標 (0,20)–(255,226)；
+  雙緩衝另一側為 (256,20)–(511,226)。該收據在 field 35000 的顯示起點為 (0,0)。
+  y=20 的遊玩繪圖區不能符合 §4 的左上角相同條件，與 §5 要求正常遊玩背景延伸衝突。
+  來源為 `workplace/hd/entrance-gp0.json`，摘要索引為 `workplace/ws/draw-area-existing-fixed.json`。
+  這不是本輪兩個截圖點的影子內部狀態傾印，不把側邊畫布實際內容或兩點的顯示起點另稱為已證實。
+- 目前阻塞在 §4 的合成契約。未修改影子 GPU，未以房間邊界限制掩蓋未取得的延伸證據。
+  需要補齊顯示區與繪圖區的對應證據，勘誤並審查規格後，才能繼續正式實作。
 
-### 重生入口與證據邊界
+通用 BREAK 介面為 `internal/cpu/break.go`，影子側邊畫布為 `render/hd/widescreen.go`。
+前端只在 field 結束後呼叫遊戲檢查；觀測 API 與 Machine.Step 沒有接入修改模式。
+玩家操作與限制見 `docs/play.md`。封包位於 `dist/v0.4.0-ws/`，僅供本機驗收，沒有發布。
 
-實作提交為 `3c86695`。原版輸入與腳本的 SHA-256 在 `workplace/ws/inputs.sha256`。
-建置使用既有 `psgolem-go-ebiten:1.24-r1`、Go 1.24.13 與既有 osxcross、Wine 映像，沒有新建或刪除映像。
-本機三包位於 `dist/v0.4.0-ws/`，因畫面未通過，不能稱為驗收完成的交付包，未發布。
-
-截圖入口為 `apps/sotn/widescreen_capture_test.go`，需要原版唯讀掛載與下列環境：
-
-```sh
-PSGOLEM_ORIG=~/cht/castlevinia_x PSGOLEM_BIOS=/orig/bios/SCPH5500.BIN \
-SOTN_CUE=/orig/disc/sotn.cue PSGOLEM_WS_EVIDENCE=/src/workplace/ws \
-PSGOLEM_TIMEOUT=95m tools/go.sh test ./apps/sotn \
-  -run TestWidescreenCaptures -v -count=1 -timeout 90m
-```
-
-本輪為了使用最終繪圖區清除順序，取消早先的 `captures.log`，
-改以 `/wide` 與 `/padded` 子測試分別重跑，正式目視證據來自兩份分開的 log。
-`workplace/ws/verify_packages.py` 檢查封包；`package_smoke.py` 為 Linux 啟動檢查，
-`package_smoke_windows.sh` 為尚未完成的 Wine 檢查。這些本機工具與截圖均未加入版控。
-Docker 收尾沒有本輪殘留容器，沒有 root-owned 檔案或異常 `.md` 目錄；
-證據在 `workplace/ws/containers-final.log`、`root-files-final.log` 與 `ownership-final.log`。
+本輪工具、輸入與截圖雜湊見 `workplace/ws/tools-fixed.log`、`inputs-fixed.sha256`、`screenshots-fixed.sha256`。
+封包驗證與啟動腳本為 `workplace/ws/verify_packages.py`、`package_smoke.py`、`package_smoke_windows.sh`；
+像素核對原始碼為 `workplace/ws/imagecheck.go.txt`，只用 Go 標準庫。
+所有原版素材、截圖、記憶卡、封包與驗證輸出均未加入 Git。
+Docker 與檔案衛生收據為 `workplace/ws/containers-fixed.log`、`root-files-fixed.log`、`ownership-fixed.log`。

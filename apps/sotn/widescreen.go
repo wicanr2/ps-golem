@@ -13,6 +13,8 @@ import (
 const tilemapStart = 0x800ecc10
 const tilemapSize = 2332
 const widescreenBreakCode = 0x5753
+const widescreenForegroundCode = 0x5754
+const widescreenBackgroundCode = 0x5755
 
 var tilemapHash = [32]byte{0x40, 0xdf, 0xd4, 0x0f, 0x6a, 0x99, 0x22, 0xdd, 0x5e, 0xd1, 0xb6, 0x9f, 0x1f, 0xd3, 0x2a, 0xda, 0x3f, 0x7a, 0x81, 0x39, 0xb7, 0x93, 0x98, 0x4f, 0x49, 0xd3, 0x73, 0xd3, 0xf3, 0x1b, 0x79, 0x7c}
 
@@ -24,6 +26,8 @@ var widescreenWords = [...]struct{ addr, original, patched uint32 }{
 	{0x800ed198, 0x00027d03, 0x00027903},
 	{0x800ed428, 0x29220011, 0x29220017},
 	{0x800eccf0, 0xa6030000, widescreenBreakCode<<6 | 0x0d},
+	{0x800ece80, 0x01ec1021, widescreenForegroundCode<<6 | 0x0d},
+	{0x800ed260, 0x01ec1021, widescreenBackgroundCode<<6 | 0x0d},
 }
 
 // Widescreen 只由遊玩端持有，不接入觀測 API 或 Machine.Step。
@@ -75,10 +79,20 @@ func (w *Widescreen) check(m *machine.Machine, expected [32]byte) error {
 }
 
 func widescreenTrap(c *cpu.CPU, pc, code uint32) bool {
-	if pc != 0x800eccf0 || code != widescreenBreakCode {
+	switch {
+	case pc == 0x800eccf0 && code == widescreenBreakCode:
+		c.StoreHalf(c.GPR(16), c.GPR(3)-48)
+	case pc == 0x800ece80 && code == widescreenForegroundCode,
+		pc == 0x800ed260 && code == widescreenBackgroundCode:
+		// 017 §3.2：負 tx 被跳過時表指標不前進，列首須從第零格起算。
+		tx := int32(c.GPR(15))
+		if tx < 0 {
+			tx = 0
+		}
+		c.SetGPR(2, uint32(tx)+c.GPR(12))
+	default:
 		return false
 	}
-	c.StoreHalf(c.GPR(16), c.GPR(3)-48)
 	return true
 }
 

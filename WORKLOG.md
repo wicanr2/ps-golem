@@ -159,3 +159,67 @@
 - 勘誤：017 §3.2 原本寫「startTx 為負時 `tx < 0` 會跳過，與房間左緣外不畫一致」，忽略了指標，已改為現況並新增
   `0x800ECE80`、`0x800ED260` 兩個陷阱（列首指標用 `max(t7, 0)`）。
 - 驗證：探針加上兩個陷阱後，field 15000 原生畫面與未修改版相同（`workplace/ws/trapprobe/fix15000.png`）。
+
+## 2026-10-17：依勘誤補齊列首指標陷阱與重新驗收
+
+- 從乾淨的 `widescreen`、`b466844` 接手。已讀 AGENTS、規格索引、001、017 與上一節；
+  路由載入 retro remake 技能、規格閘門、驗收、文件職責與打包規則。
+  本輪依使用者明確指定沿用本機驗收版號 `v0.4.0-ws` 與 `tools/build_dist.sh`，不發布。
+- `apps/sotn/widescreen.go` 新增 `0x800ECE80`、`0x800ED260` 的 BREAK，code 為 `0x5754`、`0x5755`。
+  模擬 `v0 = max(int32(t7), 0) + t4`，保留 32 位元加法。簽章正規化、重載與解除共處理九字。
+  沒有改 CPU、Machine.Step、影子 GPU、正式輸入或 M4 預期值，也沒有重新調查已確認的真因。
+- 無素材測試新增兩處列首陷阱的負值、零、正值、溢位、位址／code 配對與未掛處理器、延遲槽例外。
+  簽章測試補上兩個 code 的未知改字拒絕與原字／改字混用。收據為 `workplace/ws/unit-fixed.log`。
+  資料競爭檢查通過，收據為 `workplace/ws/race-fixed.log`。
+- 熱路徑與 main `d889b78` 比對通過：step、fastFetch、Machine.Step 相同；execute 僅有上一輪既存的
+  BREAK 冷路徑呼叫。收據為 `workplace/ws/hot-path-fixed.json`、`core-main-fixed.diff`。
+- 舊封包與建置目錄保留為 `workplace/ws/prior-dist-v0.4.0-ws/`、`prior-stage-v0.4.0-ws/`。
+  舊樓梯失敗畫面、截圖雜湊與封包收據另以 `workplace/ws/prior-` 檔名前綴保留；
+  上一輪相同檔名的截圖與封包證據請回查這些副本。本輪收據優先使用 `*-fixed.log`。
+- `tools/build_dist.sh v0.4.0-ws` 重新建置三平台通過，macOS 結構四道檢查通過。
+  包內容、SHA-256、架構、版號、操作文件與素材排除通過，收據為 `build-dist-fixed.log`、
+  `package-validation-fixed.log`、`packages.json`，路徑皆位於 `workplace/ws/`。
+- Wine 以既有 `psgolem-wine-verify:noble-r1` 重跑既有啟動腳本，仍在程式啟動前拒絕 `/tmp` 擁有權：
+  `wine: '/tmp' is not owned by you, refusing to create a configuration directory there`。
+  收據為 `workplace/ws/windows-psexe.log`、`package-smoke-windows-fixed.log`；不列為 Windows 啟動通過。
+  沒有為此修改產品、建立映像或變更使用者指定的驗收範圍。
+- 工具環境修正：輸入雜湊命令第一次未帶唯讀掛載，找不到 `/orig` 與 `/ps1tests`；
+  補上既有掛載後用同一映像與命令乾淨重跑成功，收據為 `workplace/ws/inputs-fixed.sha256`。
+  映像沒有 rg，容器內窄範圍搜尋改用 grep；主機未執行分析程式。
+- N=1 開機至序章 12000 個 field 的完整 VRAM 逐位元相同。完整 M4、兩場景截圖、
+  全專案回歸與 Linux 封包啟動仍在執行，完成後回填本節與 017 §7。效能依使用者決定不量測。
+
+- 全專案回歸通過。命令為指定唯讀素材、`PSGOLEM_PS1TESTS=/ps1tests`、
+  `PSGOLEM_GO_CMD=xvfb-run tools/go.sh -a go test ./... -count=1 -timeout=40m -v`，
+  收據為 `workplace/ws/regression-fixed.log`。包含 CPU 語料、1150 筆 GTE 與全部 17 個 N=1 GPU 語料。
+- Linux 本輪封包啟動通過：自動 HD1、摘要抑制、HD2-xBR 1280×720、設定重讀相同與關閉後 960×720。
+  收據為 `workplace/ws/package-smoke-linux.json`、`package-smoke-linux-fixed.log`。
+- M4 以 `PSGOLEM_LONG=1`、指定 BIOS／cue，執行
+  `tools/go.sh test ./apps/sotn -run '^(TestM4FirstSave|TestShadowBootPrologue)$' -count=1 -timeout=170m -v`。
+  原生正常輸入完整完成 field 45784，摘要 `6c35c2701228722f`，記憶卡目錄檢查通過；
+  記憶卡 SHA-256 `5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36`。
+  HD2 子測試已啟動，但因後述停止條件取消；HD2-PGXP 未跑，整個 TestM4FirstSave 不稱為通過。
+- 本輪截圖使用 `PSGOLEM_WS_EVIDENCE=/src/workplace/ws`，執行
+  `tools/go.sh test ./apps/sotn -run '^TestWidescreenCaptures$' -count=1 -timeout=110m -v`。
+  已取得 field 15000 的 HD2 補黑、寬螢幕圖，以及 field 34500 的補黑圖。
+  寬螢幕版 field 1205 通過九字簽章並套用；最後紀錄為 field 25000，未取得入口寬螢幕圖。
+- 畫面勘誤：首次目視正確確認人物與背景不再右偏，卻誤把右緣判成延伸。
+  Go 標準庫像素核對隨即推翻後者：樓梯兩張 PNG 完全相同，兩側非黑像素都是 0，
+  SHA-256 同為 `e0d6d0b8927d73bb2f5a79ef279d0a9f87cc332f06bc68c1e75a52a034933cb3`。
+  已向使用者更正，沒有把目視誤判回填為通過。
+  收據為 `workplace/ws/visual-stairs-fixed.json`、`screenshots-fixed.sha256`；
+  像素核對原始碼為 `workplace/ws/imagecheck.go.txt`。容器沒有 Pillow，故只用 Go 標準庫，沒有裝套件。
+- 新停止原因：017 §4 要求繪圖區與顯示起點左上角完全相同才合成側邊。
+  既有正常輸入 GP0 收據在 field 15000、34500 的繪圖區為 (0,20)–(255,226)，
+  field 35000 顯示起點為 (0,0)。雙緩衝另一側同樣從 y=20 開始。
+  `wideScreen` 嚴格比對 y 起點，與 §5 的正常遊玩延伸驗收衝突。
+  合成契約的限制已由程式碼確認；它造成本輪全黑延伸的解釋標為強證據，尚未傾印本輪影子內部狀態。
+  索引為 `workplace/ws/draw-area-existing-fixed.json`，原始來源為 `workplace/hd/entrance-gp0.json`。
+  沒有重新調查列首指標真因，也沒有修改影子 GPU 或猜補新的合成規則。
+- 依使用者「規格矛盾或無法照做」停止條件，停止兩個已確認掛載本工作樹的本輪 `--rm` 重播容器。
+  M4 與截圖命令因此以 143 結束，屬主動取消，不列為關閉模式回歸失敗。
+  017 §7 已改為本輪現況，待補證據與審查 §4 勘誤後才可繼續。
+- 收尾沒有本工作樹殘留容器、root-owned 檔案或異常 `.md` 目錄；輸出與修改檔均為 `1000:1000`。
+  收據為 `workplace/ws/containers-fixed.log`、`root-files-fixed.log`、`ownership-fixed.log`。
+  只用既有映像，沒有新增／刪除映像、prune、操作其他專案容器或寫入其他工作樹。
+  封包仍為本機驗收產物，沒有發布；效能未量測。
