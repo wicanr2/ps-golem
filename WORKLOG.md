@@ -381,3 +381,41 @@
 - 總驗收索引為 `verification-generation.json`，產生工具為 `write_receipt_generation.py`，重跑命令為 `commands-generation.txt`。
   收尾核對入口為 `root-files-generation.log`、`ownership-generation.log`、`containers-generation.log`。
   本輪只使用既有映像與 --rm 容器，沒有新增／刪除映像、prune、操作其他容器、寫入其他工作樹、push、merge 或改寫歷史。
+
+## 2026-10-18：本機完整版 v0.5.0
+
+- 起始工作樹乾淨，main 為 `a16dfc8`，依指定建立 `local-pack`。本輪唯一目前狀態表為 005 §8.4。
+- 已讀 AGENTS、000、001、005 §8、012 §9、017 §3.4。路由命中跨平台打包與文件職責，
+  載入 retro remake 技能及驗收、輸出、版號與 ZIP 編碼規則。依本輪明確授權使用 `v0.5.0`、`dist/` 及 GPL-3.0-or-later。
+- 可攜設定依 AppImage 外部目錄、macOS .app 上層或執行檔目錄選擇；自動尋找只掃指定三處，逐項套用優先順序。
+  設定寫回相對路徑，記憶卡保留使用者設定目錄。新增測試不使用原版素材。
+- 簽章曾套用後失配改為只警告一次，保留 RAM 與處理器。列首陷阱改用 CPU 冷路徑 `SetBreakGPR`，
+  先取消同目標延遲載入；來源仍讀舊值，其他目標的載入仍提交。兩項修正單獨驗收。
+- `workplace/local-pack/unit.log` 通過可攜設定、三處尋找、歧義、優先順序、重定位、簽章失配及延遲載入測試。
+- AppImage 工具依指定下載到 `workplace/appimage/`，只有下載容器以 bridge 開網路。
+  固定版本、授權、下載時間與雜湊見 005 §8.2、`tools/appimage.sha256`、`workplace/local-pack/appimage-tools.log`。
+  既有 `psgolem-go-ebiten:1.24-r1` 可執行工具，沒有新建映像。
+- 新增 `tools/build_local.sh`、`tools/local_pack.py`；入口與職責登錄於 005 §8.2。
+  沿用未修改的 build_dist、build_macos、verify_macos，基礎包留 `dist/v0.5.0/`，本機包留 `dist/v0.5.0-local/`。
+  stage 與證據使用既有 workplace。原版不掛入建置容器。文件更新見 docs/play.md。
+- 完整回歸、指定 M4 與封包驗收執行中。效能不量測，Wine 啟動依使用者決定延後。
+- 全專案回歸通過，容器實際退出碼 0。包含 CPU、1150 筆 GTE 與 17 個 N=1 GPU 語料。
+  完整日誌 `regression.log`、摘要 `regression-summary.log`、退出碼 `regression-container-exit.log`，均在本輪證據目錄。
+- 首次三平台基礎包與 macOS 四道結構檢查通過，但 AppImage 封裝因 Go 映像缺 `file` 停止。
+  既有 osxcross 映像已含 `file`，且工具啟動成功；封裝改用該映像並加前置檢查，沒有建立映像。
+  第一次輸出封存於 `workplace/local-pack/attempt-without-file/`，日誌為 `build-missing-file.log`。
+  修正後已由乾淨版本與 stage 目錄重跑完整腳本。這是封裝環境問題，既有測試沒有失敗。
+- 兩項小修提交 `c5e250c`，可攜設定提交 `0f59d4f`；均使用指定作者與 Codex 共同作者，未推送。
+- 第二次 AppImage 已成功封裝，後續守門因 appimagetool 在來源 AppDir 自動建立 `.DirIcon` 連結而停止。
+  重新核對打包路由與 005 §8.2，圖示是允許的包內中介資料；只接受 `.DirIcon` 指向同 AppDir 的自製 PNG，其他連結仍拒絕。
+  實際 stage 的修正檢查通過，收據 `packaging-guard.log`；第二次產物與原日誌保存於
+  `workplace/local-pack/attempt-diricon/`、`build-diricon.log`。再次從乾淨版本與 stage 目錄重跑完整腳本。
+- 原生 M4 完成 field 45784、26150980006 個週期，摘要仍為 `6c35c2701228722f`，記憶卡檢查通過。
+  記憶卡 SHA-256 `5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36`，
+  原生畫面 SHA-256 `02b9bc2db161fa5675d867aeec057ccebd5cb9f6912db0fe46ed159d78c8ddd7`。
+  HD2 已開始，尚不宣稱整個 TestM4FirstSave 通過。收據 `workplace/local-pack/m4.log`。
+- 第三次乾淨建置完整通過，`tools/build_local.sh v0.5.0` 外層退出碼 0。
+  三平台基礎包、macOS 四道結構、AppImage 與三個 local ZIP 均完成，輸出 `dist/v0.5.0-local/`。
+  ZIP 的 CRC、頂層目錄、預設設定、空素材目錄、UTF-8、禁止副檔名與 512 KiB 排除通過。
+  建置日誌 `build.log`、逐項清單 `packages.json`，四包雜湊與擁有權另見 `package-checksums.log`、`package-ownership.log`。
+  Linux 正由完成的 ZIP 解包做 AppImage 啟動驗收，原版三份檔案均唯讀掛載。

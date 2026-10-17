@@ -64,7 +64,7 @@ psgolem -hd 2 -widescreen
 下次啟動用 `-widescreen=false` 關閉。
 
 此模式會修改《月下》的圖塊繪製範圍，記憶卡照常讀寫。HUD、選單與部分效果仍在中央，
-房間邊界外與特殊背景可能留黑。程式只套用已核對簽章的版本，遊玩中簽章失配會停止並回報。
+房間邊界外與特殊背景可能留黑。程式只套用已核對簽章的版本；遊玩中簽章失配只警告一次，保留已套用的修改。
 `psexe -widescreen -hd 2 -screen <PNG>` 只供截圖，開啟時不印機器摘要。
 
 ## 按鍵
@@ -80,7 +80,7 @@ psgolem -hd 2 -widescreen
 
 ## 存檔位置
 
-記憶卡與設定檔放在使用者設定目錄的 `ps-golem/` 底下：
+記憶卡放在使用者設定目錄的 `ps-golem/` 底下；沒有可攜設定檔時，設定檔也放在此處：
 
 | 平台 | 目錄 |
 |---|---|
@@ -95,3 +95,25 @@ psgolem -hd 2 -widescreen
 
 - macOS 版在 Linux 上交叉編譯，尚未在實機上驗證。
 - 速度依電腦而定；模擬比實機慢時遊戲整體變慢，聲音會斷續。
+
+## 本機完整版
+
+解開 `ps-golem-v0.5.0-local-<平台>.zip`，進入頂層的 `ps-golem/`：
+
+1. 把自己的 512 KiB PlayStation BIOS 放進 `bios/`，只放一份。
+2. 把自己的 cue 與所有 bin 放進 `disc/`，只放一份 cue。保留 cue 引用的 bin 檔名。
+3. 雙擊開啟 Linux 的 AppImage、Windows 的 `psgolem.exe`，或 macOS 的 `ps-golem.app`。
+
+Linux 的 AppImage 需要執行權限；若解壓縮工具沒有保留，先用檔案管理員允許執行。
+系統需提供 X11、OpenGL 與 ALSA。沒有 FUSE 時可在終端機執行：
+
+```sh
+./ps-golem-v0.5.0-x86_64.AppImage --appimage-extract-and-run
+```
+
+包內 `settings.json` 預設開啟 HD 2 倍、PGXP、xBR 與寬螢幕。
+寬螢幕會修改遊戲程式，限制見本文件的寬螢幕說明；程式本身的預設仍為關閉。
+自動尋找成功後，BIOS 與 cue 會以相對路徑寫回此設定檔，整個 `ps-golem/` 可以一起搬移。
+同類檔案有多個候選或缺檔時顯示設定畫面，可拖入檔案。明確指定的命令列優先於設定檔，再來才是自動尋找。
+記憶卡仍存使用者設定目錄，搬移遊戲資料夾不會搬移記憶卡。包內沒有 BIOS、光碟與記憶卡。
+Windows 本輪只驗封包內容，macOS 只驗執行檔結構，尚待各平台實機確認。
