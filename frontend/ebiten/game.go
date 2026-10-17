@@ -53,6 +53,7 @@ type Game struct {
 	card                        cardSaver
 	frame                       *eb.Image
 	frameNo                     uint64
+	shown                       image.Point // 上次畫到 screen 時的 screen 大小；零值代表要重畫
 	canvas                      *eb.Image
 	updates                     int
 	finishing                   bool
@@ -90,6 +91,8 @@ func Run(cfg Config) error {
 	eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)
 	eb.SetWindowResizingMode(eb.WindowResizingModeEnabled)
 	eb.SetTPS(60)
+	// 畫面沒有新內容時 Draw 直接返回，保留上一次的畫面（012 §4）。
+	eb.SetScreenClearedEveryFrame(false)
 	g.tryOpen()
 	err := eb.RunGame(g)
 	if g.emu != nil {
@@ -148,6 +151,7 @@ func (g *Game) Update() error {
 // Draw 把目前顯示的畫面依 4:3 縮放到視窗中央。
 func (g *Game) Draw(screen *eb.Image) {
 	if g.m == nil {
+		screen.Clear()
 		g.drawSetup(screen)
 		g.keepCanvas(screen)
 		return
@@ -161,11 +165,16 @@ func (g *Game) Draw(screen *eb.Image) {
 		g.frame = eb.NewImage(b.Dx(), b.Dy())
 		g.frameNo = 0
 	}
+	sb := screen.Bounds()
+	if no == g.frameNo && sb.Size() == g.shown {
+		return
+	}
 	if no != g.frameNo {
 		g.frame.WritePixels(img.Pix)
 		g.frameNo = no
 	}
-	sb := screen.Bounds()
+	g.shown = sb.Size()
+	screen.Clear()
 	r := fit(sb.Dx(), sb.Dy())
 	op := &eb.DrawImageOptions{}
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))

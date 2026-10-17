@@ -36,15 +36,17 @@ psgolem [-bios <BIOS>] [-cue <cue>] [-card <記憶卡檔>] [-scale N]
 - `-stats` 每 600 個 field 在標準錯誤印出實際 FPS、每個 field 的模擬耗時（平均、最大）與基準重設次數。
 - 效能現況（2026-10-17，Core Ultra 7 165U，主機另有其他工作）：無頭模擬固定在 P 核心
   （`PSGOLEM_CPUSET=0-3`、`GOMAXPROCS=2`，取樣期間 P 核心平均 1.77 GHz），序章遊玩段（field 4800–7200）
-  每個 field 9–14 ms，低於 16.7 ms。KONAMI 動畫段（field 2200–2400）在時脈降到 1.2 GHz 時為 26–42 ms。
+  每個 field 9–14 ms，低於 16.7 ms。KONAMI 動畫段（field 1800–2400）在兩次量測為 10–42 ms，期間 P 核心時脈在 1.2–1.8 GHz 之間變動，可能超過預算。
   遊玩段的耗時約 72% 在 CPU 直譯、18% 在 GPU 點陣化，GC 不顯著。被排到效率核心或時脈受限時會落後實際時間。
 - 量測方法：比較改動前後用同一段 field、固定核心、交錯執行、取 CPU 時間（rusage）的最小值；
   牆鐘時間與 xvfb 下的 FPS 受主機負載與軟體 OpenGL 影響，不作為效能數字。
 
 ## 4. 畫面
 
-- 每次 `Draw` 取 `GPU.Screen()`（`007` §8）寫進 Ebiten 影像，依 4:3 顯示比例縮放到視窗中央，
-  多出的邊填黑。縮放用最近鄰；HD 濾鏡另由 HD 規格處理。
+- `Draw` 取模擬 goroutine 最新完成的畫面（`GPU.OutputScreenInto`，`007` §8、`016`）寫進 Ebiten 影像，
+  依 4:3 顯示比例縮放到視窗中央，多出的邊填黑。縮放用最近鄰；HD 濾鏡另由 HD 規格處理。
+- 畫面編號與視窗大小都沒變時 `Draw` 直接返回（`SetScreenClearedEveryFrame(false)` 保留上一次的畫面），
+  高更新率螢幕或沒有垂直同步的顯示環境不會重複縮放同一張畫面。
 - 畫面尺寸改變（遊戲切換解析度、24 位元動畫）時重建影像。
 
 ## 5. 輸入
