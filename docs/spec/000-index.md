@@ -21,6 +21,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `014-cross-oracle.md` | READY | mednafen 交叉 oracle：時間表送鍵、平移比對截圖 |
 | `015-sotn-autoplay.md` | DRAFT（M4 驗收完成，見 §7） | 《月下》RAM 位址台帳、Clone 搜尋自動遊玩、M4 驗收 |
 | `016-hd-output.md` | READY（第 1、2 階段實作完成，驗收見 §7；第 3 階段 PGXP READY） | 影子 GPU 內部解析度放大、xBR 濾鏡、PGXP；寬螢幕 DRAFT |
+| `017-sotn-widescreen.md` | DRAFT | 《月下》寬螢幕：屬遊戲修改，與決定性的關係待決定 |
 
 狀態定義：
 
