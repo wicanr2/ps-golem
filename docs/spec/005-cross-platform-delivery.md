@@ -72,3 +72,51 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
   摘要、記憶卡、最後畫面與 Linux 逐位元相同（`015` §7）。
 - 視窗版（2026-10-16，v0.1.2）：解開發行包，Linux 的 `psgolem` 與 Wine 下的 `psgolem.exe` 以 `-press` 重播 M4 腳本，
   前端自動存下的記憶卡與 `psexe` 逐位元相同。
+
+## 8. 本機完整版
+
+給自己在本機或自己的其他電腦上玩的包：功能全開、雙擊就能玩。與 §5 發行包相同，**不含 BIOS、光碟映像或從光碟抽出的檔案**；
+玩家把自己的檔案放進包內的資料夾，或沿用設定檔記住的路徑。
+
+### 8.1 可攜設定
+
+| 項目 | 規定 |
+|---|---|
+| 可攜目錄 | Linux AppImage：環境變數 `APPIMAGE` 所指檔案的目錄；macOS：`.app` 所在的目錄；其他：執行檔所在的目錄 |
+| 可攜設定檔 | 可攜目錄有 `settings.json` 時，讀寫都用它，不用 `<使用者設定目錄>/ps-golem/settings.json`；沒有時照 `012` §9 |
+| 自動尋找 | 命令列與設定檔都沒給 BIOS 或 cue 時，在可攜目錄、其下 `bios/`、`disc/` 三處（不遞迴）找：大小正好 512 KiB 的檔案當 BIOS，副檔名 `.cue` 的檔案當光碟。各剛好一個才採用，多個或沒有就照舊顯示設定畫面 |
+| 優先順序 | 命令列 > 設定檔 > 自動尋找 |
+| 相對路徑 | 可攜設定檔裡的 `bios`、`cue` 可以是相對路徑，以可攜目錄為基準解析；自動尋找寫回時存相對路徑，整包搬到別台電腦仍可用 |
+
+### 8.2 包的內容
+
+`tools/build_local.sh <版號>` 產生 `dist/<版號>-local/`，版本目錄已存在就停：
+
+| 檔名 | 內容 |
+|---|---|
+| `ps-golem-<版號>-x86_64.AppImage` | AppDir：`AppRun` 啟動 `usr/bin/psgolem`，另含 `usr/bin/psexe`、`.desktop`、圖示 PNG。只包 ps-golem 自己的執行檔；X11、OpenGL、ALSA 用系統的（同 §5 Linux 包） |
+| `ps-golem-<版號>-local-linux.zip` | AppImage 加上 §8.3 的資料夾與預設設定，解開即可雙擊 |
+| `ps-golem-<版號>-local-windows.zip` | `psgolem.exe`、`psexe.exe` 加上 §8.3 |
+| `ps-golem-<版號>-local-macos.zip` | `ps-golem.app`、`psexe` 加上 §8.3 |
+
+每個 zip 解開後的頂層目錄 `ps-golem/` 含：
+
+- `settings.json`：`{"hd": 2, "pgxp": true, "filter": "xbr", "widescreen": true}`，不含 `bios`、`cue`。
+- `bios/`、`disc/`：空資料夾，各放一個 `放這裡.txt` 說明要放的檔案。
+- `LICENSE`、`README.md`、`docs/play.md`。
+
+寬螢幕是遊戲修改模式（`017` §2）；本機完整版的預設設定檔開啟它，屬玩家自己的設定，程式本身的預設仍是關閉。
+
+AppImage 用 `AppImage/appimagetool` 的 `appimagetool-x86_64.AppImage` 與 `AppImage/type2-runtime` 的 `runtime-x86_64`。
+上游只發 `continuous`，所以第一次建置時下載一份到 `workplace/appimage/`（不入版控），把下載日期與 SHA-256 記在本節；
+之後的建置一律用這份並先核對雜湊，不重新下載。容器內沒有 FUSE，以 `--appimage-extract-and-run` 執行 appimagetool，`--runtime-file` 指定 runtime。
+下載用 `PSGOLEM_NETWORK=bridge`，只在這一步開網路。
+
+### 8.3 驗收
+
+| 項目 | 判準 |
+|---|---|
+| 可攜設定、自動尋找 | 單元測試（不用原版素材）：可攜目錄判定、相對路徑、三處尋找、多個候選不採用、優先順序 |
+| AppImage | 在 `psgolem-wine-verify`（Ubuntu 24.04，無 Go）以 `--appimage-extract-and-run` 搭配 `xvfb-run` 啟動：BIOS 與 cue 放在 AppImage 旁的 `bios/`、`disc/`（唯讀掛載原版），不帶參數開機到第 2000 次 `Update`，可攜 `settings.json` 寫入相對路徑 |
+| Windows、macOS zip | 內容檢查與 §5 相同的素材排除；Windows 啟動檢查依使用者決定延後 |
+| 素材排除 | 所有包不得含 `.bin`、`.cue`、`.iso`、`.img`、`.chd`、`.mcd`、`.mcr`、`.state` 與 512 KiB 的檔案 |
