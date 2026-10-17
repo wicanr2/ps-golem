@@ -115,9 +115,6 @@ func (g *Renderer) execute(cb []uint32) {
 		g.twy = (cb[0] >> 15) & 0x1F
 		g.recalcTexWindow()
 	case cmd == 0xE3:
-		if g.clipX0 != int32(cb[0]&1023) || g.clipY0 != int32((cb[0]>>10)&1023) {
-			g.clearSide = true
-		}
 		g.clipX0 = int32(cb[0] & 1023)
 		g.clipY0 = int32((cb[0] >> 10) & 1023)
 	case cmd == 0xE4:

@@ -7,9 +7,10 @@ import (
 
 // sideCanvas 以完整 E3／E4 矩形作索引。像素不在 VRAM，貼圖與傳輸不會讀寫它。
 type sideCanvas struct {
-	rect        [4]int32
-	left, right []uint16
-	lastDraw    uint64
+	rect              [4]int32
+	left, right       []uint16
+	lastDraw          uint64
+	clearedGeneration uint64
 }
 
 // SetSideMargin 只供呈現端設定，單位為原生像素；0 關閉。
@@ -50,18 +51,23 @@ func (g *Renderer) prepareSides() {
 		a = &sideCanvas{rect: k, left: make([]uint16, n), right: make([]uint16, n)}
 		g.sides[k] = a
 	}
-	if g.clearSide {
-		clear(a.left)
-		clear(a.right)
-		g.clearSide = false
-	}
 	g.side = a
 	g.sideDrawOrder++
+}
+
+// clearForDisplay 在新顯示世代第一次實際繪製前清除；狀態切換與空圖元不清。
+func (a *sideCanvas) clearForDisplay(generation uint64) {
+	if a.clearedGeneration != generation {
+		clear(a.left)
+		clear(a.right)
+		a.clearedGeneration = generation
+	}
 }
 
 // markSideDraw 只在圖元實際寫入像素時更新；空圖元與狀態切換不參與選區。
 func (g *Renderer) markSideDraw() {
 	if g.side != nil {
+		g.side.clearForDisplay(g.displayGeneration)
 		g.side.lastDraw = g.sideDrawOrder
 	}
 }
@@ -91,6 +97,8 @@ func (g *Renderer) plotSide(x, y int32, fore uint16, mode int, textured bool) {
 	if p == nil {
 		return
 	}
+	// 先清除，避免沿用上一世代的遮罩與混色底色，也不抹掉本次寫入。
+	g.side.clearForDisplay(g.displayGeneration)
 	if *p&g.maskEvalAND != 0 {
 		return
 	}
@@ -115,6 +123,7 @@ func (g *Renderer) fillSides(x, y, w, h uint32, fill uint16) {
 			if ny < a.rect[1] || ny > a.rect[3] || g.lineSkip(uint32(ny)) {
 				continue
 			}
+			a.clearForDisplay(g.displayGeneration)
 			start := (ny - a.rect[1]) << g.shift
 			for sy := int32(0); sy < 1<<g.shift; sy++ {
 				for sx := int32(0); sx < stride; sx++ {

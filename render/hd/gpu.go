@@ -36,13 +36,13 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type Renderer struct {
-	VRAM          []uint16
-	shift         uint
-	margin        int32
-	sides         map[[4]int32]*sideCanvas
-	side          *sideCanvas
-	clearSide     bool
-	sideDrawOrder uint64
+	VRAM              []uint16
+	shift             uint
+	margin            int32
+	sides             map[[4]int32]*sideCanvas
+	side              *sideCanvas
+	displayGeneration uint64
+	sideDrawOrder     uint64
 
 	// 命令緩衝
 	precise                       [16]pgxp.Value
@@ -172,7 +172,7 @@ func (g *Renderer) power() {
 func (g *Renderer) softReset() {
 	clear(g.sides)
 	g.side = nil
-	g.clearSide = false
+	g.displayGeneration = 0
 	g.irqPending = false
 	g.invalidateCache()
 	g.dmaControl = 0
@@ -231,8 +231,11 @@ func (g *Renderer) WriteGP1(v uint32) {
 	case 0x04:
 		g.dmaControl = v & 3
 	case 0x05:
-		g.displayXStart = v & 0x3FE
-		g.displayYStart = (v >> 10) & 0x1FF
+		x, y := v&0x3FE, (v>>10)&0x1FF
+		if x != g.displayXStart || y != g.displayYStart {
+			g.displayGeneration++
+		}
+		g.displayXStart, g.displayYStart = x, y
 	case 0x06:
 		g.horizStart = v & 0xFFF
 		g.horizEnd = (v >> 12) & 0xFFF

@@ -65,14 +65,14 @@ func TestSideCanvasMostRecentDraw(t *testing.T) {
 			t.Fatal("未選最近繪圖區", got)
 		}
 	}
-	// 中央圖元也算畫進；回到舊區會依既有 E3 契約先清黑。
+	// 中央圖元也算畫進；同一世代回到舊區保留側邊。
 	send(g, 0xe3000000|20<<10, 0x600000ff, 20<<16, 1|1<<16)
-	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{A: 255}) {
-		t.Fatal("中央圖元未更新選區，或 E3 未清黑", got)
+	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{R: 255, A: 255}) {
+		t.Fatal("中央圖元未更新選區，或同世代側邊被清除", got)
 	}
 	// 切換狀態、零尺寸與完全被裁掉的圖元不能搶走最近繪圖區。
 	send(g, 0xe3000000|24<<10, 0x6000ff00, 24<<16, 0, 0x6000ff00, 0, 1|1<<16)
-	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{A: 255}) {
+	if got := g.Screen().RGBAAt(85, 48); got != (color.RGBA{R: 255, A: 255}) {
 		t.Fatal("未畫進的圖元影響選區", got)
 	}
 }
@@ -83,6 +83,102 @@ func wideRenderer(shift uint) *Renderer {
 	g.sides = make(map[[4]int32]*sideCanvas)
 	send(g, 0xe3000000, 0xe4000000|239<<10|255)
 	return g
+}
+
+func TestSideCanvasDisplayGeneration(t *testing.T) {
+	for shift := uint(0); shift <= 3; shift++ {
+		for _, firstX := range []uint32{1, 0xffff} {
+			g := wideRenderer(shift)
+			// 同一世代往返 E3／E4，兩塊畫布均保留。
+			send(g, 0xe6000001, 0x600000ff, 0xffff, 1|1<<16)
+			a := g.side
+			before := slices.Clone(a.left)
+			send(g, 0xe3000000|256, 0xe4000000|239<<10|511, 0x6000ff00, 255, 1|1<<16)
+			b := g.side
+			other := slices.Clone(b.left)
+			send(g, 0xe3000000, 0xe4000000|239<<10|255, 0x600000ff, 0, 1|1<<16)
+			if !slices.Equal(before, a.left) || !slices.Equal(other, b.left) {
+				t.Fatal("同世代切回清除了側邊")
+			}
+			// 重寫相同顯示起點（含被忽略的 bit 0）不能開始新世代。
+			g.WriteGP1(0x05000001)
+			send(g, 0x600000ff, 0, 1|1<<16)
+			if !slices.Equal(before, a.left) {
+				t.Fatal("相同顯示起點清除了側邊")
+			}
+			// x 或 y 改變都開新世代，但不立刻清除任何畫布。
+			for _, display := range []uint32{256, 256 | 1<<10} {
+				g.WriteGP1(0x05000000 | display)
+				send(g, 0xe3000000, 0xe4000000|239<<10|255,
+					0x600000ff, 0, 0, // 零尺寸
+					0x600000ff, 400, 1|1<<16, // 超出含側邊的裁切範圍
+					0xe1000108, 0x65000000, 0, 0, 1|1<<16) // x=512 的透明貼圖
+				if !slices.Equal(before, a.left) || !slices.Equal(other, b.left) {
+					t.Fatal("新世代尚未畫進就清除了側邊")
+				}
+			}
+			// 中央與側邊的第一筆實際繪製都必須觸發清除。
+			// 舊側邊有遮罩位元，不能阻止新世代第一筆側邊寫入。
+			send(g, 0xe6000002, 0x6000ff00, firstX, 1|1<<16)
+			want := make([]uint16, len(a.left))
+			if firstX == 0xffff {
+				n, stride := 1<<shift, 48<<shift
+				for y := 0; y < n; y++ {
+					for x := stride - n; x < stride; x++ {
+						want[y*stride+x] = 0x3e0
+					}
+				}
+			}
+			if !slices.Equal(a.left, want) || !slices.Equal(b.left, other) {
+				t.Fatalf("倍率=%d 首筆x=%x：清除時機或寫入結果錯誤", 1<<shift, firstX)
+			}
+			// 另一塊在自己的首筆畫進時才清除，之後回來不再清。
+			send(g, 0xe3000000|256, 0xe4000000|239<<10|511, 0x6000ff00, 256, 1|1<<16)
+			if !slices.Equal(b.left, make([]uint16, len(b.left))) {
+				t.Fatal("另一繪圖區未在首筆畫進時清除")
+			}
+			send(g, 0xe3000000, 0xe4000000|239<<10|255, 0xe6000000, 0x600000ff, 1, 1|1<<16)
+			if !slices.Equal(a.left, want) {
+				t.Fatal("同世代再次畫進重複清除")
+			}
+		}
+	}
+}
+
+func TestSideCanvasFillGeneration(t *testing.T) {
+	for shift := uint(0); shift <= 3; shift++ {
+		g := wideRenderer(shift)
+		send(g, 0x600000ff, 0xffff, 1|4<<16, 0x600000ff, 256, 1|4<<16)
+		a := g.side
+		before := slices.Clone(a.left)
+		g.WriteGP1(0x05000100)
+		// 未覆蓋全寬或不相交的填色不能碰側邊，也不能消耗清除世代。
+		send(g, 0x0200ff00, 0, 128|4<<16, 0x0200ff00, 250<<16, 256|4<<16)
+		if !slices.Equal(a.left, before) || a.clearedGeneration == g.displayGeneration {
+			t.Fatal("未覆蓋繪圖區的填色改了側邊")
+		}
+		// 新世代首次有效填色：其餘列清黑，只有指定列填綠。
+		send(g, 0x0200ff00, 1<<16, 256|2<<16)
+		n, stride := 1<<shift, 48<<shift
+		want := make([]uint16, len(a.left))
+		for y := n; y < 3*n; y++ {
+			for x := 0; x < stride; x++ {
+				want[y*stride+x] = 0x3e0
+			}
+		}
+		if !slices.Equal(a.left, want) || !slices.Equal(a.right, want) {
+			t.Fatal("新世代填色範圍或清除錯誤")
+		}
+		// 填色後的圖元不能再清掉填色；下一世代前顯示亦須保留。
+		send(g, 0x600000ff, 0, 1|1<<16)
+		if !slices.Equal(a.left, want) || !slices.Equal(a.right, want) {
+			t.Fatal("填色後首筆圖元清掉了填色")
+		}
+		g.WriteGP1(0x05000000)
+		if !slices.Equal(a.left, want) {
+			t.Fatal("顯示起點改變立即清除了填色")
+		}
+	}
 }
 
 func TestSideCanvasSeams(t *testing.T) {
@@ -141,8 +237,9 @@ func TestSideCanvasBufferAndFill(t *testing.T) {
 	if c := g.Screen().RGBAAt(42*2, 0); c.R != 255 {
 		t.Fatal("未保留顯示中緩衝")
 	}
-	// 回到舊區後應清黑，並在第一個繪圖命令前完成。
-	send(g, 0xe3000000, 0xe4000000|239<<10|255, 0x60000000, 0, 0)
+	// 新世代回到舊區後，第一筆實際繪製才清黑。
+	g.WriteGP1(0x05000000 | 1<<10)
+	send(g, 0xe3000000, 0xe4000000|239<<10|255, 0x60000000, 0, 1|1<<16)
 	for _, v := range a.left {
 		if v != 0 {
 			t.Fatal("重新使用緩衝仍有殘影")
