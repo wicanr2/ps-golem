@@ -77,7 +77,6 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 
 給自己在本機或自己的其他電腦上玩的包：功能全開、雙擊就能玩。與 §5 發行包相同，**不含 BIOS、光碟映像或從光碟抽出的檔案**；
 玩家把自己的檔案放進包內的資料夾，或沿用設定檔記住的路徑。
-含 BIOS 與光碟的自用版本另由 §8.5 在 repo 以外組裝。
 
 ### 8.1 可攜設定
 
@@ -121,16 +120,3 @@ AppImage 用 `AppImage/appimagetool` 的 `appimagetool-x86_64.AppImage` 與 `App
 | AppImage | 在 `psgolem-wine-verify`（Ubuntu 24.04，無 Go）以 `--appimage-extract-and-run` 搭配 `xvfb-run` 啟動：BIOS 與 cue 放在 AppImage 旁的 `bios/`、`disc/`（唯讀掛載原版），不帶參數開機到第 2000 次 `Update`，可攜 `settings.json` 寫入相對路徑 |
 | Windows、macOS zip | 內容檢查與 §5 相同的素材排除；Windows 啟動檢查依使用者決定延後 |
 | 素材排除 | 所有包不得含 `.bin`、`.cue`、`.iso`、`.img`、`.chd`、`.mcd`、`.mcr`、`.state` 與 512 KiB 的檔案 |
-
-### 8.5 含素材的本機組裝（自用）
-
-使用者要求本機存放一份含 BIOS 與《月下》光碟的完整版（2026-10-18）。發行包與 §8.2 的包仍不含素材；組裝另走一支腳本：
-
-| 項目 | 規定 |
-|---|---|
-| 腳本 | `tools/assemble_local_full.sh <版號> <素材目錄> [輸出目錄]`，讀 `dist/<版號>-local/` 的三個 zip 與 AppImage |
-| 素材 | BIOS 取 `<素材目錄>/bios/SCPH5500.BIN`，光碟取 `<素材目錄>/disc/` 的 `.cue` 與它指到的 `.bin`；放進每份解開後 `ps-golem/` 的 `bios/`、`disc/` |
-| 輸出 | 預設 `~/cht/castlevinia_x/local-full/<版號>/`；輸出路徑在任何 git 工作樹內就停止，既有目錄不覆寫 |
-| 形式 | Linux 為資料夾（AppImage＋`settings.json`＋`bios/`＋`disc/`），Windows、macOS 為資料夾與 zip 各一 |
-| 限制 | 只供本機自用：不進版控、不進 `dist/`、不上傳、不外傳；腳本本身不含任何素材 |
-| 驗收 | 輸出資料夾不帶參數以 `xvfb-run` 啟動 Linux 版，開機到第 2000 次 `Update`；腳本對輸出在 git 工作樹內的情況拒絕執行 |
