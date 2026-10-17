@@ -40,6 +40,7 @@ osxcross 映像含 macOS SDK，只留本機，不推送。
 ## `[HARD]` 硬規則
 
 - **不得散布原版素材。** ISO、BIOS、光碟抽出的檔案、截圖不進版控、不進發行包。
+  例外：使用者自用的「含素材本機完整版」由 `tools/assemble_local_full.sh` 組裝，輸出只能在 repo 以外的素材目錄（預設 `~/cht/castlevinia_x/local-full/`），不進 `dist/`、不上傳、不外傳（2026-10-18 使用者決定，`005` §8.5）。
   需要原版的測試缺檔就 skip，不用自製代用品。
 - **建置與測試一律走 docker**（`tools/go.sh`）。只清理自己建立的 container；
   禁止任何 `docker ... prune` 與 `docker rmi`。
