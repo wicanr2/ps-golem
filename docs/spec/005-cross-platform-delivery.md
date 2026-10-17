@@ -167,7 +167,7 @@ tools/build_local.sh v0.5.0
 | 小修：簽章失配 | 通過；不回傳致命錯誤、只警告一次、RAM 不變、三處處理器仍掛著 | `TestWidescreenMismatchWarning`，`workplace/local-pack/unit.log` |
 | 小修：陷阱暫存器寫回 | 通過；取消同目標延遲載入，來源使用舊值，其他目標載入照常提交 | `TestWidescreenRowLoadDelay`，`workplace/local-pack/unit.log` |
 | 全專案回歸 | 通過，容器退出碼 0；CPU、1150 筆 GTE、17 個 N=1 GPU 語料全部通過 | `workplace/local-pack/regression.log`、`regression-container-exit.log` |
-| CPU 熱路徑與既有建置腳本 | 相對 main 無差異 | `workplace/local-pack/unchanged-core-and-build.diff` |
+| CPU 熱路徑與既有建置腳本 | 相對本輪起始 `a16dfc8` 無差異 | `workplace/local-pack/unchanged-core-and-build.diff` |
 | 完整 M4 | 通過，容器退出碼 0；原生、HD2、HD2-PGXP 均完成 field 45784，摘要 `6c35c2701228722f`，記憶卡與原生畫面逐位元相同 | `workplace/local-pack/m4.log`、`m4-container-exit.log` |
 | 三平台包與 macOS 結構 | 完整腳本通過；雙弧、arm64 簽章、minos 11.0 與系統動態庫檢查通過 | `workplace/local-pack/build.log` |
 | local ZIP 與素材排除 | 三包通過 CRC、頂層目錄、設定、素材目錄、UTF-8、禁止副檔名與 512 KiB 排除；四包 SHA-256 通過 | `workplace/local-pack/packages.json`、`package-checksums.log`，`dist/v0.5.0-local/manifest.json` |
