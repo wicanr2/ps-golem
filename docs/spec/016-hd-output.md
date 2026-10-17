@@ -1,6 +1,6 @@
 # 016 HD 輸出
 
-狀態：`READY`（第 1、2 階段）；第 3、4 階段為 `DRAFT`
+狀態：`READY`（第 1、2、3 階段）；第 4 階段（寬螢幕）為 `DRAFT`
 
 ## 1. 為什麼
 
@@ -47,13 +47,49 @@ N 支援 1、2、4、8（Beetle 的 `upscale_shift` 0–3）。
 - `psgolem -filter none|xbr`，設定檔 `filter` 欄位。預設 `none`。
 - `psexe` 不套濾鏡（濾鏡只在 GPU 上跑，不參與觀測）。
 
-## 5. 第 3、4 階段（DRAFT，不得實作）
+## 5. 第 3 階段：次像素精度 PGXP（READY）
 
-- 次像素精度（PGXP 類）：Beetle `mednafen/pgxp/`。PGXP 要在 CPU 的載入與儲存旁追蹤高精度值，
-  會碰到 CPU 熱路徑；高精度值只能餵給影子 GPU。檔頭授權未核實（`002`）。
-- 寬螢幕 16:9：Beetle 的寬螢幕做法改 GTE 投影結果，GTE 結果會寫回 RAM，違反 §1 的決定性要求。
-  《月下》以 2D 為主，畫面外的物件遊戲本來就不畫。要做必須在 `apps/sotn` 找出不經 RAM 的攔截點，
-  目前沒有證據。現階段 16:9 視窗只做左右補黑。
+### 5.1 原理
+
+PS1 的 GTE 把 3D 頂點投影成整數螢幕座標（SXY，各 16 位元）後，遊戲把它寫進 RAM 組成繪圖命令，
+GPU 只看得到整數座標，所以多邊形在移動時會抖動。PGXP 在 GTE 投影時另外記下浮點座標，
+讓這個高精度值跟著 32 位元字一路搬運（GTE 暫存器 → CPU 暫存器 → RAM → GP0），
+最後在光柵化時用浮點座標取代整數座標。每個高精度值都附上它來源的 32 位元原值；
+到了 GPU 時原值與實際收到的字不同，就代表遊戲中途改過，退回整數座標。
+
+### 5.2 參照來源與授權
+
+- beetle-psx-libretro commit `e57860d82faa953dc0fc10f201fd583739bc2f7d` 的 `pgxp/`。
+  `pgxp_gte.c`、`pgxp_gpu.c` 與各 `.h` 檔頭為 GPL-2.0-or-later。
+  `pgxp_cpu.c`、`pgxp_mem.c`、`pgxp_value.c`、`pgxp_main.c` 沒有檔頭，原始出處 `iCatButler/pcsxr`
+  （commit `62467b86871aee3d70c7445f3cb79f0858ec566e`，`libpcsxcore/pgxp_*.c`）同樣沒有檔頭，
+  該 repo 的 `COPYING` 為 GPLv3。兩者都與本專案 GPL-3.0-or-later 相容（`002` §2）。
+- 光柵化端照 Beetle 軟體渲染器 `mednafen/psx/gpu_polygon.c` 的 `PGXP_LIT` 路徑與
+  `gpu.c` 的 `PGXP_WriteFIFO`／`PGXP_WriteCB`。
+
+### 5.3 範圍
+
+| 項目 | 規定 |
+|---|---|
+| 追蹤模式 | Beetle 的 `PGXP_MODE_MEMORY` 加 `PGXP_MODE_GTE`：GTE 的 RTPS／RTPT 產生浮點 SXY；`MFC2`、`MTC2`、`CFC2`、`CTC2`、`LWC2`、`SWC2`；CPU 的各種載入、儲存（`LB`／`LBU`／`LH`／`LHU`／`LW`／`LWL`／`LWR`、`SB`／`SH`／`SW`／`SWL`／`SWR`）與 `ADDU rd, rs, $zero` 這類搬移。`PGXP_MODE_CPU`（算術指令追蹤）不做 |
+| 高精度值 | 每個 32 位元字一份：x、y（float32）、有效旗標、來源原值。記憶體影子涵蓋主記憶體 2 MB、scratchpad 1 KB 與 GP0 埠 |
+| 送到 GPU | GP0 字不論來自 CPU 寫入 GP0 埠或 DMA2，都以來源位址查記憶體影子，連同字一起轉給影子 GPU |
+| 光柵化 | 影子 GPU 的多邊形頂點在高精度值有效、且原值與收到的字相同時，用浮點座標（加繪圖偏移）放大後光柵化；否則用整數座標。線段、矩形、sprite 不用。Beetle `gpu_polygon.c` 的 `psx_pgxp_2d_tol` 路徑（用多邊形畫的 2D 元素）要讀過並決定是否移植，決定與前後對照截圖寫進 §7 |
+| 不做 | 透視校正貼圖、頂點快取（`PGXP_VERTEX_CACHE`）、顏色與霧的高精度（`PGXP_GetColor`、`PGXP_GetFog`）、NCLIP 改寫 |
+| 程式位置 | 追蹤器放 `internal/pgxp`（不依賴 machine）；CPU 以選用介面呼叫。掛點只能放在載入、儲存、COP2 搬移指令與 GTE RTPS／RTPT 的處理裡，不得放進 `step`、`fastFetch`、`execute` 的分派或 `Machine.Step` |
+| 決定性 | 追蹤器只讀機器狀態，不寫回 CPU、RAM、GTE 或原生 GPU。GTE 掛點在原生計算之後、只讀暫存器；`003` 的 1150 筆 GTE 實機紀錄與原生 GPU 測試照常通過。原生 GPU 不看高精度值 |
+| 啟用條件 | 只在影子 GPU 存在時接上（`-hd` 為 2 以上）；`Machine.Clone` 不複製追蹤器 |
+| CLI | `psexe -pgxp`、`psgolem -pgxp`、設定檔 `pgxp` 欄位（布林，預設 false）。沒有 `-hd` 時給 `-pgxp` 印錯誤結束 |
+| 效能 | 不開 PGXP 時，與現行版本的差異落在同條件重跑的雜訊範圍內（附雜訊範圍）；開 PGXP 時降幅在 25% 以內。量測固定 P 核心、交錯 A/B、取 CPU 時間最小值（`012` §3） |
+
+## 5A. 第 4 階段：寬螢幕 16:9（DRAFT，不得實作）
+
+- Beetle 的寬螢幕改 GTE 投影比例，只對 3D 有效，2D 圖素會被拉寬；GTE 結果寫回 RAM，違反 §1。
+- 《月下》以 2D 為主。第三方 PC 重編譯版的 16:9 要改遊戲的繪圖與剔除邏輯，
+  才能把原本 4:3 以外的敵人與物件畫出來；部分背景只做了 4:3 的範圍（來源見 `WORKLOG.md` 2026-10-17）。
+  這表示寬螢幕必定改變遊戲狀態，不能是 GPU 後端選項。
+- 要做必須另立 `apps/sotn` 的遊戲修改規格：找出鏡頭、剔除邊界與背景圖塊範圍的位址
+  （`Xeeynamo/sotn-decomp` 可查位址當證據，`002` §3），並定義與決定性重播的關係。現階段 16:9 視窗只做左右補黑。
 
 ## 6. 驗收
 
@@ -65,6 +101,11 @@ N 支援 1、2、4、8（Beetle 的 `upscale_shift` 0–3）。
 | 濾鏡 | `psgolem -filter xbr` 在 xvfb 下截圖，與 `none` 對照 |
 | 效能 | §3 效能列，附量測方式與主機負載 |
 | 交叉編譯 | `tools/build_dist.sh` 三平台照常通過（Kage shader 不需 cgo） |
+| PGXP 決定性 | `TestM4FirstSave` 以 `-hd 2 -pgxp` 重播：摘要 `6c35c2701228722f`、記憶卡、原生畫面與不開 HD 相同 |
+| PGXP 不開時 | §6 轉送自我檢查照常逐位元相同 |
+| PGXP 單元測試 | 不用原版素材：手寫 GTE 命令序列，確認 RTPS 的浮點 SXY 經 `SWC2` → `LW` → `SW` 到 GP0 埠後，影子 GPU 收到的頂點帶小數；中途改寫該字時退回整數 |
+| PGXP 畫面 | 先在 M4 重播全程記錄每個 field 的 RTPS／RTPT 次數與命中率（有效頂點數／多邊形頂點數，0 也要報）。有 GTE 多邊形的場景各存 `-hd 4` 與 `-hd 4 -pgxp` 連續數張截圖；M4 路線上沒有走高精度路徑的多邊形時，回報後停在這一項，不另找繞道 |
+| PGXP 效能 | §5.3 效能列 |
 
 ## 7. 驗收結果
 

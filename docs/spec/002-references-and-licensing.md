@@ -24,7 +24,10 @@ GPL-3.0-or-later（全文見 `LICENSE`）。
 | `ebitengine/oto`、`ebitengine/purego` | Apache-2.0 | GitHub license API（2026-10-15） | Ebiten 音訊的間接相依 |
 | `JaCzekanski/ps1-tests` | MIT | GitHub license API | 測試 ROM 語料，不進版控 |
 
-Beetle PSX 的 `mednafen/psx/pgxp/` 是 PGXP 實作，檔頭授權還沒核實，參照前先讀檔頭。
+Beetle PSX 的 PGXP 實作在 `pgxp/`（2026-10-17 於 commit `e57860d` 核實）。`pgxp_gte.c`、`pgxp_gpu.c` 與各 `.h`
+檔頭為 GPL-2.0-or-later；`pgxp_cpu.c`、`pgxp_mem.c`、`pgxp_value.c`、`pgxp_main.c` 沒有檔頭，
+原始出處 `iCatButler/pcsxr`（commit `62467b8`）同樣沒有檔頭，該 repo `COPYING` 為 GPLv3。
+兩種授權都與 GPL-3.0-or-later 相容，可移植（`016` §5.2）。
 
 ## 3. 只能讀、不能移植程式碼的來源
 
