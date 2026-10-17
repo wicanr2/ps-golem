@@ -229,3 +229,63 @@
 - 《月下》遊玩繪圖區為 (0,20)–(255,226) 與 (256,20)–(511,226)（`E3005000`、`E40388FF`），顯示起點為 (0,0) 或 (256,0)。
   原 §4 要求「顯示起點與繪圖區左上角相同」才合成側邊，遊玩時永遠不成立，輸出一直補黑。
 - 改為：繪圖區 x1 與寬度對上顯示、y1 落在顯示範圍內即可合成，側邊畫布依 `y1 − 顯示起點 y` 垂直對齊；多塊符合時取最近一次畫進的。
+
+## 2026-10-17：依 §4 勘誤重做側邊合成與驗收
+
+- 從乾淨的 `widescreen`、`b3349cf` 接手。已讀 AGENTS、規格索引、001、017 與最新紀錄；
+  路由載入 retro remake 技能、規格閘門、驗收、文件職責、版號與交付規則。
+  依本輪明確指示沿用本機驗收版號 `v0.4.0-ws` 及既有打包腳本，不發布。
+- 合成改為 x1 與寬度匹配、y1 落在顯示範圍內，側邊依相對 y 偏移對齊，超出側邊高度的列補黑。
+  以圖元實際寫入像素的順序選取最近一塊，中央像素亦計入；零尺寸、被裁掉的圖元與狀態切換不更新順序。
+  E3 清除契約、三處遊戲陷阱、CPU 與 Machine.Step 均未改動。
+- 單元測試與 race 檢查通過。新增倍率 1、2、4、8 的 y 偏移、非零顯示 y、水平雙緩衝、邊界補黑及多塊選區。
+  收據為 `workplace/ws/unit-compose.log`、`race-compose.log`；核心差異收據 `core-compose.diff` 為空。
+- 截圖測試在目標前兩個 field 透過既有 GP0 Trace 只讀解碼邊界與 E3／E4，另記顯示起點。
+  不把資料字誤認為命令，也不更動機器狀態。收據預定為 `draw-area-padded.log`、`draw-area-wide.log`。
+- 舊封包與 stage 移到 `workplace/ws/pre-compose-dist-v0.4.0-ws/`、`pre-compose-stage-v0.4.0-ws/`；
+  舊截圖與封包索引另存 `pre-compose-` 副本。完整 M4、N=1 轉送、截圖、全專案回歸與三平台重建執行中。
+- 工具環境紀錄：首次列映像遭 sandbox 拒絕，改用既有主機 Docker 存取權限確認；
+  首次讀取用到不存在的無 tag 映像，Docker 嘗試拉取但遭拒，沒有新增映像。
+  此後均沿用 `psgolem-go-ebiten:1.24-r1` 等既有映像。`tools/go.sh` 同樣改用主機 Docker 權限執行。
+- 實作提交為 `b1bfe2c`。首次 Git 索引寫入被 sandbox 視為唯讀，改用已授權的主機權限提交；
+  作者 `wicanr2@gmail.com`，繁體中文訊息與 Codex 共同作者，沒有 push、merge 或改寫歷史。
+- 回歸首遍掛到 `workplace/ps1tests` 解壓目錄，因缺 `tests.zip` 跳過語料。
+  改掛既有 `testdata/ps1-tests` 後，同映像、同測試命令乾淨重跑全專案通過，
+  含 CPU、1150 筆 GTE 與 17 個 N=1 GPU 語料。收據為 `regression-corpus-compose.log`。
+  外層工具一度回報 143，但後續完整日誌各套件均通過，Docker 的 die 事件明列 exitCode=0；
+  以 `regression-container-events-compose.jsonl` 為實際容器結束證據，不列為產品失敗。
+- N=1 開機至序章 12000 個 field 的完整 VRAM 逐位元相同，收據為 `m4-compose.log`。
+- 三平台重建、macOS 結構四道檢查、三包檔案／SHA-256／架構／版號／文件與素材排除通過，
+  收據為 `build-dist-compose.log`、`package-validation-compose.log`、`packages.json`。
+  Wine 重跑仍在啟動前拒絕 `/tmp` 擁有權，未改產品；收據為 `windows-psexe.log`、`package-smoke-windows-compose.log`。
+- 解包腳本首次使用既有 Python 不支援的 `extractall(filter=...)`，Linux 啟動檢查因此找不到執行檔。
+  先前封包安全路徑檢查已通過；改用相容解包方式，等解包完成後用同一映像乾淨重跑啟動檢查。
+- 樓梯 field 15000 的 HD2 截圖已目視：王座、樓梯、德古拉與 Richter 位置一致，右側牆面與地板延伸，
+  x=256 接縫未見錯位。Go 像素核對中央差異為 0，右側非黑像素 33764。
+  左側沒有房間圖塊，實際為平坦暗紫底色，並非全黑，不宣稱全黑。
+  截圖前兩個 field 只見水平雙緩衝 E3 切換，沒有同畫面切回遊玩區。
+  收據為 `visual-stairs-compose.json`、`draw-area-wide.log`；工具為 `imagecheck-compose.go`。
+- Linux 本輪封包啟動檢查通過：自動 HD1、不印摘要、HD2／xBR 1280×720、設定重讀畫面相同，
+  明確關閉後 960×720。收據為 `package-smoke-linux-compose.log`、`package-smoke-linux.json`。
+- 兩場景的補黑與寬螢幕截圖重播均完成，測試通過僅代表成功擷取，不代表畫面驗收通過。
+  入口 field 34500 目視中央巨狼、樹形實體、燭台、窗框與布幕位置一致，但延伸區全黑。
+  Go 核對兩圖完全相同，中央差異 0、左右非黑像素均為 0，SHA-256 均為
+  `740966054f38bb8751b0120952a44d4e0fc344310f73d3ccfcfb279b2f0a367d`。
+  收據為 `captures-wide-compose.log`、`captures-padded-compose.log`、`visual-entrance-compose.json`。
+- 新停止原因已由命令邊界收據證實：field 34498 的 E3 從遊玩區 `(0,20)` 切至 `(512,448)` 再回來，
+  另三次在 `(0,20)` 與 `(0,0)` 間往返。field 34499 的遊玩區為 `(256,20)`，往返情形相同。
+  全範圍區 E4 為 `E4FFFFFF`；這些命令用途未知，不猜成 HUD。
+  影子接收相同 GP0 命令，既有 E3 契約會在切回後首個圖元清空側邊。
+  此規則造成入口側邊消失標為強證據，未另外傾印清除前後的影子內部畫布。
+  索引為 `draw-area-wide.log`、`draw-area-padded.log`，不是沿用舊收據或把資料字當命令。
+- 依使用者指定的 E3 停止條件停工，沒有修改清除規則。
+  唯一仍執行的本輪 M4 容器經 inspect 確認掛載本工作樹、原版唯讀且 AutoRemove=true 後停止，
+  外層以 143 結束。原生最後紀錄 field 30000，未到摘要比較點；HD2、HD2-PGXP 尚未執行。
+  不宣稱完整 M4 通過，也沒有測得摘要改變。這是主動取消，不是關閉模式測試失敗。
+- §7 與規格索引已更新為現況；效能未量測。封包仍是指定的本機驗收包，沒有發布。
+  前端動態相依無缺件；psexe 為預期的靜態執行檔，`ldd` 的非動態訊息另存收據。
+  工具、輸入、來源與截圖雜湊為 `tools-compose.log`、`inputs-compose.sha256`、`source-compose.sha256`、`screenshots-compose.sha256`。
+- 結論前重新核對知識路由，仍命中本輪實作、驗收與文件職責，沒有新增決策或擴大範圍。
+  收尾沒有本輪工具映像的殘留容器、root-owned 檔案或異常 `.md` 目錄，抽查修改與產物均為 `1000:1000`。
+  收據為 `containers-compose.log`、`root-files-compose.log`、`ownership-compose.log`。
+  本輪沒有建立／刪除映像、prune、刪除其他容器、寫入其他工作樹、push 或發布。
