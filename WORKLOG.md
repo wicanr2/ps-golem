@@ -298,7 +298,8 @@
 
 ## 2026-10-17：依顯示世代清除側邊與完整驗收
 
-本輪目前狀態表，以 HEAD `45cc955` 與本輪修改為準：
+本輪由 HEAD `45cc955` 接手。唯一現況表為 `docs/spec/017-sotn-widescreen.md` §7。
+下表保留啟動長測前的檢查點，後續結果依本節時間序記錄：
 
 | 項目 | 狀態 | 本輪證據 |
 |---|---|---|
@@ -318,3 +319,65 @@
   原透明貼圖來源曾被測試圖元寫入，另有舊測試仍要求 E3 與空圖元清除。
   改用 x=400、未寫入的 15 位元貼圖來源，並按新世代契約更新舊斷言後通過。
   兩輪失敗後已重查路由與 §4，沒有放寬產品契約。
+- 實作提交 `687f592`，作者 `wicanr2@gmail.com`，繁體中文訊息與 Codex 共同作者。
+  目前只修改影子 GPU，`core-generation.diff` 為空；`hot-path-generation.json` 確認
+  CPU 熱路徑與 Machine.Step 和 main 相同，execute 僅排除既有 BREAK 冷路徑差異。
+- N=1 轉送已通過 12000 個 field 的完整 VRAM 逐位元比較；完整 M4 持續執行。
+  側邊與簽章／陷阱資料競爭檢查通過，收據為 `workplace/ws/race-generation.log`。
+- 三平台乾淨重建與 macOS 四道結構檢查通過，建置命令 exitCode=0，
+  收據為 `workplace/ws/build-dist-generation.log`。
+  首次封包檢查啟動過早，讀到尚未寫完的 ZIP，回報 BadZipFile。
+  該次是驗證程序的先後順序錯誤，收據另存 `package-validation-generation-premature.log`；
+  等建置命令成功結束後，以同一映像與腳本乾淨重跑，不列為產品缺陷。
+- 全專案回歸通過，外層命令 exitCode=0。包含 CPU 語料、1150 筆 GTE 與全部 17 個 N=1 GPU 語料；
+  收據為 `workplace/ws/regression-generation.log`。缺原版或長測條件的截圖／M4 測試由專用命令另跑。
+- 三包檔案清單、SHA-256、版號、平台架構、操作文件與素材排除檢查乾淨重跑通過，
+  收據為 `package-validation-generation.log`、`packages.json`。
+  本輪重建後的 Linux、Windows 封包解到乾淨目錄，舊包、Linux 設定與記憶卡另存 `pre-generation-*`。
+- Windows 啟動檢查仍在程式啟動前被 Wine 拒絕，訊息為 `/tmp` 不屬於目前使用者，
+  無法建立設定目錄。收據為 `windows-psexe.log`、`package-smoke-windows-generation.log`。
+  按使用者指示只記錄原因，沒有為此修改產品程式。
+- Linux 驗證環境沒有 Python，原啟動腳本在啟動產品前失敗，收據另存
+  `package-smoke-linux-generation-python-missing.log`。改用同一映像已有的 bash、od、cmp、grep、ldd，
+  驗證相同的版號、尺寸、設定重讀、明確關閉與摘要抑制，不新建映像、不修改產品程式。
+- Linux 本輪封包啟動通過：動態相依無缺庫、自動 HD1 342×240、摘要抑制、HD2／xBR 1280×720、
+  設定重讀畫面逐位元相同、明確關閉後 960×720。收據為 `package-smoke-linux-generation.log`、
+  `package-smoke-linux.json`、`linux-ldd-generation.log`；實際命令在 `commands-generation.txt`。
+- 原生 M4 已由正常按鍵路徑完成 field 45784、26150980006 個週期，摘要 `6c35c2701228722f`，
+  記憶卡目錄檢查通過；記憶卡 SHA-256 `5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36`，
+  原生畫面 SHA-256 `02b9bc2db161fa5675d867aeec057ccebd5cb9f6912db0fe46ed159d78c8ddd7`。
+  收據為 `m4-generation.log`；HD2 已開始，尚不宣稱完整 TestM4FirstSave 通過。
+- 王座廳 field 15000 本輪 HD2 兩圖已目視與像素核對：中央 512×480 差異 0，
+  德古拉與 Richter 位置一致；右側牆、柱基與地板接續，x=256 未見錯位，右側非黑像素 33764。
+  左側非黑像素為 0，符合 scrollX=0、房間外沒有圖塊的 §3.5 限制。
+  相較上一輪左側暗紫底色，本輪已清成黑色；右側保留已接受的合成。
+  收據為 `stairs-hd2-padded.png`、`stairs-hd2-wide.png`、`visual-stairs-generation.json`，
+  像素工具來源為 `imagecheck-generation.go.txt`，在容器 /tmp 複製成 Go 檔執行。
+- M4 外層工具回報 143，但 Docker inspect 確認原容器仍為 running、OOMKilled=false，
+  也沒有 die 事件，HD2 日誌已繼續到 field 10000。屬工具連線中斷，不是產品測試失敗。
+  保留原容器與測試，改以 docker wait 追蹤真實退出碼，沒有取消或重跑 M4。
+  當時收據為 `container-state-after-tool143-generation.log`、`m4-container-events-generation.jsonl`。
+- 兩場景的補黑與寬螢幕正常按鍵重播均完成，截圖容器真實退出碼為 0，已自動刪除。
+  完整日誌另以 docker logs 接續保存，再設為 `captures-generation.log`；原工具日誌另存 `captures-tool-generation.log`。
+  收據為 `captures-container-exit-generation.log`、`captures-container-events-generation.jsonl`。
+- 城之入口 field 34500 本輪 HD2 兩圖已目視與像素核對：中央 512×480 差異 0，
+  巨狼與中央樹形實體位置、大小一致；x=0、x=256 的牆面、窗框與地板連續，
+  左側樹形實體的身體與根部跨接縫正常，未見延伸區垃圾。
+  左右非黑像素為 35604、31205，入口側邊已保留；與上一輪全黑結果的對照由 `pre-generation-*` 保存。
+  收據為 `entrance-hd2-padded.png`、`entrance-hd2-wide.png`、`visual-entrance-generation.json`。
+  四張 PNG 雜湊為 `screenshots-generation.sha256`，GPU 命令邊界為本輪 `draw-area-wide.log`、`draw-area-padded.log`。
+- HD2 M4 已完成 field 45784，完整摘要與原生相同，包含 `6c35c2701228722f`；
+  記憶卡與原生畫面逐位元相同，兩份 SHA-256 也與本輪原生結果一致。
+  HD2-PGXP 已開始，尚不宣稱整個 TestM4FirstSave 通過。原容器完整日誌為 `m4-container-generation.log`。
+- 完整 M4 與 N=1 專用命令已完成，原容器真實退出碼為 0，已自動刪除。
+  原生、HD2、HD2-PGXP 三條正常按鍵路徑均完成 field 45784，完整摘要相同，尾碼均為 `6c35c2701228722f`，
+  三份記憶卡與原生畫面逐位元相同，SHA-256 均與前述原生結果一致。
+  整個 TestM4FirstSave 與兩個 HD 子測試均通過。收據為 `m4-generation.log`、`m4-container-generation.log`、
+  `m4-container-exit-generation.log`、`m4-container-events-generation.jsonl`；原工具日誌另存 `m4-tool-generation.log`。
+- 結論前重核本輪知識路由，仍命中畫面對拍、驗收與文件職責，沒有新增決策或擴大範圍。
+  017 §7 與規格索引改為目前驗收結果；失敗、工具連線中斷與環境原因只留本節。
+  效能未量測，未判定 10% 門檻。Wine 啟動受環境限制，macOS 未做真機驗收。
+  本機驗收包仍在 `dist/v0.4.0-ws/`，沒有發布。
+- 總驗收索引為 `verification-generation.json`，產生工具為 `write_receipt_generation.py`，重跑命令為 `commands-generation.txt`。
+  收尾核對入口為 `root-files-generation.log`、`ownership-generation.log`、`containers-generation.log`。
+  本輪只使用既有映像與 --rm 容器，沒有新增／刪除映像、prune、操作其他容器、寫入其他工作樹、push、merge 或改寫歷史。

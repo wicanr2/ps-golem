@@ -1,6 +1,6 @@
 # 017 《月下》寬螢幕 16:9
 
-狀態：`READY`（合成勘誤已實作；入口側邊受 E3 清除規則阻塞，見 §7）
+狀態：`READY`（合成與顯示世代清除已實作，指定驗收完成；平台限制見 §7）
 
 ## 1. 為什麼要改遊戲
 
@@ -118,45 +118,43 @@ scrollX 小於 48 時 startTx 為負。原程式每列只在列首算一次圖�
 
 ## 7. 驗收結果
 
-目前狀態表（2026-10-17）：§4 勘誤的合成已實作；王座廳有背景延伸，入口仍全黑。
-入口同一 field 的 E3 起點往返觸發使用者指定的停止條件，清除規則保持原樣。
+目前狀態表（2026-10-17）：§4 的合成與顯示世代清除已實作，§5 指定驗收完成。
 效能未量測。實作入口為 `apps/sotn/widescreen.go`、`render/hd/widescreen.go`。
 
 | 項目 | 目前結果 | 證據 |
 |---|---|---|
-| 簽章、解除與 BREAK | 本輪單元測試通過，九字與三處陷阱保留 | `workplace/ws/unit-compose.log` |
-| 側邊合成 | y1 偏移、水平雙緩衝、邊界補黑、多塊選最近實際繪製區通過；涵蓋倍率 1、2、4、8 | `render/hd/widescreen_test.go`、`workplace/ws/unit-compose.log` |
-| 核心與遊戲改字 | 相對 b3349cf 沒有修改 CPU、machine 或遊戲改字 | `workplace/ws/core-compose.diff` |
-| 完整 M4 | 未完成；PSGOLEM_LONG=1，原生最後進度 field 30000，因 E3 停止條件主動取消，沒有本輪摘要收據；HD2、HD2-PGXP 尚未執行 | `workplace/ws/m4-compose.log` |
-| N=1 遊戲轉送 | 12000 個 field 的完整 VRAM 逐位元相同 | `workplace/ws/m4-compose.log` |
-| 全專案回歸 | 通過，包含 CPU、1150 筆 GTE、17 個 N=1 GPU 語料；容器 exitCode=0 | `workplace/ws/regression-corpus-compose.log`、`regression-container-events-compose.jsonl` |
-| 王座廳樓梯 field 15000 | 已取得 HD2 兩圖；中央零差異、右側牆面與地板延伸，未見接縫錯位；本點未證明延伸區實體 | `workplace/ws/stairs-hd2-padded.png`、`stairs-hd2-wide.png`、`visual-stairs-compose.json` |
-| 城之入口 field 34500 | 未通過；HD2 兩圖完全相同，左右延伸區非黑像素均為 0，未取得背景與實體延伸證據 | `workplace/ws/entrance-hd2-padded.png`、`entrance-hd2-wide.png`、`visual-entrance-compose.json` |
-| E3 清除規則 | 保留；入口同 field 多次切到其他起點再切回遊玩區，切回後首個圖元會清空遊玩側邊 | `workplace/ws/draw-area-wide.log`、`draw-area-padded.log`；`render/hd/gp0.go`、`widescreen.go` |
+| 簽章、解除與 BREAK | 通過，九字與三處陷阱保留 | `workplace/ws/unit-generation.log` |
+| 側邊合成 | y1 偏移、水平雙緩衝、邊界補黑、多塊選最近實際繪製區通過；涵蓋倍率 1、2、4、8 | `render/hd/widescreen_test.go`、`workplace/ws/unit-generation.log` |
+| 顯示世代清除與填色 | 通過；同世代 E3 往返保留，新世代各區首次實際畫進才清；填色與遮罩依 §4 | `workplace/ws/unit-generation.log` |
+| 核心與遊戲改字 | 相對 45cc955 無修改；CPU 熱路徑與 Machine.Step 和 main 相同，execute 僅有既有 BREAK 冷路徑差異 | `workplace/ws/core-generation.diff`、`hot-path-generation.json` |
+| 完整 M4 | PSGOLEM_LONG=1，原生、HD2、HD2-PGXP 均完成 field 45784，完整摘要、記憶卡與原生畫面相同，摘要為 6c35c2701228722f；容器實際退出碼 0 | `workplace/ws/m4-generation.log`、`m4-container-exit-generation.log`、`m4-container-events-generation.jsonl` |
+| N=1 遊戲轉送 | 12000 個 field 的完整 VRAM 逐位元相同 | `workplace/ws/m4-generation.log` |
+| 全專案回歸 | 通過，含 CPU、1150 筆 GTE 與全部 17 個 N=1 GPU 語料 | `workplace/ws/regression-generation.log` |
+| 王座廳樓梯 field 15000 | HD2 兩圖中央像素零差異；左側房間外全黑，右側背景接續，人物位置一致 | `workplace/ws/stairs-hd2-padded.png`、`stairs-hd2-wide.png`、`visual-stairs-generation.json` |
+| 城之入口 field 34500 | HD2 兩圖中央像素零差異；左右背景接續、左側樹形實體延伸正常，中央實體位置一致 | `workplace/ws/entrance-hd2-padded.png`、`entrance-hd2-wide.png`、`visual-entrance-generation.json` |
 | 效能 | 未量測，不判定 10% 門檻 | 使用者決定 |
-| 資料競爭 | 側邊合成與簽章／陷阱測試通過 | `workplace/ws/race-compose.log` |
-| 三平台建置與封包 | 本機驗收版 v0.4.0-ws 通過；macOS 結構、三包內容／雜湊／架構／版號與素材排除通過，不發布 | `workplace/ws/build-dist-compose.log`、`package-validation-compose.log`、`packages.json` |
-| Linux 啟動 | 通過；自動 HD1、摘要抑制、HD2／xBR 1280×720、設定重讀相同、明確關閉後 960×720 | `workplace/ws/package-smoke-linux-compose.log`、`package-smoke-linux.json` |
-| Windows 啟動 | Wine 在啟動前拒絕 /tmp 擁有權，未取得啟動收據 | `workplace/ws/windows-psexe.log`、`package-smoke-windows-compose.log` |
+| 資料競爭 | 側邊合成、清除與簽章／陷阱測試通過 | `workplace/ws/race-generation.log` |
+| 三平台建置與封包 | v0.4.0-ws 通過，含 macOS 四道結構、封包內容、雜湊、架構、版號與素材排除檢查；未發布 | `workplace/ws/build-dist-generation.log`、`package-validation-generation.log`、`packages.json` |
+| Linux 啟動 | 通過；無缺庫，自動 HD1 342×240、摘要抑制、HD2／xBR 1280×720、設定重讀畫面相同，明確關閉後 960×720 | `workplace/ws/package-smoke-linux-generation.log`、`package-smoke-linux.json` |
+| Windows 啟動 | 未取得啟動收據；Wine 因 /tmp 擁有權拒絕建立設定目錄 | `workplace/ws/windows-psexe.log`、`package-smoke-windows-generation.log` |
 
-王座廳 field 15000：中央 512×480 像素零差異。王座、樓梯、德古拉與 Richter 位置一致，
-右側牆面與地板延伸，x=256 接縫未見錯位。左側沒有房間圖塊，實際為平坦暗紫底色，並非全黑。
-原生 x=0、x=256 對應 PNG x=86、x=598；側邊第 0 列對齊 PNG y=40。
-右側有 33764 個非黑像素。該點前兩個 field 的 E3 收據只見水平雙緩衝切換，沒有同畫面切回遊玩區。
-證據為 `workplace/ws/stairs-hd2-padded.png`、`stairs-hd2-wide.png`、`visual-stairs-compose.json`、`draw-area-wide.log`。
+王座廳 field 15000：原生 x=0、x=256 對應 PNG x=86、x=598，側邊第 0 列對齊 PNG y=40。
+中央 512×480 像素零差異，德古拉位於王座階上，Richter 位於樓梯右下，位置一致。
+scrollX 為 0，x=0 左側是房間外，延伸區全黑，屬 §3.5 已知限制。
+x=256 右側的牆面、柱基與地板接續，未見錯位；本次視野內背景延伸到右緣。
+右延伸區非黑像素為 33764，左側為 0。本點未證明玩法實體在延伸區的顯示。
 
-城之入口 field 34500：中央的巨狼、樹形實體、燭台、窗框與布幕位置一致；因側邊全黑，
-無法判定背景跨 x=0、x=256 的連續性，亦未證明實體在延伸區正常出現。
-兩圖 SHA-256 均為 `740966054f38bb8751b0120952a44d4e0fc344310f73d3ccfcfb279b2f0a367d`。
-已證實的 GP0 命令邊界收據：field 34498 從遊玩區 `(0,20)` 切至 `(512,448)` 再回來，
-另三次在 `(0,20)` 與 `(0,0)` 間往返；field 34499 的遊玩區則為 `(256,20)`，往返情形相同。
-全範圍區的 E4 為 `E4FFFFFF`。這些命令的用途尚未確認，不指定為 HUD。
-影子接收相同 GP0 命令；依現行 E3 契約，每次切回後的首個圖元會清空該區側邊。
-此規則與入口背景側邊消失有強證據關聯；未另外傾印清除前後的影子內部畫布。
+城之入口 field 34500：中央 512×480 像素零差異，巨狼與中央樹形實體的位置、大小一致。
+x=0、x=256 的牆面、窗框與地板接續，未見圖塊錯位或延伸區垃圾；左側樹形實體的身體與根部跨接縫正常。
+左右延伸區非黑像素分別為 35604、31205。兩場景均由空白記憶卡與同一按鍵腳本分別重播，
+寬螢幕版在 field 1205 簽章相符並套用；畫面比較不宣稱修改模式與原版機器狀態相同。
 
-本輪工具、輸入、來源與四張截圖雜湊見 `workplace/ws/tools-compose.log`、`inputs-compose.sha256`、
-`source-compose.sha256`、`screenshots-compose.sha256`。Docker 與檔案衛生收據為
-`containers-compose.log`、`root-files-compose.log`、`ownership-compose.log`，皆位於 `workplace/ws/`。
+重跑命令為 `workplace/ws/commands-generation.txt`；工具、輸入與實作雜湊見
+`tools-generation.log`、`images-generation.log`、`inputs-generation.sha256`、`source-generation.sha256`，皆位於 `workplace/ws/`。
+四張截圖雜湊為 `workplace/ws/screenshots-generation.sha256`，完整擷取日誌為 `captures-generation.log`；
+容器實際退出碼 0 與自動刪除事件見 `captures-container-exit-generation.log`、`captures-container-events-generation.jsonl`。
+總驗收索引為 `workplace/ws/verification-generation.json`，含實作與文件提交、輸入、工具、封包大小與雜湊。
+檔案與 Docker 收尾核對見 `root-files-generation.log`、`ownership-generation.log`、`containers-generation.log`，皆位於 `workplace/ws/`。
 
 玩家操作與限制見 `docs/play.md`。封包輸出為指定的 `dist/v0.4.0-ws/`，僅供本機驗收。
 原版素材、截圖、記憶卡、封包與驗證輸出均不加入 Git。
