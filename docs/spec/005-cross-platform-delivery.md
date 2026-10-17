@@ -168,14 +168,21 @@ tools/build_local.sh v0.5.0
 | 小修：陷阱暫存器寫回 | 通過；取消同目標延遲載入，來源使用舊值，其他目標載入照常提交 | `TestWidescreenRowLoadDelay`，`workplace/local-pack/unit.log` |
 | 全專案回歸 | 通過，容器退出碼 0；CPU、1150 筆 GTE、17 個 N=1 GPU 語料全部通過 | `workplace/local-pack/regression.log`、`regression-container-exit.log` |
 | CPU 熱路徑與既有建置腳本 | 相對 main 無差異 | `workplace/local-pack/unchanged-core-and-build.diff` |
-| 完整 M4 | 原生完成 field 45784，摘要 `6c35c2701228722f`，記憶卡檢查通過；HD2、HD2-PGXP 尚待完成 | `workplace/local-pack/m4.log` |
+| 完整 M4 | 通過，容器退出碼 0；原生、HD2、HD2-PGXP 均完成 field 45784，摘要 `6c35c2701228722f`，記憶卡與原生畫面逐位元相同 | `workplace/local-pack/m4.log`、`m4-container-exit.log` |
 | 三平台包與 macOS 結構 | 完整腳本通過；雙弧、arm64 簽章、minos 11.0 與系統動態庫檢查通過 | `workplace/local-pack/build.log` |
 | local ZIP 與素材排除 | 三包通過 CRC、頂層目錄、設定、素材目錄、UTF-8、禁止副檔名與 512 KiB 排除；四包 SHA-256 通過 | `workplace/local-pack/packages.json`、`package-checksums.log`，`dist/v0.5.0-local/manifest.json` |
-| AppImage 啟動 | 執行中，由完成的 local ZIP 解包 | `workplace/local-pack/linux-smoke.log` |
+| AppImage 啟動 | 通過，容器退出碼 0；無 Go、無缺庫，無 BIOS/cue 參數，兩次 2000 Update 畫面逐位元相同；設定保留四個畫面選項，路徑寫回相對值 | `workplace/local-pack/linux-smoke.log`、`linux-container-exit.log`、`settings-first.json`、`first.png`、`second.png` |
+| AppImage 內部內容 | 通過，實際解出執行檔逐位元相同，無素材與 512 KiB 檔案 | `workplace/local-pack/linux-smoke.log`，`tools/local_pack.py check-image` |
 | Windows 啟動 | 依使用者決定延後，只驗 ZIP 內容 | 本輪範圍 |
 | macOS 實機、效能 | 未驗實機；不量測效能 | 本輪範圍 |
+| 收尾 | 無 root-owned 檔案、異常 .md 目錄或本工作樹殘留容器；未推送或發布 | `workplace/local-pack/root-files.log`、`ownership-final.log`、`containers-final.log` |
 
 本輪證據入口為 `workplace/local-pack/`，過程見 `WORKLOG.md` 的本機完整版紀錄。
+總驗收索引為 `workplace/local-pack/verification.json`，彙整程式為同目錄的 `write-receipt.py`。
+完整交付清單為 `dist-files.txt`，含本機包及沿用 build_dist 產生的三個基礎包。
+輸入、來源、映像與截圖收據為 `inputs.sha256`、`source.sha256`、`images.json`、`screenshots.json`。
+M4 外層連線曾回傳 143，原容器持續執行並通過；`m4.log` 由同一容器的完整日誌保存，
+原工具輸出另存 `m4-tool.log`，狀態核對見 `m4-after-tool143.json`。沒有取消或重跑。
 Linux 啟動與 AppImage payload 重跑入口為 `PSGOLEM_ORIG=~/cht/castlevinia_x tools/verify_local.sh v0.5.0`。
 此腳本由 local ZIP 解包，唯讀掛載指定三份素材，使用既有 `psgolem-wine-verify:noble-r1`；
 不執行 Windows 程式。每次驗收需新的 `workplace/local-pack/smoke/`，已有目錄即停止。

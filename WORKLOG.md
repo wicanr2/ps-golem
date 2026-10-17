@@ -419,3 +419,28 @@
   ZIP 的 CRC、頂層目錄、預設設定、空素材目錄、UTF-8、禁止副檔名與 512 KiB 排除通過。
   建置日誌 `build.log`、逐項清單 `packages.json`，四包雜湊與擁有權另見 `package-checksums.log`、`package-ownership.log`。
   Linux 正由完成的 ZIP 解包做 AppImage 啟動驗收，原版三份檔案均唯讀掛載。
+- Linux AppImage 驗收通過，無 Go 的 Ubuntu 24.04 既有映像以原版唯讀掛載啟動，未提供 BIOS/cue 參數。
+  兩次 2000 Update 畫面及設定逐位元相同，設定寫回 `bios/SCPH5500.BIN`、`disc/sotn.cue`，
+  HD2、PGXP、xBR 與寬螢幕選項均保留；記憶卡路徑仍是使用者設定目錄。
+  實際 AppImage 內容與建置來源執行檔逐位元相同，素材排除通過。
+  收據 `linux-smoke.log`、`linux-ldd.log`、`linux-container.json`、`linux-container-exit.log`、`settings-first.json`；
+  原生工具命令及驗收容器退出碼均為 0。第一次畫面已目視確認是遊戲標題畫面，截圖不入版控。
+- 封包與文件提交 `a6a9195`。目前只剩指定 M4 的 HD2 與 HD2-PGXP 子測試，原容器持續執行，沒有重啟。
+- HD2 M4 完成 field 45784，完整摘要、記憶卡與原生畫面均與原生逐位元相同，摘要 `6c35c2701228722f`。
+  HD2-PGXP 已開始，尚不宣稱整個 TestM4FirstSave 通過；日誌仍為 `workplace/local-pack/m4.log`。
+- 外層 M4 工具連線回傳 143，Docker 核對原容器仍為 running、OOMKilled=false、AutoRemove=true。
+  這是工具連線中斷，尚非測試退出；沒有取消或重跑。以 `docker logs --follow` 接續保存同一容器完整日誌到
+  `workplace/local-pack/m4-container.log`，既有 `docker wait` 持續追蹤實際退出碼。
+  當時狀態收據為 `m4-after-tool143.json`，不把 143 寫成產品測試失敗。
+- 完整 TestM4FirstSave 與 HD2、HD2-PGXP 子測試均通過，原容器實際退出碼 0，已自動刪除。
+  三模式都完成 field 45784、26150980006 個週期，完整摘要一致，尾碼 `6c35c2701228722f`；
+  記憶卡與原生畫面逐位元相同，SHA-256 與前述原生值一致。
+  正式日誌 `m4.log` 由同一容器的完整 `m4-container.log` 保存；原工具輸出另存 `m4-tool.log`。
+  退出碼為 `m4-container-exit.log`，沒有取消或重跑，也沒有挑選結果。
+- 收尾前重新比對知識路由，仍命中跨平台打包、驗收與文件職責；沒有新增決策或擴大範圍。
+  005 §8.4 更新為最終驗收表。總索引 `workplace/local-pack/verification.json` 由同目錄 `write-receipt.py` 彙整，
+  重跑命令為 `commands.txt`，完整交付清單為 `dist-files.txt`。
+  root-owned 檔案、異常 .md 目錄、擁有權與容器清理收據為 `root-files.log`、`ownership-final.log`、`containers-final.log`。
+- 本輪只使用既有映像與 --rm 容器；沒有新建映像、prune、rmi、操作其他容器或寫入其他工作樹。
+  效能依使用者決定不量測，Windows 啟動依使用者決定延後，macOS 僅做結構驗收。
+  原版素材、截圖、記憶卡與封包均不加入 Git，沒有推送、合併、改寫歷史或發布。
