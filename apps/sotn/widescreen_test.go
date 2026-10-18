@@ -5,6 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/wicanr2/ps-golem/internal/cpu"
@@ -57,7 +60,7 @@ func TestWidescreenSignature(t *testing.T) {
 	for _, p := range widescreenWords[7:] {
 		m.Write32(p.addr, p.patched^0x40)
 		before := m.ReadRAM(tilemapStart, tilemapSize)
-		if err := w.check(m, h); err == nil || !bytes.Equal(before, m.ReadRAM(tilemapStart, tilemapSize)) {
+		if err := w.check(m, h); err != nil || !bytes.Equal(before, m.ReadRAM(tilemapStart, tilemapSize)) {
 			t.Fatalf("%08x 未拒絕未知改字或仍寫入", p.addr)
 		}
 		m.Write32(p.addr, p.original)
@@ -67,8 +70,8 @@ func TestWidescreenSignature(t *testing.T) {
 	}
 	m.Write32(tilemapStart, 0x1234)
 	before := m.ReadRAM(tilemapStart, tilemapSize)
-	if err := w.check(m, h); err == nil {
-		t.Fatal("已套用後失配沒有回報")
+	if err := w.check(m, h); err != nil {
+		t.Fatal("已套用後失配不應停止模擬", err)
 	}
 	if !bytes.Equal(before, m.ReadRAM(tilemapStart, tilemapSize)) {
 		t.Fatal("失配仍寫入")
@@ -85,6 +88,84 @@ func TestWidescreenSignature(t *testing.T) {
 	m.Step()
 	if (m.CPU.COP0(cpu.CP0CAUSE)>>2)&31 != cpu.ExcBP {
 		t.Fatal("解除後仍有陷阱")
+	}
+}
+
+func TestWidescreenMismatchWarning(t *testing.T) {
+	m := testWideMachine(t)
+	for _, p := range widescreenWords {
+		m.Write32(p.addr, p.original)
+	}
+	h := sha256.Sum256(m.ReadRAM(tilemapStart, tilemapSize))
+	w := &Widescreen{}
+	if err := w.check(m, h); err != nil {
+		t.Fatal(err)
+	}
+	m.Write32(tilemapStart, 123)
+	before := m.ReadRAM(tilemapStart, tilemapSize)
+	r, out, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	stderr := os.Stderr
+	os.Stderr = out
+	defer func() { os.Stderr = stderr; r.Close(); out.Close() }()
+	for i := 0; i < 3; i++ {
+		if err := w.check(m, h); err != nil {
+			t.Fatal(err)
+		}
+	}
+	out.Close()
+	os.Stderr = stderr
+	log, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(log), "簽章不符") != 1 {
+		t.Fatalf("警告次數：%s", log)
+	}
+	if !bytes.Equal(before, m.ReadRAM(tilemapStart, tilemapSize)) {
+		t.Fatal("失配改寫 RAM")
+	}
+	// 失配後原本三處陷阱仍能執行，沒有被卸下。
+	for _, p := range widescreenWords[6:] {
+		m.CPU.SetPC(p.addr)
+		m.CPU.SetGPR(16, 0x80010000)
+		m.Step()
+		if m.CPU.PC() != p.addr+4 {
+			t.Fatalf("%08x 陷阱被卸下", p.addr)
+		}
+	}
+}
+
+func TestWidescreenRowLoadDelay(t *testing.T) {
+	for _, trap := range []struct{ pc, code uint32 }{
+		{0x800ece80, widescreenForegroundCode}, {0x800ed260, widescreenBackgroundCode},
+	} {
+		// 載入目標、兩個來源、無關暫存器，均與原 ADDU 的延遲語意比較。
+		for _, reg := range []uint32{2, 15, 12, 8} {
+			t.Run(fmt.Sprintf("%08x/r%d", trap.pc, reg), func(t *testing.T) {
+				m := testWideMachine(t)
+				m.Write32(trap.pc-4, 0x8e000004|reg<<16) // lw reg,4(s0)
+				m.Write32(trap.pc, trap.code<<6|0x0d)
+				m.Write32(trap.pc+4, 0)
+				m.Write32(0x80010004, 999)
+				m.CPU.SetPC(trap.pc - 4)
+				m.CPU.SetGPR(16, 0x80010000)
+				m.CPU.SetGPR(15, 5)
+				m.CPU.SetGPR(12, 0x120)
+				m.CPU.SetBreakHandler(widescreenTrap)
+				m.Step()
+				m.Step()
+				m.Step()
+				if m.CPU.GPR(2) != 0x125 {
+					t.Fatalf("v0=%x", m.CPU.GPR(2))
+				}
+				if reg != 2 && m.CPU.GPR(int(reg)) != 999 {
+					t.Fatal("無關的延遲載入未提交")
+				}
+			})
+		}
 	}
 }
 

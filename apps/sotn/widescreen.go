@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"os"
 
 	"github.com/wicanr2/ps-golem/internal/cpu"
 	"github.com/wicanr2/ps-golem/machine"
@@ -34,11 +35,12 @@ var widescreenWords = [...]struct{ addr, original, patched uint32 }{
 // 零值可用；每個 field 結束後呼叫 Check，離開模式前呼叫 Disable。
 type Widescreen struct {
 	applied      bool
+	warned       bool
 	Applications uint64
 }
 
 // Check 把已知改字還原後驗簽。非原字或已知改字也算不符，不掩蓋未知改動。
-// DRA 尚未載入時等待；曾套用後失配則回報，讓玩家端停止，RAM 保持不動。
+// DRA 尚未載入時等待；曾套用後失配只警告一次，RAM 與陷阱保持不動。
 func (w *Widescreen) Check(m *machine.Machine) error {
 	return w.check(m, tilemapHash)
 }
@@ -58,8 +60,9 @@ func (w *Widescreen) check(m *machine.Machine, expected [32]byte) error {
 	}
 	actual := sha256.Sum256(b)
 	if !valid || actual != expected {
-		if w.applied {
-			return fmt.Errorf("寬螢幕：field %d RenderTilemap 簽章不符：%x", m.Field(), actual)
+		if w.applied && !w.warned {
+			fmt.Fprintf(os.Stderr, "寬螢幕：field %d RenderTilemap 簽章不符：%x；保留現有改字\n", m.Field(), actual)
+			w.warned = true
 		}
 		return nil
 	}
@@ -89,7 +92,7 @@ func widescreenTrap(c *cpu.CPU, pc, code uint32) bool {
 		if tx < 0 {
 			tx = 0
 		}
-		c.SetGPR(2, uint32(tx)+c.GPR(12))
+		c.SetBreakGPR(2, uint32(tx)+c.GPR(12))
 	default:
 		return false
 	}
@@ -104,4 +107,5 @@ func (w *Widescreen) Disable(m *machine.Machine) {
 	}
 	m.CPU.SetBreakHandler(nil)
 	w.applied = false
+	w.warned = false
 }

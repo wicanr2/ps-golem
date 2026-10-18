@@ -381,3 +381,70 @@
 - 總驗收索引為 `verification-generation.json`，產生工具為 `write_receipt_generation.py`，重跑命令為 `commands-generation.txt`。
   收尾核對入口為 `root-files-generation.log`、`ownership-generation.log`、`containers-generation.log`。
   本輪只使用既有映像與 --rm 容器，沒有新增／刪除映像、prune、操作其他容器、寫入其他工作樹、push、merge 或改寫歷史。
+
+## 2026-10-18：本機完整版 v0.5.0
+
+- 起始工作樹乾淨，main 為 `a16dfc8`，依指定建立 `local-pack`。本輪唯一目前狀態表為 005 §8.4。
+- 已讀 AGENTS、000、001、005 §8、012 §9、017 §3.4。路由命中跨平台打包與文件職責，
+  載入 retro remake 技能及驗收、輸出、版號與 ZIP 編碼規則。依本輪明確授權使用 `v0.5.0`、`dist/` 及 GPL-3.0-or-later。
+- 可攜設定依 AppImage 外部目錄、macOS .app 上層或執行檔目錄選擇；自動尋找只掃指定三處，逐項套用優先順序。
+  設定寫回相對路徑，記憶卡保留使用者設定目錄。新增測試不使用原版素材。
+- 簽章曾套用後失配改為只警告一次，保留 RAM 與處理器。列首陷阱改用 CPU 冷路徑 `SetBreakGPR`，
+  先取消同目標延遲載入；來源仍讀舊值，其他目標的載入仍提交。兩項修正單獨驗收。
+- `workplace/local-pack/unit.log` 通過可攜設定、三處尋找、歧義、優先順序、重定位、簽章失配及延遲載入測試。
+- AppImage 工具依指定下載到 `workplace/appimage/`，只有下載容器以 bridge 開網路。
+  固定版本、授權、下載時間與雜湊見 005 §8.2、`tools/appimage.sha256`、`workplace/local-pack/appimage-tools.log`。
+  既有 `psgolem-go-ebiten:1.24-r1` 可執行工具，沒有新建映像。
+- 新增 `tools/build_local.sh`、`tools/local_pack.py`；入口與職責登錄於 005 §8.2。
+  沿用未修改的 build_dist、build_macos、verify_macos，基礎包留 `dist/v0.5.0/`，本機包留 `dist/v0.5.0-local/`。
+  stage 與證據使用既有 workplace。原版不掛入建置容器。文件更新見 docs/play.md。
+- 完整回歸、指定 M4 與封包驗收執行中。效能不量測，Wine 啟動依使用者決定延後。
+- 全專案回歸通過，容器實際退出碼 0。包含 CPU、1150 筆 GTE 與 17 個 N=1 GPU 語料。
+  完整日誌 `regression.log`、摘要 `regression-summary.log`、退出碼 `regression-container-exit.log`，均在本輪證據目錄。
+- 首次三平台基礎包與 macOS 四道結構檢查通過，但 AppImage 封裝因 Go 映像缺 `file` 停止。
+  既有 osxcross 映像已含 `file`，且工具啟動成功；封裝改用該映像並加前置檢查，沒有建立映像。
+  第一次輸出封存於 `workplace/local-pack/attempt-without-file/`，日誌為 `build-missing-file.log`。
+  修正後已由乾淨版本與 stage 目錄重跑完整腳本。這是封裝環境問題，既有測試沒有失敗。
+- 兩項小修提交 `c5e250c`，可攜設定提交 `0f59d4f`；均使用指定作者與 Codex 共同作者，未推送。
+- 第二次 AppImage 已成功封裝，後續守門因 appimagetool 在來源 AppDir 自動建立 `.DirIcon` 連結而停止。
+  重新核對打包路由與 005 §8.2，圖示是允許的包內中介資料；只接受 `.DirIcon` 指向同 AppDir 的自製 PNG，其他連結仍拒絕。
+  實際 stage 的修正檢查通過，收據 `packaging-guard.log`；第二次產物與原日誌保存於
+  `workplace/local-pack/attempt-diricon/`、`build-diricon.log`。再次從乾淨版本與 stage 目錄重跑完整腳本。
+- 原生 M4 完成 field 45784、26150980006 個週期，摘要仍為 `6c35c2701228722f`，記憶卡檢查通過。
+  記憶卡 SHA-256 `5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36`，
+  原生畫面 SHA-256 `02b9bc2db161fa5675d867aeec057ccebd5cb9f6912db0fe46ed159d78c8ddd7`。
+  HD2 已開始，尚不宣稱整個 TestM4FirstSave 通過。收據 `workplace/local-pack/m4.log`。
+- 第三次乾淨建置完整通過，`tools/build_local.sh v0.5.0` 外層退出碼 0。
+  三平台基礎包、macOS 四道結構、AppImage 與三個 local ZIP 均完成，輸出 `dist/v0.5.0-local/`。
+  ZIP 的 CRC、頂層目錄、預設設定、空素材目錄、UTF-8、禁止副檔名與 512 KiB 排除通過。
+  建置日誌 `build.log`、逐項清單 `packages.json`，四包雜湊與擁有權另見 `package-checksums.log`、`package-ownership.log`。
+  Linux 正由完成的 ZIP 解包做 AppImage 啟動驗收，原版三份檔案均唯讀掛載。
+- Linux AppImage 驗收通過，無 Go 的 Ubuntu 24.04 既有映像以原版唯讀掛載啟動，未提供 BIOS/cue 參數。
+  兩次 2000 Update 畫面及設定逐位元相同，設定寫回 `bios/SCPH5500.BIN`、`disc/sotn.cue`，
+  HD2、PGXP、xBR 與寬螢幕選項均保留；記憶卡路徑仍是使用者設定目錄。
+  實際 AppImage 內容與建置來源執行檔逐位元相同，素材排除通過。
+  收據 `linux-smoke.log`、`linux-ldd.log`、`linux-container.json`、`linux-container-exit.log`、`settings-first.json`；
+  原生工具命令及驗收容器退出碼均為 0。第一次畫面已目視確認是遊戲標題畫面，截圖不入版控。
+- 封包與文件提交 `a6a9195`。目前只剩指定 M4 的 HD2 與 HD2-PGXP 子測試，原容器持續執行，沒有重啟。
+- HD2 M4 完成 field 45784，完整摘要、記憶卡與原生畫面均與原生逐位元相同，摘要 `6c35c2701228722f`。
+  HD2-PGXP 已開始，尚不宣稱整個 TestM4FirstSave 通過；日誌仍為 `workplace/local-pack/m4.log`。
+- 外層 M4 工具連線回傳 143，Docker 核對原容器仍為 running、OOMKilled=false、AutoRemove=true。
+  這是工具連線中斷，尚非測試退出；沒有取消或重跑。以 `docker logs --follow` 接續保存同一容器完整日誌到
+  `workplace/local-pack/m4-container.log`，既有 `docker wait` 持續追蹤實際退出碼。
+  當時狀態收據為 `m4-after-tool143.json`，不把 143 寫成產品測試失敗。
+- 完整 TestM4FirstSave 與 HD2、HD2-PGXP 子測試均通過，原容器實際退出碼 0，已自動刪除。
+  三模式都完成 field 45784、26150980006 個週期，完整摘要一致，尾碼 `6c35c2701228722f`；
+  記憶卡與原生畫面逐位元相同，SHA-256 與前述原生值一致。
+  正式日誌 `m4.log` 由同一容器的完整 `m4-container.log` 保存；原工具輸出另存 `m4-tool.log`。
+  退出碼為 `m4-container-exit.log`，沒有取消或重跑，也沒有挑選結果。
+- 收尾前重新比對知識路由，仍命中跨平台打包、驗收與文件職責；沒有新增決策或擴大範圍。
+  005 §8.4 更新為最終驗收表。總索引 `workplace/local-pack/verification.json` 由同目錄 `write-receipt.py` 彙整，
+  重跑命令為 `commands.txt`，完整交付清單為 `dist-files.txt`。
+  root-owned 檔案、異常 .md 目錄、擁有權與容器清理收據為 `root-files.log`、`ownership-final.log`、`containers-final.log`。
+- 本輪只使用既有映像與 --rm 容器；沒有新建映像、prune、rmi、操作其他容器或寫入其他工作樹。
+  效能依使用者決定不量測，Windows 啟動依使用者決定延後，macOS 僅做結構驗收。
+  原版素材、截圖、記憶卡與封包均不加入 Git，沒有推送、合併、改寫歷史或發布。
+- 最終驗收提交為 `96f8915`。收尾核對時，共用 Git 的 main 已另行前進至 `9b4f34d`，
+  內容為新增後撤回含素材組裝的 005 §8.5；本輪沒有移動 main 或合併這些提交。
+  `git merge-base HEAD main` 仍為指定的 `a16dfc8`，本輪程式、測試與封包均以此為基準。
+  005 §8.4 的比較基準改用固定提交，避免把日後 main 的變動套入本輪證據。

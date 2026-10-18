@@ -112,6 +112,42 @@ AppImage 用 `AppImage/appimagetool` 的 `appimagetool-x86_64.AppImage` 與 `App
 之後的建置一律用這份並先核對雜湊，不重新下載。容器內沒有 FUSE，以 `--appimage-extract-and-run` 執行 appimagetool，`--runtime-file` 指定 runtime。
 下載用 `PSGOLEM_NETWORK=bridge`，只在這一步開網路。
 
+固定輸入於 2026-10-18（臺北時間）下載，UTC 收據為 `2026-10-17T16:24:17Z`。
+建置時以 `tools/appimage.sha256` 核對，`tools/local_pack.py` 負責組包與內容檢查。
+`tools/build_local.sh` 先呼叫未修改的 `tools/build_dist.sh`，其 `dist/<版號>/` 為基礎包，
+本機完整版交付在 `dist/<版號>-local/`。不帶原版掛載，建置全程停用網路。
+AppImage 封裝使用既有 `psgolem-osxcross:1.24-15.5-r1`，其中有工具要求的 `file`；
+Go 映像負責 Go 建置與 ZIP 組包，不增加映像。腳本在編譯前先檢查封裝工具可執行。
+
+| 工具 | 固定版本、授權 | SHA-256 |
+|---|---|---|
+| [AppImage/appimagetool](https://github.com/AppImage/appimagetool) | continuous，`854e19e951900cf141245b384d45735942521abe`，build 313，MIT | `95cbe7cce9717fce90c484e34052ee7c7f1d7635b33c12525b4776826a7d29b6` |
+| [AppImage/type2-runtime](https://github.com/AppImage/type2-runtime) | continuous，`8f39b89e2ac31e1640b3d3f7e9a5108e6ce805fa`，MIT；靜態相依授權見原始 LICENSE | `156f4bdbde9c52d01814600013e0a273f0118dc2de98975f3c8c63427ec79074` |
+
+下載檔、release JSON、原始 LICENSE 與時間收據留在 `workplace/appimage/`，不入版控。
+runtime 的原始 LICENSE 隨 Linux AppImage 與 ZIP 保存為 `APPIMAGE-LICENSE.txt`。
+appimagetool 僅用於建置，不進封包。PNG 圖示由專案程式產生，不含外部美術。
+上述檔案缺少時，唯一需開網路的步驟如下。已有檔案不覆寫；下載後仍須核對固定雜湊：
+
+```sh
+PSGOLEM_NETWORK=bridge PSGOLEM_GO_CMD=bash tools/go.sh -c '
+  set -euo pipefail
+  mkdir -p workplace/appimage
+  cd workplace/appimage
+  for entry in appimagetool:appimagetool-x86_64.AppImage type2-runtime:runtime-x86_64; do
+    project=${entry%%:*}; asset=${entry#*:}
+    test ! -e "$asset"
+    curl -fL --retry 2 "https://github.com/AppImage/$project/releases/download/continuous/$asset" -o "$asset"
+    curl -fL "https://raw.githubusercontent.com/AppImage/$project/main/LICENSE" -o "$project-LICENSE"
+  done
+  sha256sum -c /src/tools/appimage.sha256
+  chmod +x appimagetool-x86_64.AppImage runtime-x86_64
+'
+tools/build_local.sh v0.5.0
+```
+
+`continuous` 若已更換內容，雜湊不符即停止，保留原下載快照，不自行更新固定值。
+
 ### 8.3 驗收
 
 | 項目 | 判準 |
@@ -120,3 +156,33 @@ AppImage 用 `AppImage/appimagetool` 的 `appimagetool-x86_64.AppImage` 與 `App
 | AppImage | 在 `psgolem-wine-verify`（Ubuntu 24.04，無 Go）以 `--appimage-extract-and-run` 搭配 `xvfb-run` 啟動：BIOS 與 cue 放在 AppImage 旁的 `bios/`、`disc/`（唯讀掛載原版），不帶參數開機到第 2000 次 `Update`，可攜 `settings.json` 寫入相對路徑 |
 | Windows、macOS zip | 內容檢查與 §5 相同的素材排除；Windows 啟動檢查依使用者決定延後 |
 | 素材排除 | 所有包不得含 `.bin`、`.cue`、`.iso`、`.img`、`.chd`、`.mcd`、`.mcr`、`.state` 與 512 KiB 的檔案 |
+
+### 8.4 驗收結果
+
+目前狀態表（2026-10-18）：
+
+| 項目 | 結果 | 證據 |
+|---|---|---|
+| 可攜設定、自動尋找 | 通過；不使用原版素材，涵蓋三處尋找、歧義、優先順序、相對路徑與搬移 | `workplace/local-pack/unit.log`，`cmd/psgolem/portable_test.go` |
+| 小修：簽章失配 | 通過；不回傳致命錯誤、只警告一次、RAM 不變、三處處理器仍掛著 | `TestWidescreenMismatchWarning`，`workplace/local-pack/unit.log` |
+| 小修：陷阱暫存器寫回 | 通過；取消同目標延遲載入，來源使用舊值，其他目標載入照常提交 | `TestWidescreenRowLoadDelay`，`workplace/local-pack/unit.log` |
+| 全專案回歸 | 通過，容器退出碼 0；CPU、1150 筆 GTE、17 個 N=1 GPU 語料全部通過 | `workplace/local-pack/regression.log`、`regression-container-exit.log` |
+| CPU 熱路徑與既有建置腳本 | 相對本輪起始 `a16dfc8` 無差異 | `workplace/local-pack/unchanged-core-and-build.diff` |
+| 完整 M4 | 通過，容器退出碼 0；原生、HD2、HD2-PGXP 均完成 field 45784，摘要 `6c35c2701228722f`，記憶卡與原生畫面逐位元相同 | `workplace/local-pack/m4.log`、`m4-container-exit.log` |
+| 三平台包與 macOS 結構 | 完整腳本通過；雙弧、arm64 簽章、minos 11.0 與系統動態庫檢查通過 | `workplace/local-pack/build.log` |
+| local ZIP 與素材排除 | 三包通過 CRC、頂層目錄、設定、素材目錄、UTF-8、禁止副檔名與 512 KiB 排除；四包 SHA-256 通過 | `workplace/local-pack/packages.json`、`package-checksums.log`，`dist/v0.5.0-local/manifest.json` |
+| AppImage 啟動 | 通過，容器退出碼 0；無 Go、無缺庫，無 BIOS/cue 參數，兩次 2000 Update 畫面逐位元相同；設定保留四個畫面選項，路徑寫回相對值 | `workplace/local-pack/linux-smoke.log`、`linux-container-exit.log`、`settings-first.json`、`first.png`、`second.png` |
+| AppImage 內部內容 | 通過，實際解出執行檔逐位元相同，無素材與 512 KiB 檔案 | `workplace/local-pack/linux-smoke.log`，`tools/local_pack.py check-image` |
+| Windows 啟動 | 依使用者決定延後，只驗 ZIP 內容 | 本輪範圍 |
+| macOS 實機、效能 | 未驗實機；不量測效能 | 本輪範圍 |
+| 收尾 | 無 root-owned 檔案、異常 .md 目錄或本工作樹殘留容器；未推送或發布 | `workplace/local-pack/root-files.log`、`ownership-final.log`、`containers-final.log` |
+
+本輪證據入口為 `workplace/local-pack/`，過程見 `WORKLOG.md` 的本機完整版紀錄。
+總驗收索引為 `workplace/local-pack/verification.json`，彙整程式為同目錄的 `write-receipt.py`。
+完整交付清單為 `dist-files.txt`，含本機包及沿用 build_dist 產生的三個基礎包。
+輸入、來源、映像與截圖收據為 `inputs.sha256`、`source.sha256`、`images.json`、`screenshots.json`。
+M4 外層連線曾回傳 143，原容器持續執行並通過；`m4.log` 由同一容器的完整日誌保存，
+原工具輸出另存 `m4-tool.log`，狀態核對見 `m4-after-tool143.json`。沒有取消或重跑。
+Linux 啟動與 AppImage payload 重跑入口為 `PSGOLEM_ORIG=~/cht/castlevinia_x tools/verify_local.sh v0.5.0`。
+此腳本由 local ZIP 解包，唯讀掛載指定三份素材，使用既有 `psgolem-wine-verify:noble-r1`；
+不執行 Windows 程式。每次驗收需新的 `workplace/local-pack/smoke/`，已有目錄即停止。
