@@ -1503,3 +1503,41 @@ READY編製器保持原生透明及STP分類，正式Go確認精簡與合併全�
 研究入口為workplace/hdtex/perf/richter-portrait-validation-v1/及richter-portrait-validation-v2/；
 站姿入口為alucard-portrait-validation-v2/standing-region-research-sources.json及standing-region/。
 完整HD、人物動畫、武器、其他怪物、速度與通關仍未完成。
+
+## 2026-10-20 兩張真正重繪頭像整合與站姿材質原型
+
+Richter近景頭像完整正常空白卡開機至45784通過，232個原生摘要、像素及卡片點相同，226個區間外舊HD點保持。
+與既有阿魯卡多頭像包的正常開機畫面比較，只有14500、15500及16000的Richter頭像改變，差異分別為10976、10976與298。
+文字、HUD及頭像外畫面保持，其他說話者及既有頭像保持。兩張頭像於同一最終合併包共50組直接實際Intel GPU／CPU通過，正式Go精簡與合併字保持。
+
+早期16000退場範圍錯誤已由原始畫面訂正；40分鐘預算在35597停止，保留173原生點及167舊HD點的部分收據，不算完整驗收。
+相同執行檔、輸入與檢查門檻在90分鐘有界預算完成，未修改產品或降低驗收門檻。
+整合收據初版漏附已核對的素材檔案清單，補齊並保留來源及收據快照；完整像素核對結果不變。
+
+本機三平台候選只改textures，執行檔、舊包、原版資料及其餘設定保持。
+Linux實際候選無素材／後端參數，正常新遊戲至14500呈現新頭像，測試卡符合來源。
+獨立Weston重開至603並正常關窗，設定保持；原版與素材唯讀、候選設定可寫。
+GUI沿用核准寬螢幕，不宣稱該模式原生摘要相同。速度最低0.198、中位0.431仍未過，無跨負載因果A/B；人工音訊、其他平台真機及GPU前端完整路線待驗。
+新增總覽與正常遊戲對照；四種既有總覽圖像及語意資料保持。未修改的正常遊戲圖只進私人素材repo，公開引擎不加圖片。
+
+全身站姿v4只編修自製畫稿及骨架，沒有原版圖作生成輸入。人物RGB採新畫稿，21色盤僅在自繪內襯遮罩保留已觀測變化，材質歸屬仍為外觀強推論。
+精簡前後451584個字相同；21色盤的525組CPU／實際Intel GPU完整VRAM、畫面及統計相同，各有新輪廓與實際替換證據。
+原型未安裝，姿勢、UV、正常人物路線與完整動畫仍待驗，不把孤立GPU測試當成全身完成。
+
+正常攻擊的一組圖集逐位元組對應到既有兩份武器archive中的重複內容，並以索引原字獨立重建上傳鍵。
+這證實內容相同，實際CD讀取哪一份仍未知；正式武器ID、握持點及武器本體／特效分界待驗，不以算術區塊編號猜武器身份。
+先前單來源UV研究在1200秒上限只到23600，保留但不採納末場證據。
+後續工具已合併28人物姿勢與一組武器16場窗口，需先重現232張原始HD及統計才採納；工具與二進位均已釘選。
+
+正式Go核心與效能路徑未改。完整HD仍未完成；唯一現況表為私人素材專案docs/hd-assets-evaluation.md §8。
+本機交付驗證入口為workplace/hdtex/perf/richter-portrait-validation-v2/delivery-verification.json；工具為同目錄verify-delivery.py。
+站姿與來源觀測入口為workplace/hdtex/perf/alucard-body-observation-v1/，GPU核對為standing-v4-gpu-verification.json。
+原版、抽檔、命令及HD素材只留本機；效能實作依使用者順序延後，不建立tag或Release。
+
+本批交付核對、Python語法、舊總覽相容性、原始截圖及差異檢查通過；兩工作根無root-owned或異常.md目錄。
+已完成的GUI及GPU命名容器含已停止者均無殘留，沿用既有映像，未清理共用資源。
+頭像GUI完成後已啟動psgolem-alucard-weapon-source-regions，3600秒、2CPU上限，輸入唯讀且僅獨立輸出可寫。
+該29來源工作仍在執行，沒有完整原始圖像及統計結果前不採納UV；不可因觀察逾時另起重複工作。
+輸出為alucard-body-observation-v1/replay/run/，進度與啟動釘選在其父目錄。
+私人材質、角色與武器Issue已更新，公開整合項目補一般進度且保持開啟。
+提交／推送與遠端回讀入口為workplace/hdtex/perf/richter-portrait-validation-v2/publication-verification.json。
