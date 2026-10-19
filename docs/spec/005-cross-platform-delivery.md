@@ -228,3 +228,16 @@ Linux 以封包啟動檔、其他 cwd、零參數、自動尋找 BIOS／cue 實�
 真正完整版再以預設 HD2／PGXP／xBR／寬螢幕從 GUI 開機到 field 4320 標題，已目視確認。
 收據在 `workplace/hdtex/texture-integration-verification.json`，來源包內容表在
 `workplace/local-pack/v.0.6.0-20261018/packages.json`。Windows／macOS 真機與實體手把維持未驗證。
+
+### 9.2 透視候選（READY）
+
+使用者已確認HD透視校正與雙擊啟動。新本機ZIP的畫面預設加上
+`texture_perspective: true`，與既有HD2及PGXP一同使用；通用程式的預設仍為關閉。
+只使用新完整版號與新輸出目錄，舊版本不覆寫。原版模式可用022既有明確false恢復，
+不改輸入重播、素材格式或存檔格式。005既有三平台守門、版號及素材排除繼續適用。
+已驗的精簡HD包只由素材repo安裝器裝到含素材本機候選，不放公開引擎包。
+需確認封包內透視選項、跨cwd啟動、保存及重開；macOS仍限結構檢查，未驗真機明示。
+
+新候選採021既定CPU預設供雙擊預覽，GPU作明確選用的實驗路徑。
+GPU測試保存獨立的設定快照；切回CPU只用既有-hd-renderer選項並保留其他畫質及手把設定。
+既有GPU候選與使用者存檔不改；此選擇不是新的效能實作或速度驗收通過。

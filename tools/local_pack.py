@@ -9,7 +9,7 @@ import sys
 import zipfile
 import zlib
 
-DEFAULTS = {"hd": 2, "pgxp": True, "filter": "xbr", "widescreen": True}
+DEFAULTS = {"hd": 2, "pgxp": True, "filter": "xbr", "widescreen": True, "texture_perspective": True}
 FORBIDDEN = {".bin", ".cue", ".iso", ".img", ".chd", ".mcd", ".mcr", ".state"}
 
 
