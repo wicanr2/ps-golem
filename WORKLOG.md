@@ -1581,3 +1581,33 @@ GUI沿用核准寬螢幕，不宣稱該模式原生摘要相同。速度最低0.
 兩工作根無root-owned或異常.md目錄，所有本批命名容器含已停止者均無殘留，沿用既有映像，未清理共用資源。
 本機檢查入口為alucard-body-observation-v1/research-checkpoint-verification.json；提交／推送及遠端回讀為同目錄publication-verification.json。
 完整HD與人物動畫仍未完成，下一步先編製披風修正版並補齊實際動作來源，不重跑已完成的原始232點觀測。
+
+## 2026-10-20 披風修正版正常驗證與新繪跑步支撐姿勢
+
+站姿v5以新畫稿自己的透明輪廓編為112×192、21色盤，腿間透明，後側披風材質遮罩632貼素。
+精簡為362303 bytes，正式Go451584個RGB555／STP字保持。
+與既有159條目及移動v2合為40來源、201條目的研究包，6856890 bytes；正式Go40153728字保持。
+站姿直接在最終研究包驗525組CPU／Intel GPU，完整VRAM、畫面、統計及新透明輪廓相同。
+移動v2資料保持，沿用前版直接GPU證據與本版Go保持核對，不宣稱本版重驗1050組。
+
+正常路線作一次新候選BIOS開機、選單讀檔及一般方向移動，對照封存的原版52點。
+原版PNG逐張驗證原像素並保持原檔，不稱本批兩次新開機；正式核心差異只有文件。
+52點原生摘要、像素與卡片相同，六點有新人物；站姿6800差異3177，移動8285仍3279且PNG保持上一版。
+預定繪製區外及上方220列保持；視覺審查確認後側披風與腿間透明，僅採納孤立姿勢修正。
+正常及GPU入口為alucard-body-observation-v1/body-v2-normal-pixel-verification.json、standing-v5-final-gpu-verification.json。
+
+內建imagegen另僅參考自製移動母稿，新繪跑步支撐姿勢，沒有原版圖作生成輸入。
+完整提示、父圖雜湊及PNG保存於私人素材目錄alucard-run-support-redraw-v1。
+此張編為160×184、21條目的獨立DRAFT原型，774657精簡至544993 bytes，ZIP541401 bytes。
+正式Go確認618240字相同；實際UV、GPU及正常玩家路線仍待驗，沒有合併安裝或改動畫時序。
+先前28來源只是便利選樣，新支撐來源未含於既有取樣區觀測，不拿111來源清單代替UV證據。
+
+私人畫廊增加修正版正常對照及新母稿，目前62個草稿入口；正式HD目錄仍0／264。
+三平台雙擊預覽的38來源／159條目、執行檔及既有17張私人原始截圖均保持，所有全身素材仍DRAFT。
+正式模擬、GPU及效能程式未改，優化依使用者順序延後，沒有tag或Release。
+本輪核對入口為alucard-body-observation-v1/standing-v5-checkpoint-verification.json，工具audit-standing-v5.py。
+唯一現況表為私人素材專案docs/hd-assets-evaluation.md §8。
+
+本批核對、Python語法、62個草稿入口與差異檢查通過；兩工作根無root-owned檔案或異常.md目錄。
+所有本批命名容器含已停止者均無殘留，沿用既有映像。私人角色Issue已更新並回讀，保持開啟。
+提交與遠端回讀入口為alucard-body-observation-v1/standing-v5-publication-verification.json。
