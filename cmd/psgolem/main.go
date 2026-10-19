@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -17,16 +18,22 @@ import (
 	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
+	"github.com/wicanr2/ps-golem/render/hd"
+	"github.com/wicanr2/ps-golem/render/hdgpu"
 )
 
 // settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §9）。
 type settings struct {
-	BIOS       string `json:"bios"`
-	Cue        string `json:"cue"`
-	HD         int    `json:"hd"`
-	Filter     string `json:"filter"`
-	Widescreen bool   `json:"widescreen"`
-	PGXP       bool   `json:"pgxp"`
+	TexturePerspective bool                    `json:"texture_perspective,omitempty"`
+	HDRenderer         string                  `json:"hd_renderer,omitempty"`
+	BIOS               string                  `json:"bios"`
+	Cue                string                  `json:"cue"`
+	HD                 int                     `json:"hd"`
+	Filter             string                  `json:"filter"`
+	Widescreen         bool                    `json:"widescreen"`
+	PGXP               bool                    `json:"pgxp"`
+	Gamepad            *ebiten.GamepadSettings `json:"gamepad,omitempty"`
+	Textures           string                  `json:"textures,omitempty"`
 }
 
 // version 見 early.Version。
@@ -43,11 +50,15 @@ func main() {
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...，取代鍵盤與手把（驗收用）")
 	untilField := flag.Uint64("fields", 0, "跑到第這麼多次 VBlank 後存記憶卡並結束（驗收用）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
-	stats := flag.Bool("stats", false, "每 600 個 field 印出實際 FPS 與模擬耗時")
+	showStats := flag.Bool("stats", false, "每 600 個 field 印出實際 FPS 與模擬耗時")
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；省略時取設定檔")
+	rendererFlag := flag.String("hd-renderer", "cpu", "HD繪圖後端：cpu（預設）、gpu、auto；省略時取設定檔")
+	perspectiveFlag := flag.Bool("texture-perspective", false, "HD 3D貼圖透視校正；需要 -hd 2以上及 -pgxp，省略時取設定檔")
 	pgxpFlag := flag.Bool("pgxp", false, "PGXP 次像素精度；省略時取設定檔，需要 -hd 2 以上")
 	filterFlag := flag.String("filter", "none", "輸出濾鏡：none、xbr；省略時取設定檔")
 	wideFlag := flag.Bool("widescreen", false, "月下寬螢幕遊戲修改模式；預設關閉")
+	texturesFlag := flag.String("textures", "", "HD 素材包目錄；省略時取設定檔，-textures= 清除")
+	dumpFlag := flag.String("dump-textures", "", "本次傾印到新的本機目錄，不保存此路徑")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
@@ -78,8 +89,21 @@ func main() {
 	if !set["widescreen"] {
 		*wideFlag = st.Widescreen
 	}
-	if *wideFlag && *hdFlag == 0 {
+	*texturesFlag = location.texturePath(*texturesFlag, set["textures"], st.Textures)
+	if *texturesFlag != "" {
+		*texturesFlag, err = filepath.Abs(*texturesFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "psgolem:", err)
+			os.Exit(2)
+		}
+	}
+	if (*wideFlag || *texturesFlag != "" || *dumpFlag != "") && *hdFlag == 0 {
 		*hdFlag = 1
+	}
+	*perspectiveFlag, err = resolveTexturePerspective(*perspectiveFlag, set["texture-perspective"], st.TexturePerspective, *hdFlag, *pgxpFlag)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "psgolem：", err)
+		os.Exit(2)
 	}
 	if *pgxpFlag && *hdFlag < 2 {
 		fmt.Fprintln(os.Stderr, "psgolem：-pgxp 需要 -hd 2、4 或 8")
@@ -87,6 +111,13 @@ func main() {
 	}
 	if !set["filter"] && st.Filter != "" {
 		*filterFlag = st.Filter
+	}
+	if !set["hd-renderer"] && st.HDRenderer != "" {
+		*rendererFlag = st.HDRenderer
+	}
+	if *rendererFlag != "auto" && *rendererFlag != "cpu" && *rendererFlag != "gpu" {
+		fmt.Fprintln(os.Stderr, "psgolem：hd-renderer 必須是 auto、gpu、cpu")
+		os.Exit(2)
 	}
 	shift, ok := gpu.HDShift(*hdFlag)
 	if !ok || (*filterFlag != "none" && *filterFlag != "xbr") {
@@ -99,19 +130,92 @@ func main() {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
 		os.Exit(2)
 	}
+	gamepadSettings := ebiten.DefaultGamepadSettings()
+	if st.Gamepad != nil {
+		if e := st.Gamepad.Validate(); e != nil {
+			fmt.Fprintln(os.Stderr, "psgolem：手把設定：", e)
+		} else {
+			gamepadSettings = st.Gamepad.Clone()
+		}
+	}
+	st = settings{TexturePerspective: *perspectiveFlag, BIOS: *biosPath, Cue: *cuePath, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+	saveGamepad := func(next ebiten.GamepadSettings) error {
+		updated := st
+		updated.Gamepad = &next
+		if err := saveSettings(location.path, location.forSave(updated)); err != nil {
+			return err
+		}
+		gamepadSettings = next.Clone()
+		st = updated
+		return nil
+	}
+	var dumpErr error
 	open := func(bios, cue string) (*ebiten.Session, error) {
+		var pack *hd.TexturePack
+		if *texturesFlag != "" {
+			var loadErr error
+			pack, loadErr = hd.LoadTexturePack(*texturesFlag)
+			if loadErr != nil {
+				return nil, fmt.Errorf("素材包 %s：%w", *texturesFlag, loadErr)
+			}
+		}
+		var dump *hd.TextureDump
+		if *dumpFlag != "" {
+			if e := hd.CheckTextureDumpDirectory(*dumpFlag); e != nil {
+				return nil, e
+			}
+			dump = hd.NewTextureDump()
+		}
 		s, err := openSession(bios, cue, *cardPath, dir)
 		if err != nil {
 			return nil, err
 		}
 		if *hdFlag != 0 {
-			shadow := gpu.NewShadow(shift)
+
+			var raster hd.RasterDevice
+			selected := "cpu"
+			if *rendererFlag != "cpu" {
+				device, deviceErr := hdgpu.New(shift)
+				if deviceErr != nil {
+					if *rendererFlag == "gpu" {
+						s.Close()
+						return nil, deviceErr
+					}
+					fmt.Fprintf(os.Stderr, "psgolem：GPU HD裝置建立失敗，使用CPU：%v\n", deviceErr)
+				} else {
+					raster = device
+					selected = "gpu"
+				}
+			}
+			fmt.Fprintf(os.Stderr, "psgolem：HD繪圖後端=%s\n", selected)
+			shadow := hd.NewShadowWithDevice(shift, pack, dump, raster)
+			shadow.SetTexturePerspective(*perspectiveFlag)
 			if *wideFlag {
 				shadow.SetSideMargin(48)
 			}
 			s.Machine.GPU.SetShadow(shadow)
 			closeSession := s.Close
-			s.Close = func() { s.Machine.DisablePGXP(); s.Machine.GPU.SetShadow(nil); shadow.Close(); closeSession() }
+			s.Close = func() {
+				var stats hd.TextureStats
+				if *texturesFlag != "" || dump != nil {
+					stats = shadow.TextureStats()
+				}
+
+				if *showStats {
+					rs := shadow.RasterStatistics()
+					fmt.Fprintf(os.Stderr, "psgolem：HD後端=%s 三角形=%d 精靈=%d GPU像素=%d CPU回退=%d 回讀=%d\n", selected, rs.Triangles, rs.Sprites, rs.Pixels, rs.Fallbacks, rs.Readbacks)
+				}
+				s.Machine.DisablePGXP()
+				s.Machine.GPU.SetShadow(nil)
+				shadow.Close()
+				if dump != nil {
+					dumpErr = errors.Join(dumpErr, dump.WriteDirectory(*dumpFlag))
+				}
+				closeSession()
+				if *texturesFlag != "" || dump != nil {
+					fmt.Fprintf(os.Stderr, "psgolem：材質上傳=%d 查詢=%d 命中=%d 替換取樣=%d\n", stats.Uploads, stats.Lookups, stats.Hits, stats.ReplacedSamples)
+				}
+			}
 		}
 		if *pgxpFlag {
 			if err := s.Machine.EnablePGXP(); err != nil {
@@ -125,7 +229,8 @@ func main() {
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }
 		}
-		if err := saveSettings(location.path, location.forSave(settings{BIOS: bios, Cue: cue, HD: *hdFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag})); err != nil {
+		st = settings{TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+		if err := saveSettings(location.path, location.forSave(st)); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil
@@ -133,9 +238,11 @@ func main() {
 	err = ebiten.Run(ebiten.Config{
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
-		Press: press, UntilField: *untilField, Stats: *stats,
+		Press: press, UntilField: *untilField, Stats: *showStats,
 		Filter: *filterFlag, Widescreen: *wideFlag,
+		Gamepad: &gamepadSettings, SaveGamepad: saveGamepad,
 	})
+	err = errors.Join(err, dumpErr)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
 		os.Exit(1)

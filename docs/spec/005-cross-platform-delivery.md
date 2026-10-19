@@ -36,7 +36,7 @@ macOS 要另一個映像：`crazymax/osxcross` 的執行檔要 glibc 2.38，`psg
 | `tools/build_macos.sh <目錄>` | `psgolem`、`psexe` 兩弧各編一次後 `lipo` |
 | `tools/verify_macos.sh <檔>...` | 四道結構驗收（沿用 kol `tools/verify_macos.sh`） |
 | `tools/build_image.sh osxcross` | `psgolem-osxcross`：Ubuntu 24.04＋`crazymax/osxcross:15.5-debian`＋`psgolem-go-ebiten` 的 Go 1.24.13 |
-| `tools/build_image.sh wine` | `psgolem-wine-verify`：Ubuntu 24.04＋Wine＋xvfb，Windows 版冒煙測試 |
+| `tools/build_image.sh wine` | `psgolem-wine-verify`：Ubuntu 24.04＋Wine＋Xvfb＋Weston／Xwayland＋PulseAudio，Windows 冒煙與 Linux 硬體 GPU／節拍音訊驗證；noble-r2 替代 noble-r1，來源為 tools/docker/wine-verify.Dockerfile |
 
 版號以 `-ldflags "-X main.version=<版號>"` 寫進執行檔，`-version` 印出。psgolem 的版號在
 `cmd/psgolem/early.Version`：該套件在 Ebiten 初始化前處理 `-version`，Linux 沒有顯示器時也能印出。
@@ -186,3 +186,45 @@ M4 外層連線曾回傳 143，原容器持續執行並通過；`m4.log` 由同�
 Linux 啟動與 AppImage payload 重跑入口為 `PSGOLEM_ORIG=~/cht/castlevinia_x tools/verify_local.sh v0.5.0`。
 此腳本由 local ZIP 解包，唯讀掛載指定三份素材，使用既有 `psgolem-wine-verify:noble-r1`；
 不執行 Windows 程式。每次驗收需新的 `workplace/local-pack/smoke/`，已有目錄即停止。
+
+### 8.5 含素材的本機例外
+
+素材 repo 的 AGENTS 已定案：含原版只在 castlevinia_x/local-full 組裝自用，不外傳。新版入口及三平台雙擊流程見 §9；乾淨封包仍不含原版。
+
+## 9. 新版交付與雙擊啟動（2026-10-18，READY）
+
+使用者要求含素材完整版雙擊啟動。新版採 `v.X.Y.Z-YYYYMMDD`，其中開頭字面值為 `v.`；
+例如 `v.0.6.0-20261018`。既有 v0.5.0 與其收據保留，不覆寫或移動。
+乾淨封包的現行根目錄改為 `dist-all/<完整版號>/patch/`，守門、雜湊及 manifest 仍適用 §8。
+舊版 §8.4 是歷史驗收；本輪結果見 WORKLOG 及 castlevinia_x 的目前狀態表。
+
+本專案素材目錄 AGENTS 的明確例外仍優先：含原版只組裝到
+`castlevinia_x/local-full/<完整版號>/{linux,windows,macos}/ps-golem/`，不散布或加入 Git。
+組裝入口為該 repo 的 `tools/assemble_local_full.sh`；輸入改讀上述 patch/ 的本機 ZIP。
+Linux 本機 ZIP 額外附原生 `psgolem`／`psexe`，雙擊 psgolem 不需要 AppImage 的 FUSE 掛載。
+AppImage 仍附帶；Windows 雙擊 psgolem.exe，macOS 雙擊 ps-golem.app。
+從其他 cwd 啟動須讀包根 settings.json，自動找到唯讀 BIOS／cue，重啟後保持手把與素材路徑。
+正式美術未定時不預設研究替換。驗收使用封包內執行檔，不能用開發 bin 代替。
+
+依 [Apple CFBundleShortVersionString](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring)
+及 [CFBundleVersion](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleversion)，
+兩個平台數字欄位使用三段核心版號；完整發行識別寫入 PSGolemReleaseVersion、程式版本、封包與 manifest。
+不對原有已發布版本套用回溯修改。
+
+打包及驗收的研究收據用 `workplace/local-pack/<完整版號>/`，避免覆寫舊收據。
+只有新版本目錄可建立。原版唯讀，輸出使用 UID/GID；三平台仍在 Linux Docker 內編譯。
+Windows 執行、macOS 真機與人工聲音限制維持先前決定。
+
+新版容器組包入口為 `tools/dist_pack.py`，由 `tools/build_dist.sh` 呼叫，負責 .app metadata、授權附件、素材守門、三平台封包與 SHA256SUMS。主機包裝器只做 Docker 編排及必要路徑檢查。
+
+### 9.1 新版驗收結果
+
+`v.0.6.0-20261018` 的七個乾淨產物已完成，manifest 與 SHA256SUMS 在該版 patch/。
+三平台本機 ZIP 經 CRC、UTF-8、設定、檔案清單、權限與素材排除檢查；macOS 四道結構通過。
+AppImage 版本、動態相依與實際 payload 對照通過。`tools/assemble_local_full.sh` 已組裝三平台本機完整版，逐份素材雜湊核對成功。
+
+Linux 以封包啟動檔、其他 cwd、零參數、自動尋找 BIOS／cue 實際開機，F1 面板與正常關窗通過。
+驗證副本另以已保存研究包及手把設定重啟，完整設定逐位元保留；正式完整版仍是自動手把，不預設研究圖。
+真正完整版再以預設 HD2／PGXP／xBR／寬螢幕從 GUI 開機到 field 4320 標題，已目視確認。
+收據在 `workplace/hdtex/texture-integration-verification.json`，來源包內容表在
+`workplace/local-pack/v.0.6.0-20261018/packages.json`。Windows／macOS 真機與實體手把維持未驗證。

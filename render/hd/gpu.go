@@ -7,6 +7,7 @@ package hd
 import (
 	"fmt"
 	"github.com/wicanr2/ps-golem/internal/pgxp"
+	"image"
 )
 
 // VRAM 尺寸。
@@ -36,6 +37,12 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type Renderer struct {
+	texturePerspective  bool
+	perspectiveTriangle *perspectiveTriangle
+	perspectiveStats    TexturePerspectiveStats
+
+	raster            *rasterState
+	textures          *textureTracking
 	VRAM              []uint16
 	shift             uint
 	margin            int32
@@ -117,8 +124,9 @@ type Renderer struct {
 }
 
 type texCacheLine struct {
-	tag  uint32
-	data [4]uint16
+	tag    uint32
+	data   [4]uint16
+	origin [4]textureOrigin
 }
 
 // New 建立上電狀態的 GPU。
@@ -170,6 +178,7 @@ func (g *Renderer) power() {
 
 // softReset 是 GP1(00)。
 func (g *Renderer) softReset() {
+	g.abortTextureUpload()
 	clear(g.sides)
 	g.side = nil
 	g.displayGeneration = 0
@@ -199,11 +208,19 @@ func (g *Renderer) softReset() {
 
 func (g *Renderer) invalidateTexCache() {
 	for i := range g.texCache {
+		if g.textures != nil {
+			for j := range g.texCache[i].origin {
+				g.textures.setCachedOrigin(&g.texCache[i].origin[j], textureOrigin{})
+			}
+		}
 		g.texCache[i].tag = ^uint32(0)
 	}
 }
 
 func (g *Renderer) invalidateCache() {
+	if g.textures != nil {
+		clear(g.textures.clutValid[:])
+	}
 	g.clutCacheVB = ^uint32(0)
 	g.clutCacheN = 0
 	g.invalidateTexCache()
@@ -222,6 +239,7 @@ func (g *Renderer) WriteGP1(v uint32) {
 	case 0x00:
 		g.softReset()
 	case 0x01:
+		g.abortTextureUpload()
 		g.bufLen, g.need = 0, 0
 		g.inCmd = inNone
 	case 0x02:
@@ -378,17 +396,42 @@ func (g *Renderer) lineSkip(y uint32) bool {
 // ---- VRAM ----
 
 func (g *Renderer) texel(x, y uint32) uint16 {
+	if g.raster != nil {
+		g.rasterCPURead(int((x&1023)<<g.shift), int((y&511)<<g.shift))
+	}
 	return g.VRAM[((y&511)<<g.shift)<<(10+g.shift)|((x&1023)<<g.shift)]
 }
 
 // put 對應 Beetle gpu.c 的 texel_put，以最近鄰寫入整個原生像素。
 func (g *Renderer) put(x, y uint32, v uint16) {
+	if g.raster != nil {
+		xx, yy := int((x&1023)<<g.shift), int((y&511)<<g.shift)
+		g.rasterCPUWrite(image.Rect(xx, yy, xx+(1<<g.shift), yy+(1<<g.shift)))
+	}
+	if g.textures != nil {
+		g.textures.setOrigin((y&511)*1024+(x&1023), textureOrigin{})
+	}
 	n := uint32(1) << g.shift
 	x, y = (x&1023)<<g.shift, (y&511)<<g.shift
-	for dy := uint32(0); dy < n; dy++ {
-		row := g.VRAM[(y+dy)<<(10+g.shift):]
-		for dx := uint32(0); dx < n; dx++ {
-			row[x+dx] = v
+	stride := uint32(1024) << g.shift
+	offset := y*stride + x
+	// 016 §8.2：每個原生像素只寫自己的均色區塊，各列互不重疊。
+	switch g.shift {
+	case 0:
+		g.VRAM[offset] = v
+	case 1:
+		row := g.VRAM[offset : offset+2]
+		row[0], row[1] = v, v
+		row = g.VRAM[offset+stride : offset+stride+2]
+		row[0], row[1] = v, v
+	default:
+		first := g.VRAM[offset : offset+n]
+		for i := range first {
+			first[i] = v
+		}
+		for dy := uint32(1); dy < n; dy++ {
+			start := offset + dy*stride
+			copy(g.VRAM[start:start+n], first)
 		}
 	}
 }

@@ -96,7 +96,7 @@ func (g *Game) start(s *Session) {
 	g.card = cardSaver{path: s.CardPath}
 	g.emu = newEmulator(g.m, g.cfg, g.stream, &g.card)
 	g.emu.afterField = s.AfterField
-	go g.emu.run()
+	g.emu.paused.Store(g.padUI.open)
 	if s.Title != "" {
 		eb.SetWindowTitle(s.Title)
 	}

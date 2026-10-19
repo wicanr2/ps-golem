@@ -4,7 +4,7 @@
 // 本套光柵化只寫影子 VRAM，不參與機器狀態與時序。規格：016-hd-output §2–3。
 package hd
 
-// 多邊形光柵化，照 Beetle gpu_polygon.c 的原生解析度路徑（不含 PGXP 透視修正）。
+// 多邊形沿用 Beetle 覆蓋規則；選用透視取樣另依022。
 
 const (
 	coordFBS         = 12
@@ -12,6 +12,8 @@ const (
 )
 
 type triVertex struct {
+	z float64
+
 	x, y    int32
 	u, v    int32
 	r, g, b int32
@@ -78,6 +80,7 @@ func (g *Renderer) drawPolygon(cb []uint32) {
 		if p := g.precise[i]; p.Valid(cb[i]) {
 			vs[n].x = int32((p.X + float32(g.offsX)) * float32(uint32(1)<<g.shift))
 			vs[n].y = int32((p.Y + float32(g.offsY)) * float32(uint32(1)<<g.shift))
+			vs[n].z = float64(p.Z)
 			g.pgxpVertices++
 		}
 		i++
@@ -208,6 +211,8 @@ func (g *Renderer) drawTriangle(vs [3]triVertex, f polyFlags) {
 		return
 	}
 
+	g.setPerspectiveTriangle(vs, f)
+	defer func() { g.perspectiveTriangle = nil }()
 	var ig iGroup
 	cv := &vs[core]
 	if f.textured {
@@ -220,6 +225,11 @@ func (g *Renderer) drawTriangle(vs [3]triVertex, f polyFlags) {
 	addDX(&ig, &idl, uint32(-cv.x), f)
 	addDY(&ig, &idl, uint32(-cv.y), f)
 
+	if g.beginRasterTriangle(vs, ig, idl, f) {
+		defer g.endRaster()
+	} else {
+		g.rasterCPUPrimitive()
+	}
 	baseCoord := makePolyXFP(vs[0].x)
 	baseStep := makePolyXFPStep(vs[2].x-vs[0].x, vs[2].y-vs[0].y)
 	var boundUS, boundLS int64
@@ -334,18 +344,43 @@ func (g *Renderer) drawSpan(y, xStart, xBound int32, ig iGroup, idl *iDeltas, f 
 	}
 	addDX(&ig, idl, uint32(xAdj), f)
 	addDY(&ig, idl, uint32(y), f)
+	if g.raster != nil && g.raster.work != nil {
+		g.rasterSpan(x, y, w, ig, idl, f)
+		return
+	}
 	const sh = coordFBS + coordPostPadding
+	// 每條掃描線的旗標不變；未使用的分量增量為零。
+	var du, dv, dr, dg, db uint32
+	if f.textured {
+		du, dv = idl.duDx, idl.dvDx
+	}
+	if f.gouraud {
+		dr, dg, db = idl.drDx, idl.dgDx, idl.dbDx
+	}
+	dither := g.ditherEnabled()
+	dy := (uint32(y) >> g.shift) & 3
+	// 016 §8.6：原色，或無抖色的固定中性色，無須逐像素處理 RGB。
+	if f.textured && (!f.modulate || (!f.gouraud && !dither &&
+		(ig.r>>sh)&255 == 128 && (ig.g>>sh)&255 == 128 && (ig.b>>sh)&255 == 128)) {
+		g.drawRawTextureSpan(x, y, w, ig.u, ig.v, du, dv, f.tm, f.mode)
+		return
+	}
 	for ; w > 0; w-- {
 		r := (ig.r >> sh) & 0xFF
 		gg := (ig.g >> sh) & 0xFF
 		b := (ig.b >> sh) & 0xFF
 		dx := (uint32(x) >> g.shift) & 3
-		dy := (uint32(y) >> g.shift) & 3
 		if f.textured {
-			t := g.getTexel(f.tm, ig.u>>sh, ig.v>>sh)
+			tu, tv := g.perspectiveUV(x, y, ig.u, ig.v)
+			t := g.getTexel(f.tm, tu>>sh, tv>>sh)
+			if g.textures != nil {
+				if e, tx, ty := g.lookupTexture(f.tm, tu>>sh, tv>>sh); e != nil {
+					t = g.texturePixel(e, tx, ty, tu&((1<<sh)-1), tv&((1<<sh)-1), sh)
+				}
+			}
 			if t != 0 {
 				if f.modulate {
-					if !g.ditherEnabled() {
+					if !dither {
 						dx, dy = 3, 2
 					}
 					t = g.modTexel(dy, dx, t, r, gg, b)
@@ -354,7 +389,7 @@ func (g *Renderer) drawSpan(y, xStart, xBound int32, ig iGroup, idl *iDeltas, f 
 			}
 		} else {
 			var pix uint16 = 0x8000
-			if f.gouraud && g.ditherEnabled() {
+			if f.gouraud && dither {
 				pix |= uint16(g.ditherLUT[dy][r][dx]) | uint16(g.ditherLUT[dy][gg][dx])<<5 | uint16(g.ditherLUT[dy][b][dx])<<10
 			} else {
 				pix |= uint16(r>>3) | uint16(gg>>3)<<5 | uint16(b>>3)<<10
@@ -362,7 +397,31 @@ func (g *Renderer) drawSpan(y, xStart, xBound int32, ig iGroup, idl *iDeltas, f 
 			g.plotScaled(x, y, pix, f.mode, false)
 		}
 		x++
-		addDX(&ig, idl, 1, f)
+		ig.u += du
+		ig.v += dv
+		ig.r += dr
+		ig.g += dg
+		ig.b += db
+	}
+}
+
+// drawRawTextureSpan 保留逐像素貼圖快取及來源追蹤，只去掉未使用的色彩運算。
+func (g *Renderer) drawRawTextureSpan(x, y, w int32, u, v, du, dv, tm uint32, mode int) {
+	const sh = coordFBS + coordPostPadding
+	for ; w > 0; w-- {
+		tu, tv := g.perspectiveUV(x, y, u, v)
+		t := g.getTexel(tm, tu>>sh, tv>>sh)
+		if g.textures != nil {
+			if e, tx, ty := g.lookupTexture(tm, tu>>sh, tv>>sh); e != nil {
+				t = g.texturePixel(e, tx, ty, tu&((1<<sh)-1), tv&((1<<sh)-1), sh)
+			}
+		}
+		if t != 0 {
+			g.plotScaled(x, y, t, mode, true)
+		}
+		x++
+		u += du
+		v += dv
 	}
 }
 

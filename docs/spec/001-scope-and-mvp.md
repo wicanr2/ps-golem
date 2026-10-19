@@ -65,7 +65,7 @@ CD-ROM 扇區時序都用分數累加器從 CPU 週期推出，不另設獨立�
 | M3 | BIOS 開機到 SCE 開場畫面，GPU 2D | ps1-tests `gpu/*` 的 VRAM 與附帶的 `vram.png` 相同；開機畫面與參考模擬器比對 |
 | M4 | 從 cue/bin 開機到《月下》可玩：DMA、CD-ROM、SPU、XA、CDDA、手把、記憶卡 | 正常玩家路徑走到第一個存檔點並存檔成功。2026-10-16 達成，見 `015-sotn-autoplay` §7 |
 | M5 | 跨平台交付 | `005-cross-platform-delivery` |
-| M6 | HD 後端（Codex） | HD 規格（待寫） |
+| M6 | HD 後端（Codex） | 016 內部解析度／濾鏡／PGXP、017 寬螢幕、018 材質替換；各階段狀態見 000 索引，不再以早期的規格待寫判定現況 |
 | M7 | oracle API：RunUntil、RAM 讀寫、輸入重播、即時存檔 | 附 `go test` 範例 |
 
 M3 之後的關鍵路徑是 匯流排＋DMA＋GPU 2D → CD-ROM → SPU／XA。《月下》以 2D 為主，

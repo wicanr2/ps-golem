@@ -35,10 +35,10 @@ func (g *GPU) OutputScreen() *image.RGBA {
 	return g.Screen()
 }
 
-// OutputScreenInto 同 OutputScreen；沒有影子時重用 dst 的記憶體（見 ScreenInto）。
+// OutputScreenInto 同 OutputScreen；重用相容的後備緩衝（016 §8）。
 func (g *GPU) OutputScreenInto(dst *image.RGBA) *image.RGBA {
 	if g.shadow != nil {
-		return g.shadow.Screen()
+		return g.shadow.ScreenInto(dst)
 	}
 	return g.ScreenInto(dst)
 }
@@ -63,4 +63,29 @@ func HDShift(n int) (uint, bool) {
 		return 3, true
 	}
 	return 0, false
+}
+
+// TextureField 只將 field 編號附送呈現層，不改原生 GPU 狀態。
+func (g *GPU) TextureField(field uint64) {
+	if g.shadow != nil {
+		g.shadow.TextureField(field)
+	}
+}
+
+// RequestOutputScreen 非同步取得 HD 畫面；未掛影子時回傳 false，呼叫者改用同步原生路徑。
+func (g *GPU) RequestOutputScreen(dst *image.RGBA, fn func(*image.RGBA)) bool {
+	if g.shadow == nil {
+		return false
+	}
+	g.shadow.RequestScreen(dst, fn)
+	return true
+}
+
+// RequestFence 在影子命令邊界通知完成；原生同步路徑回傳 false，不呼叫 fn。
+func (g *GPU) RequestFence(fn func()) bool {
+	if g.shadow == nil {
+		return false
+	}
+	g.shadow.Fence(fn)
+	return true
 }

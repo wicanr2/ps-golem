@@ -12,7 +12,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 case "${1:-go}" in
   go)       IMAGE="${PSGOLEM_GO_IMAGE:-psgolem-go-ebiten:1.24-r1}"; DF=go-ebiten.Dockerfile ;;
   osxcross) IMAGE="${PSGOLEM_MAC_IMAGE:-psgolem-osxcross:1.24-15.5-r1}"; DF=osxcross-go.Dockerfile ;;
-  wine)     IMAGE="${PSGOLEM_WINE_IMAGE:-psgolem-wine-verify:noble-r1}"; DF=wine-verify.Dockerfile ;;
+  wine)     IMAGE="${PSGOLEM_WINE_IMAGE:-psgolem-wine-verify:noble-r2}"; DF=wine-verify.Dockerfile ;;
   mednafen) IMAGE="${PSGOLEM_MEDNAFEN_IMAGE:-psgolem-oracle-mednafen:bookworm-r1}"; DF=oracle-mednafen.Dockerfile ;;
   *) echo "用法：build_image.sh [go|osxcross|wine|mednafen]" >&2; exit 2 ;;
 esac

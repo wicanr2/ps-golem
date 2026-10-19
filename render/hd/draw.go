@@ -52,6 +52,8 @@ func (g *Renderer) drawSpriteCmd(cb []uint32) {
 }
 
 func (g *Renderer) drawSprite(xArg, yArg, w, h int32, uArg, vArg uint8, color uint32, textured, modulate bool, mode int) {
+	// 007 §9：固定零抖色偏移時，128 強度對全部 16 位元 texel 都是恆等。
+	modulate = modulate && color&0xffffff != 0x808080
 	r := color & 0xFF
 	gg := (color >> 8) & 0xFF
 	b := (color >> 16) & 0xFF
@@ -88,13 +90,18 @@ func (g *Renderer) drawSprite(xArg, yArg, w, h int32, uArg, vArg uint8, color ui
 	if yBound > g.clipY1+1 {
 		yBound = g.clipY1 + 1
 	}
+	if g.rasterSprite(xStart, yStart, xBound, yBound, u, v, uInc, vInc, r, gg, b, textured, modulate, mode) {
+		return
+	}
+	g.rasterCPUPrimitive()
 	for y := yStart; y < yBound; y++ {
 		ur := u
 		if !g.lineSkip(uint32(y)) {
 			for x := xStart; x < xBound; x++ {
 				if textured {
 					t := g.getTexel(g.texMode, uint32(ur), uint32(v))
-					if t != 0 {
+					hd := g.textures != nil && g.drawHDTexturePixel(x, y, uint32(ur), uint32(v), uInc, vInc, r, gg, b, modulate, mode)
+					if !hd && t != 0 {
 						if modulate {
 							// sprite 不抖色：固定用 [2][*][3]，偏移為 0
 							t = g.modTexel(2, 3, t, r, gg, b)

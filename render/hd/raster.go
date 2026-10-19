@@ -85,6 +85,9 @@ func (g *Renderer) updateCLUT(raw uint32, tm uint32) {
 	for i := uint32(0); i < need; i++ {
 		g.clutCache[i] = g.texel((cxo+i)&0x3FF, y)
 	}
+	if g.textures != nil {
+		clear(g.textures.clutValid[:])
+	}
 	g.clutCacheVB = addr
 	g.clutCacheN = need
 }
@@ -110,6 +113,9 @@ func (g *Renderer) getTexel(tm uint32, u, v uint32) uint16 {
 		cx := fx &^ 3
 		for i := uint32(0); i < 4; i++ {
 			c.data[i] = g.texel(cx+i, fy)
+			if g.textures != nil {
+				g.textures.setCachedOrigin(&c.origin[i], g.textures.origins[(fy&511)*1024+cx+i])
+			}
 		}
 		c.tag = line
 	}
@@ -149,6 +155,9 @@ func (g *Renderer) plotScaled(x, y int32, fore uint16, mode int, textured bool) 
 	}
 	if !textured {
 		fore &= 0x7fff
+	}
+	if g.textures != nil {
+		g.textures.setOrigin((uy>>g.shift)*1024+(ux>>g.shift), textureOrigin{})
 	}
 	g.VRAM[idx] = fore | g.maskSetOR
 	g.markSideDraw()

@@ -13,6 +13,7 @@ import (
 
 	"github.com/wicanr2/ps-golem/internal/padscript"
 	"github.com/wicanr2/ps-golem/machine"
+	"github.com/wicanr2/ps-golem/render/hdgpu"
 )
 
 // fieldCycleLimit 是一次 Update 最多跑的週期數（約 2 個 NTSC field），顯示關閉時也不會卡住（012 §3）。
@@ -38,16 +39,20 @@ type Config struct {
 	// Stats 為 true 時每 600 個 field 在標準錯誤印出實際 FPS 與每個 field 的模擬耗時。
 	Stats bool
 	// Filter 是 none 或 xbr，只影響呈現。
-	Filter     string
-	Widescreen bool
+	Filter      string
+	Widescreen  bool
+	Gamepad     *GamepadSettings
+	SaveGamepad func(GamepadSettings) error
 }
 
 // Game 實作 ebiten.Game。
 type Game struct {
-	cfg  Config
-	sess *Session
-	m    *machine.Machine
-	emu  *emulator
+	closing  bool
+	hasDrawn bool
+	cfg      Config
+	sess     *Session
+	m        *machine.Machine
+	emu      *emulator
 	// 設定畫面（012 §9）：m 為 nil 時顯示。
 	biosPath, cuePath, setupErr string
 	text                        *eb.Image
@@ -58,9 +63,16 @@ type Game struct {
 	canvas                      *eb.Image
 	updates                     int
 	finishing                   bool
+	finishDrawn                 bool
 	err                         error
 	stream                      *pcmStream
 	xbr                         *eb.Shader
+	controller                  GamepadSettings
+	waitInputRelease            bool
+	pads                        []padSnapshot
+	padUI                       controllerPanel
+	uiFont                      *bitmapUIFont
+	viewSize                    image.Point
 }
 
 // Run 開視窗並執行到關閉。
@@ -69,6 +81,15 @@ func Run(cfg Config) error {
 		cfg.Scale = 3
 	}
 	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath}
+	g.controller = DefaultGamepadSettings()
+	if cfg.Gamepad != nil {
+		if err := cfg.Gamepad.Validate(); err != nil {
+			fmt.Fprintln(os.Stderr, "psgolem：手把設定：", err)
+		} else {
+			g.controller = cfg.Gamepad.Clone()
+		}
+	}
+	g.padUI.capture = -1
 	if cfg.Filter != "" && cfg.Filter != "none" && cfg.Filter != "xbr" {
 		return fmt.Errorf("未知濾鏡 %q", cfg.Filter)
 	}
@@ -94,12 +115,14 @@ func Run(cfg Config) error {
 	} else {
 		eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)
 	}
+	eb.SetWindowClosingHandled(true)
 	eb.SetWindowResizingMode(eb.WindowResizingModeEnabled)
 	eb.SetTPS(60)
 	// 畫面沒有新內容時 Draw 直接返回，保留上一次的畫面（012 §4）。
 	eb.SetScreenClearedEveryFrame(false)
 	g.tryOpen()
 	err := eb.RunGame(g)
+	hdgpu.Cancel()
 	if g.emu != nil {
 		g.emu.halt()
 		if g.emu.err != nil && err == nil {
@@ -117,6 +140,9 @@ func Run(cfg Config) error {
 	if errors.Is(err, eb.Termination) {
 		err = nil
 	}
+	if cfg.Stats && g.m != nil && g.emu != nil {
+		fmt.Fprintf(os.Stderr, "stats final_field=%d final_frame=%d shown_frame=%d final_drawn=%t\n", g.m.Field(), g.emu.frameNumber(), g.frameNo, g.finishDrawn)
+	}
 	if err == nil {
 		err = g.err
 	}
@@ -125,7 +151,41 @@ func Run(cfg Config) error {
 
 // Update 讀輸入交給模擬 goroutine；結束條件成立時多等一次 Draw 再存截圖並結束。
 func (g *Game) Update() error {
+	gpuWait := g.emu != nil && g.hasDrawn && !g.emu.parked.Load()
+	if g.emu != nil {
+		select {
+		case <-g.emu.done:
+			gpuWait = false
+		default:
+		}
+	}
+	hdgpu.Service(gpuWait)
+	if eb.IsWindowBeingClosed() {
+		g.closing = true
+	}
+	if g.closing {
+		if g.emu != nil {
+			g.emu.requestStop()
+			select {
+			case <-g.emu.done:
+			default:
+				return nil
+			}
+		}
+		return eb.Termination
+	}
 	if g.finishing {
+		if g.emu != nil {
+			g.emu.requestStop()
+			select {
+			case <-g.emu.done:
+			default:
+				return nil
+			}
+		}
+		if !g.finishDrawn {
+			return nil
+		}
 		if g.cfg.Screenshot != "" && g.canvas != nil {
 			if err := savePNG(g.canvas, g.cfg.Screenshot); err != nil {
 				g.err = err
@@ -133,6 +193,7 @@ func (g *Game) Update() error {
 		}
 		return eb.Termination
 	}
+	g.updateControllerUI()
 	g.updates++
 	if g.cfg.Frames > 0 && g.updates >= g.cfg.Frames {
 		g.finishing = true
@@ -149,34 +210,63 @@ func (g *Game) Update() error {
 		g.finishing = true
 	default:
 	}
-	g.emu.buttons.Store(uint32(buttons(eb.IsKeyPressed, eb.AppendGamepadIDs(nil), eb.IsStandardGamepadButtonPressed)))
+	if g.padUI.open {
+		g.emu.buttons.Store(0)
+	} else {
+		g.emu.buttons.Store(uint32(g.filterGameplayInput(buttons(eb.IsKeyPressed, nil, nil) | controllerButtons(g.controller, g.pads))))
+	}
+	if g.hasDrawn && (g.stream == nil || playbackReady()) {
+		g.emu.start()
+	}
 	return nil
 }
 
 // Draw 把目前顯示的畫面依 4:3 縮放到視窗中央。
 func (g *Game) Draw(screen *eb.Image) {
+	defer func() { g.hasDrawn = true }()
+	g.viewSize = screen.Bounds().Size()
+	if g.padUI.visible || g.padUI.open {
+		g.shown = image.Point{}
+	}
+	g.drawGame(screen)
+	g.drawControllerUI(screen)
+	if g.cfg.Screenshot != "" && g.finishing {
+		g.keepCanvas(screen)
+	}
+	if g.finishing {
+		g.finishDrawn = true
+	}
+}
+
+func (g *Game) drawGame(screen *eb.Image) {
 	if g.m == nil {
 		screen.Clear()
 		g.drawSetup(screen)
-		g.keepCanvas(screen)
 		return
-	}
-	img, no := g.emu.frame()
-	if img == nil {
-		return
-	}
-	b := img.Bounds()
-	if g.frame == nil || g.frame.Bounds().Size() != b.Size() {
-		g.frame = eb.NewImage(b.Dx(), b.Dy())
-		g.frameNo = 0
 	}
 	sb := screen.Bounds()
-	if no == g.frameNo && sb.Size() == g.shown {
+	var b image.Rectangle
+	changed := false
+	g.emu.useFrame(func(img *image.RGBA, no uint64) {
+		if img == nil {
+			return
+		}
+		b = img.Bounds()
+		if g.frame == nil || g.frame.Bounds().Size() != b.Size() {
+			g.frame = eb.NewImage(b.Dx(), b.Dy())
+			g.frameNo = 0
+		}
+		if no == g.frameNo && sb.Size() == g.shown {
+			return
+		}
+		if no != g.frameNo {
+			g.frame.WritePixels(img.Pix)
+			g.frameNo = no
+		}
+		changed = true
+	})
+	if !changed {
 		return
-	}
-	if no != g.frameNo {
-		g.frame.WritePixels(img.Pix)
-		g.frameNo = no
 	}
 	g.shown = sb.Size()
 	screen.Clear()
@@ -195,9 +285,6 @@ func (g *Game) Draw(screen *eb.Image) {
 		screen.DrawRectShader(b.Dx(), b.Dy(), g.xbr, shaderOp)
 	} else {
 		screen.DrawImage(g.frame, op)
-	}
-	if g.cfg.Screenshot != "" {
-		g.keepCanvas(screen)
 	}
 }
 

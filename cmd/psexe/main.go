@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"flag"
 	"fmt"
 	"image/png"
@@ -17,6 +18,7 @@ import (
 	"github.com/wicanr2/ps-golem/internal/disc"
 	"github.com/wicanr2/ps-golem/internal/gpu"
 	"github.com/wicanr2/ps-golem/machine"
+	"github.com/wicanr2/ps-golem/render/hd"
 )
 
 // version 由 tools/build_dist.sh 以 -ldflags "-X main.version=..." 寫入。
@@ -43,15 +45,19 @@ func main() {
 	pressSpec := flag.String("press", "", "按鍵腳本 FIELD:BTN[+BTN][:DUR],...（FIELD 為 VBlank 次數）")
 	showVersion := flag.Bool("version", false, "印出版號後結束")
 	hdFlag := flag.Int("hd", 0, "影子 GPU 倍率：0、1、2、4、8；0 停用")
+	perspectiveFlag := flag.Bool("texture-perspective", false, "HD 3D貼圖透視校正；需要 -hd 2以上及 -pgxp")
 	pgxpFlag := flag.Bool("pgxp", false, "啟用 PGXP 次像素精度，需要 -hd 2、4 或 8")
 	wideFlag := flag.Bool("widescreen", false, "月下寬螢幕遊戲修改模式；只供截圖，不產生摘要")
+	texturesFlag := flag.String("textures", "", "HD 素材包目錄")
+	dumpFlag := flag.String("dump-textures", "", "結束時傾印到新的本機目錄")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
 		return
 	}
 	wideEnabled = *wideFlag
-	if wideEnabled && *hdFlag == 0 {
+	texturePath, dumpPath = *texturesFlag, *dumpFlag
+	if (wideEnabled || texturePath != "" || dumpPath != "") && *hdFlag == 0 {
 		*hdFlag = 1
 	}
 	if _, ok := gpu.HDShift(*hdFlag); !ok {
@@ -64,6 +70,11 @@ func main() {
 		os.Exit(2)
 	}
 	pgxpEnabled = *pgxpFlag
+	texturePerspectiveEnabled = *perspectiveFlag
+	if texturePerspectiveEnabled && (*hdFlag < 2 || !pgxpEnabled) {
+		fmt.Fprintln(os.Stderr, "psexe：-texture-perspective 需要 -hd 2、4 或 8 及 -pgxp")
+		os.Exit(2)
+	}
 	if *cpuProf != "" {
 		f, err := os.Create(*cpuProf)
 		if err != nil {
@@ -91,7 +102,22 @@ func main() {
 	}
 }
 
-func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bool) error {
+func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bool) (runErr error) {
+	var pack *hd.TexturePack
+	if texturePath != "" {
+		var err error
+		pack, err = hd.LoadTexturePack(texturePath)
+		if err != nil {
+			return fmt.Errorf("素材包：%w", err)
+		}
+	}
+	var dump *hd.TextureDump
+	if dumpPath != "" {
+		if err := hd.CheckTextureDumpDirectory(dumpPath); err != nil {
+			return err
+		}
+		dump = hd.NewTextureDump()
+	}
 	bios, err := os.ReadFile(biosPath)
 	if err != nil {
 		return err
@@ -103,12 +129,27 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 	m.ExactTiming = exactTiming
 	if hdScale != 0 {
 		shift, _ := gpu.HDShift(hdScale)
-		shadow := gpu.NewShadow(shift)
+		shadow := hd.NewShadowWithTextures(shift, pack, dump)
+		shadow.SetTexturePerspective(texturePerspectiveEnabled)
 		if wideEnabled {
 			shadow.SetSideMargin(48)
 		}
 		m.GPU.SetShadow(shadow)
-		defer func() { m.DisablePGXP(); m.GPU.SetShadow(nil); shadow.Close() }()
+		defer func() {
+			var stats hd.TextureStats
+			if texturePath != "" || dump != nil {
+				stats = shadow.TextureStats()
+			}
+			m.DisablePGXP()
+			m.GPU.SetShadow(nil)
+			shadow.Close()
+			if dump != nil {
+				runErr = errors.Join(runErr, dump.WriteDirectory(dumpPath))
+			}
+			if texturePath != "" || dump != nil {
+				fmt.Fprintf(os.Stderr, "psexe：材質上傳=%d 查詢=%d 命中=%d 替換取樣=%d\n", stats.Uploads, stats.Lookups, stats.Hits, stats.ReplacedSamples)
+			}
+		}()
 	}
 	if pgxpEnabled {
 		if err := m.EnablePGXP(); err != nil {
@@ -204,16 +245,18 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 }
 
 var (
-	ramPath, cue, card       string
-	screenOut, shotsDir      string
-	shotStep, fieldLimit     uint64
-	exactTiming, printDigest bool
-	wavOut                   string
-	wavPCM                   []int16
-	presses                  []press
-	hdScale                  int
-	pgxpEnabled              bool
-	wideEnabled              bool
+	ramPath, cue, card        string
+	screenOut, shotsDir       string
+	shotStep, fieldLimit      uint64
+	exactTiming, printDigest  bool
+	wavOut                    string
+	wavPCM                    []int16
+	presses                   []press
+	hdScale                   int
+	pgxpEnabled               bool
+	texturePerspectiveEnabled bool
+	wideEnabled               bool
+	texturePath, dumpPath     string
 )
 
 func writeScreen(m *machine.Machine, path string) error {
@@ -244,6 +287,7 @@ func runCycles(m *machine.Machine, n uint64) error {
 			fmt.Fprintf(os.Stderr, "speed field=%d %.1fM 週期/秒（實機 %.2f 倍）\n", f, rate/1e6, rate/33868800)
 			lastT, lastC = now, m.Cycles()
 		}
+		m.GPU.TextureField(m.Field())
 		reached := m.RunUntilField(f, left)
 		if reached && wide != nil {
 			if err := wide.Check(m); err != nil {

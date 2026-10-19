@@ -12,7 +12,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `005-cross-platform-delivery.md` | READY（實作完成，macOS 待實機） | 三平台在 Linux docker 內建置與打包 |
 | `006-minimal-machine.md` | CONFORMED | 匯流排、BIOS 開機、PS-EXE 側載、TTY；週邊台帳 |
 | `007-gpu-and-dma.md` | READY（實作中） | GPU 原生光柵化、DMA2；M3 台帳 |
-| `008-cycle-model.md` | CONFORMED | 取指令、讀取、乘除法、GTE 的週期成本 |
+| `008-cycle-model.md` | CONFORMED（含 §7–8 等價優化；速度未過） | 取指令、讀取、乘除法、GTE 的週期成本 |
 | `009-cdrom.md` | CONFORMED | cue／bin、CD-ROM 控制器、DMA3 |
 | `010-pad-and-memcard.md` | READY（手把完成） | SIO0、數位手把、記憶卡、按鍵腳本 |
 | `011-mdec.md` | READY（實作完成，台帳見 §7） | MDEC 動畫解碼、DMA0／1 |
@@ -22,6 +22,11 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `015-sotn-autoplay.md` | DRAFT（M4 驗收完成，見 §7） | 《月下》RAM 位址台帳、Clone 搜尋自動遊玩、M4 驗收 |
 | `016-hd-output.md` | READY（第 1、2、3 階段實作完成，驗收見 §7） | 影子 GPU 內部解析度放大、xBR 濾鏡、PGXP；寬螢幕見 017 |
 | `017-sotn-widescreen.md` | READY（實作與指定驗收完成，平台限制見 §7） | 《月下》寬螢幕：遊戲修改模式（圖塊繪製改動＋影子 GPU 側邊畫布） |
+| `018-hd-texture-replacement.md` | CONFORMED（既有素材鏈）；§4.1 快取 READY | 上傳辨識、傾印、索引／全彩素材包、子貼素與來源／快取追蹤 |
+| `019-hd-texture-pack.md` | CONFORMED（僅載入器層） | HD manifest v1、索引 PNG、全彩 PNG 與 STP 遮罩的載入與驗證 |
+| `020-gamepad-toolbar.md` | READY（實作與隔離驗收完成，實體手把待真機） | 自動隱藏工具列、USB／已配對藍芽手把設定、指派、死區與即時測試 |
+| `021-hd-gpu-renderer.md` | READY（GPU功能已驗證，速度未過） | 使用者要求HD繪圖交給GPU；整數像素後端、CPU／GPU相依與等價驗收 |
+| `022-hd-texture-perspective.md` | CONFORMED（限Linux功能及序章抽樣） | HD選用深度追蹤、透視取樣、保守回退與設定保存 |
 
 狀態定義：
 

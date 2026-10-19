@@ -1,6 +1,7 @@
 """005 §8 的容器內組包與內容檢查，由 build_local.sh 呼叫。只用 Python 標準函式庫。"""
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import struct
@@ -43,7 +44,8 @@ def icon(path):
 def prepare(ver, stage, out):
     source = Path("workplace") / f"stage-{ver}"
     stage.mkdir()
-    out.mkdir()
+    if not out.is_dir():
+        raise RuntimeError("缺少 build_dist 的乾淨封包目錄")
     app = stage / "AppDir"
     (app / "usr/bin").mkdir(parents=True)
     for cmd in ("psgolem", "psexe"):
@@ -53,12 +55,14 @@ def prepare(ver, stage, out):
     (app / "ps-golem.desktop").write_text("[Desktop Entry]\nType=Application\nName=ps-golem\nExec=psgolem\nIcon=ps-golem\nCategories=Game;Emulator;\nTerminal=false\n")
     icon(app / "ps-golem.png")
     shutil.copy2("LICENSE", app / "LICENSE")
+    shutil.copy2("frontend/ebiten/ui-font-OFL.txt", app / "UI-FONT-LICENSE.txt")
     shutil.copy2("workplace/appimage/type2-runtime-LICENSE", app / "APPIMAGE-LICENSE.txt")
     for platform in ("linux", "windows", "macos"):
         root = stage / platform / "ps-golem"
         root.mkdir(parents=True)
         for name in ("LICENSE", "README.md"):
             shutil.copy2(name, root / name)
+        shutil.copy2("frontend/ebiten/ui-font-OFL.txt", root / "UI-FONT-LICENSE.txt")
         (root / "docs").mkdir()
         shutil.copy2("docs/play.md", root / "docs/play.md")
         (root / "settings.json").write_text(json.dumps(DEFAULTS, indent=2) + "\n")
@@ -66,7 +70,10 @@ def prepare(ver, stage, out):
             (root / directory).mkdir()
             # Windows 說明檔帶 BOM 與 CRLF；其他平台亦可讀。
             (root / directory / "放這裡.txt").write_bytes(b"\xef\xbb\xbf" + (text + "\r\n").encode("utf-8"))
-        if platform == "windows":
+        if platform == "linux":
+            for name in ("psgolem", "psexe"):
+                shutil.copy2(source / platform / name, root / name)
+        elif platform == "windows":
             for name in ("psgolem.exe", "psexe.exe"):
                 shutil.copy2(source / platform / name, root / name)
         elif platform == "macos":
@@ -105,7 +112,7 @@ def finish(ver, stage, out):
                 assert names == [f"ps-golem/{folder}/放這裡.txt"]
                 assert z.read(names[0]).startswith(b"\xef\xbb\xbf")
             inventory[archive.name] = entries
-    files = sorted(p for p in out.iterdir() if p.suffix in (".zip", ".AppImage"))
+    files = sorted(p for p in out.iterdir() if p.suffix in (".zip", ".AppImage") or p.name.endswith(".tar.gz"))
     sums, manifest = [], []
     for p in files:
         digest = hashlib.sha256(p.read_bytes()).hexdigest()
@@ -113,15 +120,15 @@ def finish(ver, stage, out):
         manifest.append({"file": p.name, "size": p.stat().st_size, "sha256": digest})
     (out / "SHA256SUMS").write_text("".join(sums))
     (out / "manifest.json").write_text(json.dumps({"version": ver, "rights": "不含原版素材；本機驗收，未發布", "packages": manifest}, ensure_ascii=False, indent=2) + "\n")
-    evidence = Path("workplace/local-pack")
-    evidence.mkdir(exist_ok=True)
+    evidence = Path("workplace/local-pack") / ver
+    evidence.mkdir(parents=True,exist_ok=True)
     (evidence / "packages.json").write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(manifest, indent=2))
     print("三個 ZIP：CRC、頂層、預設設定、空素材目錄、UTF-8、素材排除通過")
 
 
 def smoke(ver, stage, out):
-    dest = Path("workplace/local-pack/smoke")
+    dest = Path("workplace/local-pack") / ver / "smoke"
     dest.mkdir()
     with zipfile.ZipFile(out / f"ps-golem-{ver}-local-linux.zip") as z:
         for i in z.infolist():
@@ -129,6 +136,8 @@ def smoke(ver, stage, out):
         z.extractall(dest)
     root = dest / "ps-golem"
     (root / f"ps-golem-{ver}-x86_64.AppImage").chmod(0o755)
+    for cmd in ("psgolem", "psexe"):
+        (root / cmd).chmod(0o755)
     # 提前用目前 UID 建立唯讀 bind mount 的檔案目標，避免 dockerd 代建。
     for name in ("bios/SCPH5500.BIN", "disc/sotn.cue", "disc/sotn.bin"):
         (root / name).touch()
@@ -136,7 +145,7 @@ def smoke(ver, stage, out):
 
 
 def check_image(ver, stage, out):
-    extracted = Path("workplace/local-pack/smoke/extracted/squashfs-root")
+    extracted = Path("workplace/local-pack") / ver / "smoke/extracted/squashfs-root"
     for p in extracted.rglob("*"):
         if p.is_symlink():
             assert p.name == ".DirIcon" and p.resolve() == (extracted / "ps-golem.png").resolve(), p
@@ -156,6 +165,8 @@ def check_image(ver, stage, out):
 
 if __name__ == "__main__":
     action, version = sys.argv[1:]
+    if not re.fullmatch(r"v\.[0-9]+\.[0-9]+\.[0-9]+-[0-9]{8}",version):
+        raise SystemExit("完整版號格式 v.X.Y.Z-YYYYMMDD")
     staging = Path("workplace") / f"stage-{version}-local"
-    output = Path("dist") / f"{version}-local"
+    output = Path("dist-all") / version / "patch"
     {"prepare": prepare, "finish": finish, "smoke": smoke, "check-image": check_image}[action](version, staging, output)

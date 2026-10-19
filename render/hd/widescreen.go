@@ -2,7 +2,6 @@ package hd
 
 import (
 	"image"
-	"image/draw"
 )
 
 // sideCanvas 以完整 E3／E4 矩形作索引。像素不在 VRAM，貼圖與傳輸不會讀寫它。
@@ -137,23 +136,19 @@ func (g *Renderer) fillSides(x, y, w, h uint32, fill uint16) {
 
 // wideScreen 在原畫面外接上側邊，再取中央 16:9 範圍。
 // 動畫或找不到對應繪圖區時，左右維持黑色。
-func (g *Renderer) wideScreen(src *image.RGBA) *image.RGBA {
+// wideWidth 保留既有 256 寬特例與其他解析度的補黑比例。
+func (g *Renderer) wideWidth(w int) int {
 	n := 1 << g.shift
-	w, h := src.Bounds().Dx(), src.Bounds().Dy()
-	// 256 寬時取規格的 342；其他解析度按相同比例補黑。
-	target := ((w/n*4 + 2) / 3) * n
 	if w/n == 256 {
-		target = 342 * n
+		return 342 * n
 	}
-	out := image.NewRGBA(image.Rect(0, 0, target, h))
-	for i := 3; i < len(out.Pix); i += 4 {
-		out.Pix[i] = 255
-	}
-	xoff := (target - w) / 2
-	draw.Draw(out, image.Rect(xoff, 0, xoff+w, h), src, image.Point{}, draw.Src)
-	if g.displayMode&0x10 != 0 {
-		return out
-	}
+	return ((w/n*4 + 2) / 3) * n
+}
+
+// paintSides 在已完成的中央畫面兩側寫入目前選區。
+func (g *Renderer) paintSides(out *image.RGBA, xoff, w int) {
+	n := 1 << g.shift
+	h := out.Rect.Dy()
 	var selected *sideCanvas
 	for _, a := range g.sides {
 		yoff := (int(a.rect[1]) - int(g.displayYStart)) * n
@@ -174,7 +169,6 @@ func (g *Renderer) wideScreen(src *image.RGBA) *image.RGBA {
 			}
 		}
 	}
-	return out
 }
 
 func putRGB(img *image.RGBA, x, y int, v uint16) {

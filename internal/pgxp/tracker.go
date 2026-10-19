@@ -5,11 +5,16 @@
 // commit e57860d82faa953dc0fc10f201fd583739bc2f7d。
 package pgxp
 
+import "math"
+
 // Value 的兩個旗標分別對應低、高半字；只有兩者有效才能當作頂點。
 type Value struct {
-	X, Y  float32
-	Raw   uint32
-	Flags uint8
+	X, Y             float32
+	Z                float32
+	depthX, depthY   uint64
+	depthZX, depthZY float32
+	Raw              uint32
+	Flags            uint8
 }
 
 const (
@@ -20,13 +25,22 @@ const (
 
 func (v Value) Valid(raw uint32) bool { return v.Flags == ValidXY && v.Raw == raw }
 
+func (v *Value) refreshDepth() {
+	v.Z = 0
+	if v.Flags == ValidXY && v.depthX != 0 && v.depthX == v.depthY && v.depthZX == v.depthZY && v.depthZX > 0 {
+		v.Z = v.depthZX
+	}
+}
 func checked(v Value, raw uint32) Value {
 	if uint16(v.Raw) != uint16(raw) {
 		v.Flags &^= ValidX
+		v.depthX = 0
 	}
 	if uint16(v.Raw>>16) != uint16(raw>>16) {
 		v.Flags &^= ValidY
+		v.depthY = 0
 	}
+	v.refreshDepth()
 	return v
 }
 
@@ -38,13 +52,14 @@ type delayed struct {
 
 // Tracker 只由機器執行緒使用；送進影子 GPU 的 Value 一律按值複製。
 type Tracker struct {
-	ram        []Value
-	scratch    [256]Value
-	port       Value
-	regs       [32]Value
-	loads      [32]delayed
-	gte        [64]Value
-	RTPS, RTPT uint64
+	ram         []Value
+	scratch     [256]Value
+	port        Value
+	regs        [32]Value
+	loads       [32]delayed
+	gte         [64]Value
+	RTPS, RTPT  uint64
+	depthSerial uint64
 }
 
 func New() *Tracker { return &Tracker{ram: make([]Value, 2<<20/4)} }
@@ -104,12 +119,16 @@ func (t *Tracker) Load(rt, addr, raw, op uint32, now, ready uint64) {
 	case 0x21, 0x25:
 		if p := t.memory(addr); p != nil {
 			v = *p
+			v.Z = 0
 			if addr&2 != 0 {
 				v.X, v.Flags, v.Raw = v.Y, (v.Flags>>1)&1, v.Raw>>16
+				v.depthX, v.depthZX = v.depthY, v.depthZY
 			}
 			if uint16(v.Raw) != uint16(raw) {
 				v.Flags = 0
+				v.depthX = 0
 			}
+			v.depthY, v.depthZY = 0, 0
 			v.Y = 0
 			if op == 0x21 && int32(raw) < 0 {
 				v.Y = -1
@@ -130,14 +149,19 @@ func (t *Tracker) store(addr uint32, v Value, raw, op uint32) {
 	case 0x28:
 		*p = Value{}
 	case 0x29:
+		p.Z = 0
 		if uint16(v.Raw) != uint16(raw) {
 			v.Flags &^= ValidX
+			v.depthX = 0
 		}
 		if addr&2 == 0 {
+			p.depthX, p.depthZX = v.depthX, v.depthZX
 			p.X, p.Raw, p.Flags = v.X, p.Raw&0xffff0000|raw&0xffff, p.Flags&ValidY|v.Flags&ValidX
 		} else {
+			p.depthY, p.depthZY = v.depthX, v.depthZX
 			p.Y, p.Raw, p.Flags = v.X, p.Raw&0xffff|(raw&0xffff)<<16, p.Flags&ValidX|(v.Flags&ValidX)<<1
 		}
+		p.refreshDepth()
 	default:
 		*p = checked(v, raw)
 	}
@@ -200,7 +224,7 @@ func (t *Tracker) StoreCOP2(reg int, addr, raw uint32) {
 	t.store(addr, t.readGTE(reg, raw), raw, 0x2b)
 }
 
-// Projected 對應 PGXP_pushSXYZ2f；只保留本階段需要的 XY。
+// Projected 保留既有只有 XY 的觀測介面；深度由 ProjectedDepth 提供。
 func (t *Tracker) Projected(x, y float32, raw uint32, vertex int, last bool) {
 	if vertex == 0 {
 		if last {
@@ -211,4 +235,34 @@ func (t *Tracker) Projected(x, y float32, raw uint32, vertex int, last bool) {
 	}
 	v := Value{X: x, Y: y, Raw: raw, Flags: ValidXY}
 	t.gte[12], t.gte[13], t.gte[14], t.gte[15] = t.gte[13], t.gte[14], v, v
+}
+
+// ProjectedDepth 按022保存呈現用深度與唯一來源，不改機器狀態。
+func (t *Tracker) ProjectedDepth(x, y, z float32, raw uint32, vertex int, last bool) {
+	t.Projected(x, y, raw, vertex, last)
+	t.depthSerial++
+	if t.depthSerial == 0 {
+		panic("PGXP depth provenance exhausted")
+	}
+	if z > 0 && !math.IsInf(float64(z), 0) {
+		v := &t.gte[14]
+		v.Z = z
+		v.depthX = t.depthSerial
+		v.depthY = t.depthSerial
+		v.depthZX = z
+		v.depthZY = z
+		t.gte[15] = *v
+	}
+}
+
+func (t *Tracker) RepeatRAMCountdown(rt, counterAddress, pollAddress, initialCounter, pollValue uint32, now, iterations uint64) {
+	// 保留全部原始 PGXP 回呼及時間戳；不讀原生 RAM，也不省略 metadata 狀態轉移。
+	for i := uint64(0); i < iterations; i++ {
+		value := initialCounter - uint32(i)
+		at := now + i*26
+		t.Load(rt, counterAddress, value, 0x23, at, at+5)
+		t.Store(rt, counterAddress, value-1, 0x2b, at+7)
+		t.Load(rt, counterAddress, value-1, 0x23, at+8, at+13)
+		t.Load(rt, pollAddress, pollValue, 0x23, at+17, at+22)
+	}
 }

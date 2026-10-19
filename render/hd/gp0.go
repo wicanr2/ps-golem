@@ -4,7 +4,10 @@
 // 本套光柵化只寫影子 VRAM，不參與機器狀態與時序。規格：016-hd-output §2–3。
 package hd
 
-import "github.com/wicanr2/ps-golem/internal/pgxp"
+import (
+	"github.com/wicanr2/ps-golem/internal/pgxp"
+	"image"
+)
 
 // cmdLen 回傳 GP0 命令的字數（含命令字）。折線回傳第一段的長度。
 func cmdLen(cmd uint32) int {
@@ -194,6 +197,10 @@ func (g *Renderer) fbFill(cb []uint32) {
 }
 
 func (g *Renderer) fbCopy(cb []uint32) {
+	if g.raster != nil {
+		g.syncRaster()
+		g.rasterCPUWrite(image.Rect(0, 0, 1024<<g.shift, 512<<g.shift))
+	}
 	sx := cb[1] & 0x3FF
 	sy := (cb[1] >> 16) & 0x3FF
 	dx := cb[2] & 0x3FF
@@ -207,6 +214,7 @@ func (g *Renderer) fbCopy(cb []uint32) {
 		h = 0x200
 	}
 	g.invalidateTexCache()
+	g.copyTextureOrigins(sx, sy, dx, dy, w, h)
 	sx <<= g.shift
 	sy <<= g.shift
 	dx <<= g.shift
@@ -247,19 +255,23 @@ func (g *Renderer) fbWriteStart(cb []uint32) {
 	g.fbCurX, g.fbCurY = g.fbX, g.fbY
 	g.invalidateTexCache()
 	g.inCmd = inFBWrite
+	g.startTextureUpload()
 }
 
 func (g *Renderer) fbWriteWord(v uint32) {
 	for i := 0; i < 2; i++ {
 		x, y := g.fbCurX&1023, g.fbCurY&511
-		if g.texel(x, y)&g.maskEvalAND == 0 {
+		accepted := g.texel(x, y)&g.maskEvalAND == 0
+		if accepted {
 			g.put(x, y, uint16(v)|g.maskSetOR)
 		}
+		g.observeTextureWord(uint16(v), accepted && uint16(v)|g.maskSetOR == uint16(v))
 		g.fbCurX++
 		if g.fbCurX == g.fbX+g.fbW {
 			g.fbCurX = g.fbX
 			g.fbCurY++
 			if g.fbCurY == g.fbY+g.fbH {
+				g.finishTextureUpload()
 				g.inCmd = inNone
 				return
 			}

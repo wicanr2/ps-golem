@@ -45,13 +45,38 @@ psgolem -hd 2 -filter xbr
 | 參數 | 效果 |
 |---|---|
 | `-hd 0` | 原生解析度，預設值 |
-| `-hd 2`、`-hd 4`、`-hd 8` | 影子 GPU 以指定倍率繪圖，增加記憶體與 CPU 用量 |
+| `-hd 2`、`-hd 4`、`-hd 8` | 以指定倍率繪圖，增加記憶體與運算量 |
+| `-hd-renderer cpu` | CPU HD 繪圖，預設值 |
+| `-hd-renderer gpu` | 實驗性 GPU HD 繪圖，需要有效圖形裝置 |
+| `-hd-renderer auto` | 嘗試建立 GPU HD 裝置；建立失敗時回到 CPU |
 | `-filter none` | 最近鄰縮放，預設值 |
 | `-filter xbr` | xBR-lv2 濾鏡，可與 HD 疊加 |
 
-成功開機後，`hd` 與 `filter` 會存入 `settings.json`。命令列參數優先，可用 `-hd 0 -filter none` 關閉。
+成功開機後，`hd`、`hd_renderer` 與 `filter` 會存入 `settings.json`，下次雙擊沿用。
+例如執行一次 `psgolem -hd 2 -hd-renderer gpu`，之後雙擊即可使用 GPU HD。
+也可在既有設定檔填入 `"hd_renderer": "gpu"`。啟動日誌會顯示實際後端。
+命令列參數優先；用 `-hd-renderer cpu` 回到 CPU，用 `-hd 0 -filter none` 關閉 HD。
+GPU 執行色彩、抖色、半透明及 HD 像素寫入；貼圖快取與精確覆蓋仍由 CPU 準備。
+目前 CPU／GPU 同步成本仍高，GPU 模式尚未通過遊戲速度驗收。
 HD 只影響輸出，存檔與模擬狀態相同。視窗維持 4:3，較寬的視窗左右補黑。
 `psexe -hd N -screen <PNG>` 可擷取放大畫面，`psexe` 不提供 xBR 濾鏡。
+
+## HD 素材包
+
+素材包目錄需包含 `manifest.json` 及對應圖片。啟用一次後會記住路徑，下次雙擊啟動自動載入：
+
+```sh
+psgolem -textures <素材包目錄>
+```
+
+可攜完整版會將包內素材路徑保存為相對路徑，整個資料夾一起搬移仍可使用。
+也可在包根 `settings.json` 的 `textures` 欄位填入素材目錄，之後直接雙擊啟動。
+清空該欄位，或啟動一次 `psgolem -textures=`，即可關閉替換。
+未製作的素材維持原圖；損壞的素材包會回報錯誤。這項功能不改記憶卡與原生遊戲狀態。
+
+素材製作者可用 `-dump-textures <新目錄>`，正常遊玩後關閉程式，保存實際使用過的預覽與中繼資料。
+輸出目錄必須不存在，傾印路徑不會被記住。原版衍生素材只存本機，不加入公開包。
+格式與製作契約見 `018-hd-texture-replacement.md`、`019-hd-texture-pack.md`。
 
 ## 《月下》寬螢幕
 
@@ -76,7 +101,21 @@ psgolem -hd 2 -widescreen
 | L1 R1 L2 R2 | `Q` `W` `1` `3` |
 | START SELECT | `Enter` `Backspace` |
 
-也支援標準手把（Xbox 類配置）。
+### USB 與藍芽手把設定
+
+1. USB 手把先接上電腦。藍芽手把先在作業系統完成配對與連線。
+2. 把滑鼠移到視窗上緣，或按 F1 顯示工具列，再點「手把設定」。
+3. 用裝置列左右箭頭選擇手把。預設「自動」會合併所有已連線手把；也可選「僅鍵盤」。
+4. 點選要修改的 PS 按鍵，再按下手把按鈕或推動搖桿。等待指派時可按 Delete 或 Backspace 清除舊指派，方便交換按鍵。下方可調整死區，查看即時動作、原始按鈕與軸值。
+5. 點「儲存」才套用並記住設定；「取消」或 ESC 放棄本次修改。
+
+工具列平常隱藏，不改遊戲畫面的比例。F1 可以固定顯示工具列，再按一次取消固定。
+設定面板開啟時遊戲暫停；關閉後先放開按鍵，再繼續操作。
+標準手把沿用 Xbox 類配置，左搖桿也可控制方向。沒有標準配置的手把可逐項指派原始按鈕或軸。
+選定手把斷線時保留配置，鍵盤仍可使用；連回後可繼續使用相同模型配置。
+同型手把以目前列舉順序區分，USB 與藍芽若回報不同識別會保存為不同配置。
+
+設定記在同一份 settings.json 的 gamepad 欄位。程式不負責藍芽配對，實際連線狀態由系統提供。
 
 ## 存檔位置
 
@@ -98,17 +137,17 @@ psgolem -hd 2 -widescreen
 
 ## 本機完整版
 
-解開 `ps-golem-v0.5.0-local-<平台>.zip`，進入頂層的 `ps-golem/`：
+解開 `ps-golem-<完整版號>-local-<平台>.zip`，進入頂層的 `ps-golem/`：
 
 1. 把自己的 512 KiB PlayStation BIOS 放進 `bios/`，只放一份。
 2. 把自己的 cue 與所有 bin 放進 `disc/`，只放一份 cue。保留 cue 引用的 bin 檔名。
-3. 雙擊開啟 Linux 的 AppImage、Windows 的 `psgolem.exe`，或 macOS 的 `ps-golem.app`。
+3. 雙擊 Linux 的 `psgolem`、Windows 的 `psgolem.exe`，或 macOS 的 `ps-golem.app`。Linux 也保留 AppImage。
 
-Linux 的 AppImage 需要執行權限；若解壓縮工具沒有保留，先用檔案管理員允許執行。
+Linux 的執行檔與 AppImage 需要執行權限；若解壓縮工具沒有保留，先用檔案管理員允許執行。
 系統需提供 X11、OpenGL 與 ALSA。沒有 FUSE 時可在終端機執行：
 
 ```sh
-./ps-golem-v0.5.0-x86_64.AppImage --appimage-extract-and-run
+./ps-golem-<完整版號>-x86_64.AppImage --appimage-extract-and-run
 ```
 
 包內 `settings.json` 預設開啟 HD 2 倍、PGXP、xBR 與寬螢幕。
@@ -117,3 +156,10 @@ Linux 的 AppImage 需要執行權限；若解壓縮工具沒有保留，先用�
 同類檔案有多個候選或缺檔時顯示設定畫面，可拖入檔案。明確指定的命令列優先於設定檔，再來才是自動尋找。
 記憶卡仍存使用者設定目錄，搬移遊戲資料夾不會搬移記憶卡。包內沒有 BIOS、光碟與記憶卡。
 Windows 本輪只驗封包內容，macOS 只驗執行檔結構，尚待各平台實機確認。
+
+### 3D 貼圖透視校正
+
+以 `-hd 2 -pgxp -texture-perspective` 啟用選用透視取樣，支援 CPU／GPU 兩後端。
+選項保存為 `texture_perspective`，下次雙擊沿用；用 `-texture-perspective=false` 恢復仿射取樣。
+舊設定預設關閉。缺少可靠深度、等深度圖元與精靈保持既有取樣，原生遊戲與記憶卡狀態不變。
+範圍見 [022](spec/022-hd-texture-perspective.md)。完整遊戲覆蓋、效能與候選包更新另驗。

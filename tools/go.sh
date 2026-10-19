@@ -101,5 +101,5 @@ exec timeout "${PSGOLEM_TIMEOUT:-30m}" docker run --rm --init --network "${PSGOL
   -v "$ROOT/workplace/gocache:/gocache" \
   -v "$ROOT/workplace/gomodcache:/gomodcache" \
   -e GOCACHE=/gocache -e GOMODCACHE=/gomodcache \
-  -e HOME=/tmp -e GOFLAGS=-mod=mod \
+  -e HOME=/tmp -e GOFLAGS=-mod=mod -e "GOMAXPROCS=${PSGOLEM_GOMAXPROCS:-2}" -e "LP_NUM_THREADS=${PSGOLEM_LP_THREADS:-2}" \
   "${PASS[@]}" "${MOUNTS[@]}" -w /src "$IMAGE" "${PSGOLEM_GO_CMD:-go}" "$@"

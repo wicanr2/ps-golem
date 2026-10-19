@@ -177,7 +177,11 @@ func (m *Machine) RunUntilField(f uint64, maxCycles uint64) bool {
 		if m.cycles >= end {
 			return false
 		}
+		before := m.CPU.PC()
 		m.Step()
+		if m.field < f && m.CPU.PC() < before {
+			m.tryRAMCountdown(end)
+		}
 	}
 	return true
 }
@@ -511,4 +515,23 @@ func (m *Machine) DebugIO() string {
 	d := &m.io.dma
 	return fmt.Sprintf("I_STAT=%03x I_MASK=%03x DICR=%08x DPCR=%08x CHCR3=%08x CHCR2=%08x CDIRQ=%v",
 		m.io.iStat, m.io.iMask, d.dicr, d.dpcr, d.chcr[3], d.chcr[2], m.CD.IRQ())
+}
+
+func (m *Machine) PollingRAM() []byte { return m.ram[:] }
+func (m *Machine) tryRAMCountdown(end uint64) {
+	if m.ExactTiming || m.MDEC.WaitingClock() || m.io.dma.active(0) || m.io.dma.active(1) {
+		return
+	}
+	limit := min(end, m.deadline)
+	if limit <= m.cycles {
+		return
+	}
+	if n := m.CPU.TryRAMCountdown(limit - m.cycles); n != 0 {
+		m.cycles += n
+		m.pending += n
+		m.mdecPending += n
+		if m.cycles >= m.deadline {
+			m.sync()
+		}
+	}
 }

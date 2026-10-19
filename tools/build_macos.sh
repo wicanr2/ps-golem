@@ -19,8 +19,11 @@ ABS="$(cd "$OUT" && pwd)"
 case "$ABS" in "$ROOT"/*) REL="${ABS#"$ROOT"/}" ;; *) echo "輸出目錄要在 repo 內" >&2; exit 2 ;; esac
 mkdir -p "$ROOT/workplace/gomodcache"
 
+CPUSET=()
+[[ -n "${PSGOLEM_CPUSET:-}" ]] && CPUSET=(--cpuset-cpus "$PSGOLEM_CPUSET")
+
 exec timeout "${PSGOLEM_MAC_TIMEOUT:-1800}" docker run --rm --network none \
-  --memory 6g --cpus "${PSGOLEM_CPUS:-4}" --pids-limit 512 \
+  --memory 6g --cpus "${PSGOLEM_CPUS:-4}" --pids-limit 512 "${CPUSET[@]}" \
   --log-opt max-size=10m --log-opt max-file=3 \
   -u "$(id -u):$(id -g)" \
   -e HOME=/tmp -e "MIN=$MIN" -e "OUTREL=$REL" -e "LDF=$LDFLAGS" \
@@ -29,7 +32,7 @@ exec timeout "${PSGOLEM_MAC_TIMEOUT:-1800}" docker run --rm --network none \
   "$IMAGE" bash -c '
     set -euo pipefail
     eval "$(osxcross-conf)"
-    export GOMODCACHE=/gomodcache GOCACHE=/tmp/gocache GOPATH=/tmp/gopath
+    export GOMODCACHE=/gomodcache GOCACHE=/tmp/gocache GOPATH=/tmp/gopath GOMAXPROCS=2
     export GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOFLAGS=-mod=mod
     export CGO_ENABLED=1 GOOS=darwin MACOSX_DEPLOYMENT_TARGET=$MIN
     for cmd in psgolem psexe; do
@@ -38,7 +41,7 @@ exec timeout "${PSGOLEM_MAC_TIMEOUT:-1800}" docker run --rm --network none \
         echo "== $cmd $arch（$pre）"
         env GOARCH=$arch CC=$pre-clang CXX=$pre-clang++ \
             CGO_CFLAGS="-mmacosx-version-min=$MIN" CGO_LDFLAGS="-mmacosx-version-min=$MIN" \
-          go build -trimpath -ldflags "$LDF" -o /tmp/$cmd-$arch ./cmd/$cmd
+          go build -p 2 -trimpath -ldflags "$LDF" -o /tmp/$cmd-$arch ./cmd/$cmd
       done
       x86_64-apple-$OSXCROSS_TARGET-lipo -create /tmp/$cmd-arm64 /tmp/$cmd-amd64 -output "/src/$OUTREL/$cmd"
       x86_64-apple-$OSXCROSS_TARGET-lipo -info "/src/$OUTREL/$cmd"

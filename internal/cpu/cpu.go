@@ -309,7 +309,25 @@ func (c *CPU) step() {
 		return
 	}
 
-	instr, ok := c.fastFetch(pc)
+	// 008-cycle-model.md §6：只縮短既有 KSEG0 RAM 取指路徑，保留週期與順序。
+	var instr uint32
+	var ok bool
+	// 只縮短已快取 KSEG0 RAM 的既有取字與時間查詢，不存新的指令快取。
+	if c.fram != nil && pc&0xff800000 == 0x80000000 && *c.fbiu&0x800 != 0 {
+		p := pc & 0x1fffffff
+		line := &c.icache[(p>>4)&0xff]
+		if line.tag != p>>12 || line.valid&(1<<((p>>2)&3)) == 0 {
+			c.cost += c.icacheCost(pc)
+		}
+		instr = binary.LittleEndian.Uint32(c.fram[pc&uint32(len(c.fram)-1):])
+		ok = true
+	} else if c.fram != nil && len(c.fbios) == 0x80000 && pc&0xfff80000 == 0xbfc00000 {
+		c.cost += 24
+		instr = binary.LittleEndian.Uint32(c.fbios[pc&0x7ffff:])
+		ok = true
+	} else {
+		instr, ok = c.fastFetch(pc)
+	}
 	if !ok {
 		if c.bus.InstructionBusError(pc) {
 			c.raise(ExcIBE, 0)
@@ -328,7 +346,12 @@ func (c *CPU) step() {
 		return
 	}
 
-	c.execute(instr)
+	if instr == 0 {
+		c.doLDS()
+		c.gpr[0] = 0
+	} else {
+		c.execute(instr)
+	}
 	c.advance()
 }
 
@@ -1006,4 +1029,146 @@ func b2u(b bool) uint32 {
 		return 1
 	}
 	return 0
+}
+
+type pollingRAM interface {
+	// 明示 RAM 讀寫無 I/O、觀測器或額外副作用，LW 額外固定 4 週期；契約見 008-cycle-model.md §7。
+	PollingRAM() []byte
+}
+type countdownPrecision interface {
+	RepeatRAMCountdown(rt, counterAddress, pollAddress, initialCounter, pollValue uint32, now, iterations uint64)
+}
+
+func (c *CPU) loopWord(pc uint32) (uint32, bool) {
+	if pc&0xff800003 != 0x80000000 || pc&0x1fffff00 == 0 {
+		return 0, false
+	}
+	p := pc & 0x1fffffff
+	line := c.icache[(p>>4)&255]
+	if line.tag != p>>12 || line.valid&(1<<((p>>2)&3)) == 0 {
+		return 0, false
+	}
+	return binary.LittleEndian.Uint32(c.fram[pc&uint32(len(c.fram)-1):]), true
+}
+func loopRAMOffset(a uint32, mask uint32) (uint32, bool) {
+	if a&3 != 0 || (a>>29 != 0 && a>>29 != 4 && a>>29 != 5) || a&0x1fffffff >= 0x800000 {
+		return 0, false
+	}
+	return a & mask, true
+}
+
+// TryRAMCountdown 依 008-cycle-model.md §7 折疊期限內的純 RAM 迴圈。
+// 不能用在逐指令 Step／RunUntilPC；未知匯流排或 observer 會回退。
+func (c *CPU) TryRAMCountdown(budget uint64) uint64 {
+	if budget < 26 || c.fram == nil || c.fbiu == nil || *c.fbiu&0x800 == 0 ||
+		c.cop0[CP0SR]&srIsC != 0 || c.interruptPending() || c.bdbt != 0 ||
+		c.nextPC != c.pc+4 || c.ldWhich != ldNone {
+		return 0
+	}
+	provider, ok := c.bus.(pollingRAM)
+	if !ok {
+		return 0
+	}
+	ram := provider.PollingRAM()
+	if len(ram) < 4 || len(ram)&(len(ram)-1) != 0 || len(ram) != len(c.fram) || &ram[0] != &c.fram[0] {
+		return 0
+	}
+	var precision countdownPrecision
+	if c.precision != nil {
+		precision, ok = c.precision.(countdownPrecision)
+		if !ok {
+			return 0
+		}
+	}
+	var words [14]uint32
+	var addresses [14]uint32
+	for i := 0; i < 8; i++ {
+		addresses[i] = c.pc + uint32(i)*4
+		words[i], ok = c.loopWord(addresses[i])
+		if !ok {
+			return 0
+		}
+	}
+	first := words[0]
+	if first>>26 != 0x23 {
+		return 0
+	}
+	base, tmp := (first>>21)&31, (first>>16)&31
+	if base == 0 || tmp == 0 || base == tmp {
+		return 0
+	}
+	if words[1] != 0 || words[2] != (0x09<<26|tmp<<21|tmp<<16|0xffff) ||
+		words[3] != (0x2b<<26|first&0x03ffffff) || words[4] != first || words[5] != 0 ||
+		words[6]&0xffe00000 != (0x05<<26|tmp<<21) || words[7] != 0 {
+		return 0
+	}
+	stop := (words[6] >> 16) & 31
+	if stop == tmp {
+		return 0
+	}
+	target := c.pc + 28 + uint32(int32(int16(words[6]))*4)
+	for i := 8; i < 14; i++ {
+		addresses[i] = target + uint32(i-8)*4
+		words[i], ok = c.loopWord(addresses[i])
+		if !ok {
+			return 0
+		}
+	}
+	if words[8]&0xffff0000 != (0x0f<<26|tmp<<16) ||
+		words[9]&0xffff0000 != (0x23<<26|tmp<<21|tmp<<16) || words[10] != 0 ||
+		words[11]&0xffe0ffff != (tmp<<21|tmp<<11|0x2a) ||
+		words[12]&0xffff0000 != (0x05<<26|tmp<<21) || words[13] != 0 ||
+		target+20+uint32(int32(int16(words[12]))*4) != c.pc {
+		return 0
+	}
+	bound := (words[11] >> 16) & 31
+	if bound == 0 || bound == tmp {
+		return 0
+	}
+	counterAddress := c.gpr[base] + uint32(int32(int16(first)))
+	pollAddress := ((words[8] & 0xffff) << 16) + uint32(int32(int16(words[9])))
+	mask := uint32(len(ram) - 1)
+	counterOffset, ok := loopRAMOffset(counterAddress, mask)
+	if !ok {
+		return 0
+	}
+	pollOffset, ok := loopRAMOffset(pollAddress, mask)
+	if !ok || pollOffset == counterOffset {
+		return 0
+	}
+	for _, a := range addresses {
+		if a&mask == counterOffset {
+			return 0
+		}
+	}
+	counter := binary.LittleEndian.Uint32(ram[counterOffset:])
+	poll := binary.LittleEndian.Uint32(ram[pollOffset:])
+	if int32(poll) >= int32(c.gpr[bound]) {
+		return 0
+	}
+	terminal := uint32(0)
+	if stop != 0 {
+		terminal = c.gpr[stop]
+	}
+	distance := counter - terminal
+	remaining := uint64(0xffffffff)
+	if distance != 0 {
+		remaining = uint64(distance) - 1
+	}
+	count := min(budget/26, remaining, uint64(1024))
+	if count == 0 || c.now > ^uint64(0)-count*26 {
+		return 0
+	}
+	if precision != nil {
+		precision.RepeatRAMCountdown(tmp, counterAddress, pollAddress, counter, poll, c.now, count)
+	}
+	binary.LittleEndian.PutUint32(ram[counterOffset:], counter-uint32(count))
+	c.gpr[0] = 0
+	c.gpr[tmp] = 1
+	c.gpr[ldNone] = poll
+	c.ldValue = poll
+	c.cost = 1
+	c.now += count * 26
+	c.branched = false
+	return count * 26
 }

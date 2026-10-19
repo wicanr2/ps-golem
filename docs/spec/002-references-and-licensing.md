@@ -23,6 +23,12 @@ GPL-3.0-or-later（全文見 `LICENSE`）。
 | `hajimehoshi/ebiten` | Apache-2.0 | GitHub license API | 前端相依 |
 | `ebitengine/oto`、`ebitengine/purego` | Apache-2.0 | GitHub license API（2026-10-15） | Ebiten 音訊的間接相依 |
 | `JaCzekanski/ps1-tests` | MIT | GitHub license API | 測試 ROM 語料，不進版控 |
+| `notofonts/noto-cjk` Sans2.004 | OFL-1.1 | 官方 Sans/LICENSE、本機 TTC 著作權與 SHA-256，見 `020` §6 | 工具列 UI 位圖字圖集；授權附件獨立保存 |
+
+2026-10-19另核實 `Koops0/GPSXE`，commit `b1ecd8cdcd6dab0a588d2e0a6077210e5fa2ba11`，根LICENSE為MIT。
+只比較Go直譯迴圈、持久映射頂點緩衝與GPU批次提交，未移植程式碼；其COP2與貼圖仍未完成，
+不作《月下》速度基準。來源逐檔雜湊在`workplace/hdtex/perf/gpsxe-reference/provenance.json`，
+比較及改善候選在同目錄上一層`gpsxe-comparison.json`。
 
 Beetle PSX 的 PGXP 實作在 `pgxp/`（2026-10-17 於 commit `e57860d` 核實）。`pgxp_gte.c`、`pgxp_gpu.c` 與各 `.h`
 檔頭為 GPL-2.0-or-later；`pgxp_cpu.c`、`pgxp_mem.c`、`pgxp_value.c`、`pgxp_main.c` 沒有檔頭，

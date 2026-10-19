@@ -5,6 +5,10 @@ type ProjectionObserver interface {
 	Projected(x, y float32, raw uint32, vertex int, last bool)
 }
 
+type depthProjectionObserver interface {
+	ProjectedDepth(x, y, z float32, raw uint32, vertex int, last bool)
+}
+
 func (g *GTE) SetProjectionObserver(p ProjectionObserver) { g.projection = p }
 
 // observeProjection 參照 beetle-psx-libretro mednafen/psx/gte.c 的
@@ -25,5 +29,13 @@ func (g *GTE) observeProjection(v int, last bool) {
 	}
 	x := float32(int32(g.cr[crOFX]))/65536 + float32(g.ir(1))*ratio
 	y := float32(int32(g.cr[crOFY]))/65536 + float32(g.ir(2))*ratio
+	if p, ok := g.projection.(depthProjectionObserver); ok {
+		depth := float32(float64(z) / 4096)
+		if depth <= h/2 || x < -1024 || x > 1023 || y < -1024 || y > 1023 {
+			depth = 0
+		}
+		p.ProjectedDepth(max(-1024, min(x, 1023)), max(-1024, min(y, 1023)), depth, g.dr[14], v, last)
+		return
+	}
 	g.projection.Projected(max(-1024, min(x, 1023)), max(-1024, min(y, 1023)), g.dr[14], v, last)
 }

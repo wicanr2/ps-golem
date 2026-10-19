@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -87,6 +88,9 @@ func (l settingsLocation) forSave(st settings) settings {
 		return st
 	}
 	relative := func(path string) string {
+		if path == "" {
+			return ""
+		}
 		abs, err := filepath.Abs(path)
 		if err == nil {
 			if rel, err := filepath.Rel(l.base, abs); err == nil {
@@ -96,5 +100,28 @@ func (l settingsLocation) forSave(st settings) settings {
 		return path
 	}
 	st.BIOS, st.Cue = relative(st.BIOS), relative(st.Cue)
+	st.Textures = relative(st.Textures)
 	return st
+}
+
+// 018 §6：命令列可明確清除；可攜包的保存路徑相對包根解析。
+func (l settingsLocation) texturePath(cli string, explicit bool, saved string) string {
+	if explicit {
+		return cli
+	}
+	if l.portable && saved != "" && !filepath.IsAbs(saved) {
+		return filepath.Join(l.base, saved)
+	}
+	return saved
+}
+
+// 022：舊設定維持仿射，明確 false 可覆蓋已保存的透視選項。
+func resolveTexturePerspective(cli, explicit, saved bool, scale int, pgxp bool) (bool, error) {
+	if !explicit {
+		cli = saved
+	}
+	if cli && (scale < 2 || !pgxp) {
+		return false, fmt.Errorf("-texture-perspective 需要 -hd 2、4 或 8 及 -pgxp")
+	}
+	return cli, nil
 }

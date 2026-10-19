@@ -48,6 +48,8 @@ func (g *GPU) drawSpriteCmd(cb []uint32) {
 }
 
 func (g *GPU) drawSprite(xArg, yArg, w, h int32, uArg, vArg uint8, color uint32, textured, modulate bool, mode int) {
+	// 007 §9：固定零抖色偏移時，128 強度對全部 16 位元 texel 都是恆等。
+	modulate = modulate && color&0xffffff != 0x808080
 	r := color & 0xFF
 	gg := (color >> 8) & 0xFF
 	b := (color >> 16) & 0xFF
