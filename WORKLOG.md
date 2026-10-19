@@ -1342,3 +1342,22 @@ docs/hd-assets-evaluation.md §8為準。整體HD追蹤#8及GPU序章限制#12�
 兩工作根無root-owned或異常.md目錄；本批命名容器含已停止者均已移除。
 沿用既有映像，未清理其他專案Docker資源，未建立tag或Release。
 提交／推送及Issue回讀的本機入口為workplace/hdtex/perf/skeleton-publication-verification.json。
+
+## 2026-10-19 月下序章場景表面擴充
+
+遊戲專屬序章場景表面依既有RGBA／STP格式擴充，原有素材與兩種後端保留。
+正常新遊戲來源先符合既有原生及HD基準，再以本機命令錄製重現畫面供美術試畫。
+錄製僅為Go overlay，正式Go程式與本機候選執行檔不變；原始命令及衍生素材不進公開repo。
+新素材由正式Go載入器確認精簡與合併逐字相同，並以獨立正常開機確認原生摘要、像素及卡片保持。
+實際Intel GPU的混色、翻轉與材質視窗比對通過；此證據不替代完整GPU前端序章或速度驗收。
+本機三平台候選只更新素材路徑，Linux實際新遊戲序章、最後畫面及獨立重開通過。
+研究時的全零來源平凡匹配與HUD矩形誤含場景已保留紀錄並修正，不列產品缺陷。
+原圖與新素材的比較保持相同場景；未分類區及未觀測範圍不稱完整HD。
+完整HD、速度、人工音訊及其他平台真機仍未驗收，效能實作依使用者順序延後。
+本機總入口為workplace/hdtex/perf/journey-delivery-verification.json；唯一現況表仍在私人素材專案
+docs/hd-assets-evaluation.md §8，場景、怪物與地圖分別追蹤其#5／#6／#7，公開整合維持#8。
+
+本批收尾：兩repo差異檢查通過，來源工具、候選資料及私人截圖的雜湊核對完成。
+兩工作根無root-owned檔案或異常.md目錄，本輪命名容器含已停止者均無殘留。
+沿用既有映像，未清理其他專案Docker資源，未建立tag或Release。
+提交／推送及Issue回讀的本機入口為workplace/hdtex/perf/journey-publication-verification.json。
