@@ -1230,3 +1230,10 @@ CPU原色／調變、HD子貼素及GPU命令準備共用有理UV，原生覆蓋�
 合計227613 bytes，只放素材私人repo docs/screenshots，README連結來源JSON與範圍。
 素材AGENTS記錄此明確窄例外，仍排除光碟、BIOS、卡片、完整素材包與公開遊戲圖片。
 提交與遠端確認收據將記錄於precommit-publication-verification.json，不建立tag或Release。
+
+本批提交程式e8d67e0及私人素材563db47，均已push並以git ls-remote核對遠端main相同。
+公開Issue#12及私人素材#5已更新；私人#8精簡工作已關閉，整體HD仍未結案。
+最終兩工作根find無root-owned檔案或異常.md目錄；本輪sotn-hd-命名容器含已停止者均無殘留。
+沿用既有image，未建新image、未清理共用Docker資源，未建立tag或Release。
+公開引擎只含自製手把示意與OFL字型圖片；四張遊戲圖僅進私人repo。
+來源、原版資料、既有候選執行檔與其他設定的保持證據見本節收據。
