@@ -1323,3 +1323,22 @@ Linux實際候選未帶素材／後端參數，正常讀檔、跳躍離房且最
 兩工作根無root-owned或異常.md目錄；本批命名容器含已停止者均已移除。
 沿用既有映像，沒有清理其他專案Docker資源，不建立tag或Release。
 提交／推送及Issue回讀的本機核對入口為workplace/hdtex/perf/stairway-publication-verification.json。
+
+## 2026-10-19 月下局部怪物素材與正常交戰驗證
+
+遊戲專屬骨質與盾面美術沿用019的精確CLUT全彩PNG與STP格式，於獨立本機素材區編製。
+正式Go載入器證實精簡與合併資料逐字保持；實際Intel GPU的混色、翻轉與材質視窗對照通過。
+兩次獨立正常BIOS開機、讀檔、離房與交戰的原生摘要、原生像素與卡片符合基準，原有HD保持。
+新版局部素材已同步到既有三平台本機候選，執行檔與其他設定不變；Linux實際GUI交戰與獨立重開通過。
+這不代表完整怪物、全遊戲HD、交叉oracle、音訊、速度或Windows／macOS真機驗收。
+本批沒有修改正式Go模擬或呈現程式。原版及衍生素材仍不進公開repo；私人畫面沿用使用者明確授權。
+研究工具的輸出路徑碰撞、擷取逾時與移植常數錯誤已保留日誌並修正，沒有改成產品缺陷。
+隔離Go工具明訂GOMAXPROCS配合容器CPU配額；沒有因果效能比較，效能實作依使用者順序延後。
+本機驗證入口為workplace/hdtex/perf/skeleton-delivery-verification.json；素材現況仍以私人專案的
+docs/hd-assets-evaluation.md §8為準。整體HD追蹤#8及GPU序章限制#12均保持開啟。
+
+本輪GUI速度最低0.263、中位0.463，速度未過。環境採樣的主機負載25.23，CPU等待偏高，
+容器節流計數為0；不是同場A/B，不據此指定原因或宣稱收益。
+兩工作根無root-owned或異常.md目錄；本批命名容器含已停止者均已移除。
+沿用既有映像，未清理其他專案Docker資源，未建立tag或Release。
+提交／推送及Issue回讀的本機入口為workplace/hdtex/perf/skeleton-publication-verification.json。
