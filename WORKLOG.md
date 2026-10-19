@@ -1361,3 +1361,30 @@ docs/hd-assets-evaluation.md §8，場景、怪物與地圖分別追蹤其#5／#
 兩工作根無root-owned檔案或異常.md目錄，本輪命名容器含已停止者均無殘留。
 沿用既有映像，未清理其他專案Docker資源，未建立tag或Release。
 提交／推送及Issue回讀的本機入口為workplace/hdtex/perf/journey-publication-verification.json。
+
+
+## 2026-10-19 月下角色衣料與完整首存來源
+
+角色衣料及靴面沿用既有保形、保色相的局部表面方向；原創布料與皮革由內建imagegen文字生成，未提供原版圖。
+正式Go載入器確認精簡及與舊素材合併逐字相同；獨立正常新遊戲的原生摘要、畫面與卡片符合既有來源。
+實際Intel GPU的本批混色、翻轉及材質視窗比對通過；離線命令試畫與正式開機結果相同。
+既有場景保持，原生臉部及未分類部位保持。這不是完整角色、完整HD、交叉oracle或速度驗收。
+
+三平台本機候選只改素材路徑，保留舊包、執行檔及其他設定。Linux實際候選正常進入角色可見場景且最後畫面已呈現。
+首次整包唯讀導致設定寫回警告，分類為驗證掛載問題；改用可寫設定與唯讀原版資料獨立重開，正常保存與關窗。
+實際寬螢幕的框外計量圖元對應017 §3.5已知限制，未稱完整寬螢幕修復；其他平台真機及人工音訊仍待驗。
+本輪速度仍未通過，沒有同場效能A/B或新優化實作。整合入口workplace/hdtex/perf/richter-delivery-verification.json。
+
+正常新遊戲來源觀測另完成至首存，前段符合已封存基準，終點原生摘要、畫面與卡片亦符合既有M4。
+研究overlay僅錄製影子命令，正式Go來源與候選執行檔保持；取樣記錄不外推為全部中途狀態的交叉oracle。
+素材側整理完整路線的實際來源與色盤，排除直接色影像並保留未知分類及原檔字相同候選，供下一批場景與角色製作。
+來源入口workplace/hdtex/perf/m4-material-capture-v1/verification.json及m4-material-census-v1.json。
+最後來源核對入口為同目錄m4-material-observation-verification.json。
+原版、衍生素材與原始命令維持本機；未修改遊戲圖只依使用者既有明確授權放私人素材repo。
+唯一現況仍為私人素材專案docs/hd-assets-evaluation.md §8；角色工作#6與公開整合#8均保持開啟。
+
+
+本批收尾：來源觀測、素材與候選交付核對、Python語法及兩repo差異檢查通過。
+兩工作根無root-owned檔案或異常.md目錄，本輪命名容器含已停止者均無殘留。
+沿用既有映像，未清理其他專案Docker資源，未建立tag或Release。
+提交／推送、遠端與Issue回讀的本機入口為workplace/hdtex/perf/richter-publication-verification.json。
