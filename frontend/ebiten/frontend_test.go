@@ -17,6 +17,7 @@ func TestFitWide(t *testing.T) {
 		want image.Rectangle
 	}{
 		{1280, 720, image.Rect(0, 0, 1280, 720)},
+		{1920, 1080, image.Rect(0, 0, 1920, 1080)},
 		{960, 720, image.Rect(0, 90, 960, 630)},
 		{1600, 720, image.Rect(160, 0, 1440, 720)},
 	} {
@@ -43,6 +44,7 @@ func TestFit(t *testing.T) {
 		want image.Rectangle
 	}{
 		{960, 720, image.Rect(0, 0, 960, 720)},
+		{1920, 1080, image.Rect(240, 0, 1680, 1080)},
 		{1280, 720, image.Rect(160, 0, 1120, 720)}, // 寬螢幕視窗左右留黑
 		{800, 800, image.Rect(0, 100, 800, 700)},
 	}

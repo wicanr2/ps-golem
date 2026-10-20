@@ -24,6 +24,7 @@ import (
 
 // settings 是 <使用者設定目錄>/ps-golem/settings.json（012 §9）。
 type settings struct {
+	Resolution         string                  `json:"resolution,omitempty"`
 	TexturePerspective bool                    `json:"texture_perspective,omitempty"`
 	HDRenderer         string                  `json:"hd_renderer,omitempty"`
 	BIOS               string                  `json:"bios"`
@@ -44,6 +45,7 @@ func main() {
 	cuePath := flag.String("cue", "", "光碟映像的 cue 檔；省略時取設定檔")
 	cardPath := flag.String("card", "", "1P 記憶卡檔案；省略時放在使用者設定目錄的 ps-golem/<開機檔名>.mcd")
 	scale := flag.Int("scale", 3, "起始視窗倍率")
+	resolutionFlag := flag.String("resolution", "", "起始視窗解析度，例如1920x1080；省略取設定檔，auto清除")
 	frames := flag.Int("frames", 0, "跑這麼多次 Update 後結束（驗收用）")
 	shot := flag.String("screenshot", "", "配合 -frames：結束前存下畫面")
 	mute := flag.Bool("mute", false, "不開音訊裝置")
@@ -80,6 +82,11 @@ func main() {
 	st := loadSettings(location.path)
 	set := map[string]bool{}
 	flag.Visit(func(f *flag.Flag) { set[f.Name] = true })
+	resolution, width, height, err := resolveResolution(*resolutionFlag, set["resolution"], st.Resolution)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "psgolem：", err)
+		os.Exit(2)
+	}
 	if !set["hd"] {
 		*hdFlag = st.HD
 	}
@@ -138,7 +145,7 @@ func main() {
 			gamepadSettings = st.Gamepad.Clone()
 		}
 	}
-	st = settings{TexturePerspective: *perspectiveFlag, BIOS: *biosPath, Cue: *cuePath, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+	st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: *biosPath, Cue: *cuePath, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
 	saveGamepad := func(next ebiten.GamepadSettings) error {
 		updated := st
 		updated.Gamepad = &next
@@ -229,14 +236,14 @@ func main() {
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }
 		}
-		st = settings{TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
 		if err := saveSettings(location.path, location.forSave(st)); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
 		return s, nil
 	}
 	err = ebiten.Run(ebiten.Config{
-		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale,
+		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale, WindowWidth: width, WindowHeight: height,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
 		Press: press, UntilField: *untilField, Stats: *showStats,
 		Filter: *filterFlag, Widescreen: *wideFlag,

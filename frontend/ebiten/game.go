@@ -26,7 +26,9 @@ type Config struct {
 	BIOSPath string
 	CuePath  string
 	Scale    int
-	Title    string
+	// 明確輸出尺寸優先於Scale；零值沿用既有起始視窗（012 §11）。
+	WindowWidth, WindowHeight int
+	Title                     string
 	// Frames 大於 0 時跑完這麼多次 Update 就結束，並把畫面存到 Screenshot（驗收用）。
 	Frames     int
 	Screenshot string
@@ -110,7 +112,9 @@ func Run(cfg Config) error {
 		}
 	}
 	eb.SetWindowTitle(cfg.Title)
-	if cfg.Widescreen {
+	if cfg.WindowWidth > 0 && cfg.WindowHeight > 0 {
+		eb.SetWindowSize(cfg.WindowWidth, cfg.WindowHeight)
+	} else if cfg.Widescreen {
 		eb.SetWindowSize(1280*cfg.Scale/3, 720*cfg.Scale/3)
 	} else {
 		eb.SetWindowSize(320*cfg.Scale, 240*cfg.Scale)

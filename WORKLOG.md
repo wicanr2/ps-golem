@@ -1718,3 +1718,14 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 - 本機畫廊182個圖像／動畫入口，含39母稿、完整127來源總覽、走動及出招實際比較。走動GIF由66實際場每來源40ms製作，精簡1078321 bytes，只作慢速審查，不代表遊戲速度。出招的鞭子仍原版，未稱武器重繪完成。正式HD檔案級目錄仍0／264；完整角色、圖集、特殊效果、武器、怪物、全遊戲HD、速度、人工音訊及通關仍待完成。Windows／macOS僅資料同步，未宣稱真機驗收。
 - 研究入口workplace/hdtex/perf/richter-body-redraw-v1/下richter-body39-v2-checkpoint-verification.json、richter-normal-v2-pixel-verification.json、richter-body39-v2-go-verification.json及richter-body39-v2-offline-verification.json。私人素材專案workplace/assets/hd-richter-body39-preview-install/delivery-verification.json保存安裝、視窗及交付核對；唯一現況仍該專案docs/hd-assets-evaluation.md §8，角色Issue #6保持開啟。
 - 本批正式模擬、GPU與效能程式未改，只推送文件與素材工具，不加入原版、抽檔、美術、包或新截圖；既有17張私人截圖保持。批次容器與擁有權檢查記於本機發布回讀收據richter-body39-v2-publication-verification.json，不清理其他專案資源。
+
+### 2026-10-20 中文字HD原型與保存1080p輸出
+
+- 使用者要求中文字也做HD，並明確要求繪製層突破PS1解析度、至少1920×1080，確認沿用目前美術。路由載入字模索引還原及復古驗收，沿用既有素材替換018／019；未重新改角色美術、翻譯或模擬規則。
+- 原M4傾印找到234個3／4字寬、16列、4bpp候選，含英文、圖示與空白，非完整中文字庫。field14500對話24字位的8852個非透明HD2像素與22來源完全相同，索引重建的上傳雜湊相同。Unicode字名依逐字判讀，完整字碼及光碟字庫仍未知。十樣本未在小於4MiB的抽出檔直接找到4bpp序列，不推論壓縮格式。
+- 以既有Noto Sans CJK TC／OFL-1.1快照做22字原型，12×16格提升為96×128八倍索引PNG，沿觀測灰階索引1–8，原字位及換行保持。23檔含manifest共22186 bytes，不附完整字型；正式Go載入接受22條目。1920×1080比較是字形研究畫布，非正常遊戲截圖；字形仍DRAFT，未完成正常遊戲、CPU／實際GPU、淡入淡出、STP或全字庫驗收，未裝入候選。
+- 檢查現行016已支援1／2／4／8倍光柵化，019亦接受八倍素材。先新增012 §11的READY契約，再實作保存的-resolution 1920x1080；settings.json保存resolution，無參數重開沿用，auto清除。命令列優先、尺寸範圍與錯誤先驗，不改HD倍率、PGXP、後端、寬螢幕或遊戲狀態。新檔cmd/psgolem/resolution.go由012 §11索引，前端只設定起始視窗大小。
+- 命令列與前端套件測試通過，新增優先序、保存、清除、非法尺寸及1080p的4:3／16:9安全顯示檢查。程式在既有Docker映像建置，未改機器、CPU、原生GPU、光柵化或呈現排程。
+- 實際Intel MTL顯示環境三次正常BIOS開機至706，HD2首次、無resolution參數獨立重開與HD8都呈現1920×1080最後畫面。HD2兩張PNG逐位元相同，設定保持；HD8輸出有不同的較細邊緣。此輪HD光柵化使用CPU，Intel GPU負責OpenGL顯示，不稱HD GPU後端驗收。速度窗口依序0.480、0.783、0.107，非固定負載交錯A/B，未通過速度，不把功能存在當作加速完成。
+- 舊三平台本機候選、原版媒體、127來源／1069條目人物包及設定均未更換。1080p正常遊戲、高解析中文字整合、完整字庫、三平台新包、速度與人工音訊仍待完成；效能優化保持延後。中文專項為私人素材repo #10，1080p為本repo #13，皆保持開啟。
+- 唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，細節及研究工具索引在docs/assets-catalog.md中文字HD節。研究收據為該repo workplace/assets/chinese-font-hd-v1/display1080-font-checkpoint-verification.json，逐字來源、字形原型、正式載入及三次視窗日誌均留本機。只提交文字與Go程式，不新增原版、字模、美術或截圖到Git／Issue。Docker清理與擁有權檢查另記同研究目錄發布收據。
