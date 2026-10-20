@@ -1985,3 +1985,21 @@ Linux同一候選與新包正常讀檔至9520，1920×1080最後畫面已呈現�
 研究入口為workplace/hdtex/perf/alucard-hud-redraw-v1/menu10130-v1/的capture-v2/verification.json、native-baseline-v1/、normal-v2-validation.json、normal-GPU-verification.json及ready-verification.json。私人作者稿／GUI為素材repo同名研究區，完整交付與重開為workplace/assets/hd-menu-ui-preview-install/delivery-verification.json。私人工具build_hd_menu_sample.py、install_hd_menu_preview.py與唯一目前表docs/hd-assets-evaluation.md §8同步更新。提交／推送及Issue精確回讀另在該研究區publication-verification.json。圖片、字圖、原版及包不入公開引擎或Issue。
 
 本批容器均已移除，兩工作根無root擁有檔案或誤建.md目錄。完整UI、字庫、人物、怪物、武器、關卡、地圖與HD未完成，效能調校延後，相關Issue保持開啟。
+
+## 2026-10-21：持盾骷髏構件、正常擊倒與骨骼重繪診斷
+
+接續怪物HD #6。已安裝的骨質／盾面仍是局部表面，這輪沒有安裝新稿。正式Go及三平台候選保持70221ea。原172點舊收據保留，與目前修正後無HD核心比對96點完整相同、76點畫面或混合摘要不同，172點CPU時序前綴與卡片保持。混合摘要含VRAM等狀態，不能據此推論RAM變更或保持，也不把全部76點直接歸因於TPage順序修正。
+
+使用目前正式原生sotnlab從正常BIOS／首存卡讀檔、離房與交戰，只送一般按鍵。可見選單EXP70／BEAT5，9810骨骼散開及火焰，9840與10030為EXP92／BEAT6，10100怪物消失。沒有猜敵人HP位址、存取狀態注入、PC／RAM／座標寫入；色盤閃光不獨立當命中或死亡證據。互動器已EOF正常結束。按鍵固定於scenario-kill-v1.json，另一次無HD重播353點中27張互動原生圖逐像素相同。
+
+父1220包再沿同一線性輸入到10100，353個無HD原生摘要／像素／卡片點保持。58477列來源原字與快取字相同，6242筆原0x3d／12字不透明圖元，44種UV界框、12組實際CLUT保存。23構件有原圖元證據，另3個下身外觀選區未在此路線出現。14226／16384來源像素曾取樣；3877個非零像素中3533曾取樣，未見344個，其中297個在三個靜態候選，不稱完整貼素或全動畫覆蓋。第12組色盤最早8945出現，早於擊倒，語意未知，不命名為死亡效果。正式怪物與動畫ID仍未知，來源格的頭骨、肋骨、手臂等屬外觀強推論。
+
+內建imagegen只接受文字及自製母稿，未提供原版或衍生圖。13張本機畫稿涵蓋同一骨骼造型、四張出招、九格步態、兩臂、頭骨、肋骨、細骨片及盾劍。RGB與新內部輪廓直接採新稿，沒有乘原RGB或亮度。六輪隔離原圖元原型修正握劍手位置、水平劍向與圖集定位；步態改按九個獨立連通物件擷取，排除固定格線混入鄰格邊角及裁腳。母稿、提示與前版原型保留，不進執行包。該流程的矩形、切圖與縮放是圖集編排，不以原索引輪廓裁新骨骼。
+
+目前DRAFT診斷只把22個已有原圖元的構件、一組30e981正常CLUT編入父1220包，另一正常CLUT、特殊色盤、第12格扇形效果及三格未觀測步態保持。四倍圖集512×512、164167 bytes，alpha0／255、STP0。另一次真BIOS／首存卡正常到10100，同機器父1220與診斷1220共353組HD2／PGXP／透視對照，全部353原生摘要／像素／卡片與353舊父HD保持。162點有新骨骼差異，191點相同；全部差異限精確前兩場的目標原圖元，依實際顯示起點投影、固定兩HD像素邊界，區外0。正常交戰、出招與散骨畫面已見新稿，仍不稱全色盤／實際GPU／1080p／安裝或速度驗收。
+
+邊界腳本首版誤讀display陣列為寬度，已依觀測器定義修正為X起點、Y起點及模式，使用相同資料與門檻重跑；候選編製腳本的換行轉義及母稿稽核欄位也已修正，均為研究腳本問題。正式模擬、渲染與效能程式不變。三平台現行執行檔、每平台1340個活躍素材檔、保存設定及17張私人PNG保持；沒有重新雜湊所有歷史封包。現行277來源／1220條目、27176138 bytes與畫廊218／489保持，正式檔案HD仍0／264。
+
+引擎研究入口為workplace/hdtex/perf/skeleton-redraw-v2/下native-baseline/、native-kill-lab/、kill-native-baseline/、kill-source-capture/及normal-single-v1/verification.json。私人來源與作者稿入口為素材repo workplace/assets/skeleton-redraw-v2/source-geometry-v2.json、normal-kill-verification.json、prototype-structure-v6/、normal-single-v1/normal-boundary-verification.json、own-art-source-verification.json與protected-existing-verification.json，完整提示由hd-assets/drafts/skeleton-redraw-v2-prompt-set.json索引。唯一目前表docs/hd-assets-evaluation.md §8同步，工具與收據只留本機。提交僅文字文件，不含圖片、來源字、光碟、BIOS、卡片或包。
+
+這輪有界容器均已結束並自動移除，兩工作根無root擁有檔案或誤建.md目錄。接續須完成另一正常色盤、效果與動畫銜接、實際GPU及1080p，再通過READY契約與候選安裝。完整HD仍未完成，效能調校延後，相關Issue保持開啟。
