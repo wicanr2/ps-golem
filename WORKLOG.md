@@ -1851,3 +1851,23 @@ Pillow曲線重畫金屬斜面、圓框、鉚釘及葉形捲草，Noto Sans CJK 
 READY後已裝入既有v.0.7.2三平台本機預覽，229來源／1171條目，1069全彩與102索引。26826992 bytes，比99字姓名包增加16154 bytes；ZIP26396798 bytes、1287檔。只有素材路徑改為castle-alucard-hud-v3-compact，舊包、執行檔、原版、OFL及其他設定保持。真正Linux候選無素材／後端參數獨立重開604並WM_DELETE正常關窗，已呈現523幅，末尾在途524未呈現，重開只驗啟動／保存；上述9000定場final_drawn=true。Windows／macOS限資料與結構，未驗真機。
 
 本機畫廊203入口，新增原版／HD圖集及正常9000比較；既有17張私人截圖保持，正式檔案級HD仍0／264。完整HUD、字庫、人物、怪物、武器、地圖、蠟燭及全遊戲HD未完成，效能調校延後。正常／GPU／READY與原始指令在workplace/hdtex/perf/alucard-hud-redraw-v1/，來源、原型拒絕、重製及實際GUI在私人素材repo同名研究區。交付為其workplace/assets/hd-alucard-hud-preview-install/delivery-verification.json，提交及遠端回讀另記研究區publication-verification.json。只提交文字與工具，圖片、原版與包留本機。
+
+## 2026-10-20：揮擊四塊來源重繪與壁掛藍火來源定位
+
+沿已授權美術與先HD後效能的順序，完成一組已觀測攻擊圖集的四塊顯示來源。完整武器、角色、怪物、字庫、介面、蠟燭、地圖與HD未完成；唯一現況仍為私人素材repo docs/hd-assets-evaluation.md §8。工作為其 #9／#12與本repo #8／#13，正式模擬、光柵及效能程式未改。
+
+來源02df79f736fe7f80530ea62db5725279eddbfd92b1d5cdcf8f85234733b81fc9為256×128、4bpp。既有原始trace及archive原字證據保持，四塊共3081來源像素，四組CLUT、原始0x3f及ABR1保持。灰白細條屬刀身或特效、正式武器ID及實際CD副本仍未知，不新增握柄。Pillow貝茲曲線重新畫收尖亮線、主光流與衰減弧線，沒有換色或圖像生成。v1主筆刷跨入鄰槽而多出藍線，未安裝；中止舊稿正常路線與GUI，保留143／137退出及研究資料。v2獨立裁切各槽，兩亮線槽只允許0／14／15，正式工具附此保護。
+
+八倍2048×1024索引PNG4961 bytes，改65188索引，選定區外1899968索引保持。正式Go新2097152索引精確，父1171條目63349632全彩字與4362240索引保持，含99中文字、姓名及兩個HUD。加入保護的待提交工具乾淨重建1288檔逐位元組相同。重用載入器測試曾保留HUD舊輸出標籤，原始數值斷言正確，另外保存語意校正收據，未改寫原始測試結果。
+
+同一最終包194個CPU／Intel MTL GPU案例通過：100個四實際CLUT混色／變換、75個受控色盤、HD8／新CLUT／未知上傳3例，以及16場原始0x3f四邊形。獨立命令研究器初次把四CLUT全放X0，部分不可見；依原始operand改放X0／16／32／48後重跑，16場均有可見差異，舊收據保留。最後16場只歸零雙緩衝偏移、採固定背景，不是正常玩家截圖或速度驗收。
+
+一次真BIOS、工廠空白卡及未改M4按鍵至34960，190組同機器父1171／新1172 HD2對照，169個封存原生摘要、畫面及卡片點一致，21點無獨立原生對照。正常取樣為34945至34959，15筆原始命令、12180列來源／快取字相同，四塊來源完整覆蓋，圖元加兩個HD像素邊界外差異0。初次驗證把停止場34960當成已執行的查詢場而停止；按實際機器迴圈及來源紀錄分開後，最後重複圖元34960只列既有trace及孤立GPU證據，沒有算成第16筆新CPU命令，也未改素材、時序或範圍遮罩。
+
+同一8de152e候選及最終包正常新遊戲至34948，1920×1080最後畫面呈現新起手斜亮線；其他三來源由正常同場及孤立GPU畫面審查。內部HD2、CPU光柵、Intel GPU顯示，PGXP、xBR、透視及寬螢幕保持，GUI不作原生狀態同場聲明。READY後裝入三平台v.0.7.2雙擊預覽，230來源／1172條目、1069全彩與103索引。26832219 bytes，比介面父包增加5227 bytes；ZIP26400729 bytes、1288檔，SHA256為7dd44c6e97d8e3716b156a9c85c6ec2c3bb348c5a3ecc2606d389dce1517c7dd。
+
+真正Linux候選無素材／後端參數重開604，WM_DELETE正常關窗，路徑及其餘設定保持；已呈現415幅，最後在途416未呈現，只驗啟動／保存。34948定場final_drawn=true。三平台程式、原版、OFL、手把與舊介面包保持，Windows／macOS限資料及結構。私人17張截圖保持，新比較與素材留本機。畫廊205個草稿／局部比較入口，正式檔案級HD仍0／264，效能調校延後。
+
+另由既有原命令重播定位左側壁掛藍火，232張父1170包畫面相同，61個查詢場的976筆ROI圖元與143433列原字／快取成立，9來源／12組來源色盤配對包含背景及人物。b423eb09b08e13f3dc24a1214fcb3a18d9a79f2ecc3499d24328a3bfa4e86cca共用圖集[0,0,24,24)完整576來源像素為雙燭頭藍火外觀，語意為強推論；完整128×128／4bpp載荷命中F_GAME.BIN及F_GAME2.BIN檔案byte0x36000。17筆0x3f在34984至35000隨捲動逐步進入ROI，不將其局部邊界當作完整物件大小。正式ID、實際讀取副本、可破壞性與完整火焰動畫未知，沒有新的壁掛蠟燭美術或安裝。
+
+引擎研究入口workplace/hdtex/perf/weapon-swing-redraw-v1/weapon-normal-GPU-verification.json、weapon-ready-verification.json、normal-field-boundary-correction.json及commands-v2.json。來源、原型、重製與GUI在私人素材repo workplace/assets/weapon-source-observation-v1/swing-redraw-v2-final/；交付為其hd-weapon-swing-preview-install/delivery-verification.json。壁掛定位入口為兩repo各自的candle-wall-observation-v1/，私人repo保存source-provenance.json及wall-candle-component-verification.json。只提交工具與文字，原版、PNG、字圖及包不進公開引擎或Issue。
