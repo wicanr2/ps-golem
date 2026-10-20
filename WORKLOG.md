@@ -1918,3 +1918,26 @@ Linux執行檔SHA-256 e52234c47429a93455bc9100f1eea9b28d218345d746ea4d2d9c40b13d
 前節首存17,37至18,36數值來自015的RAM座標候選，保留假說等級；9250畫面確實離房，但不稱正式房間ID。16×16特效身份、壁掛物件可破壞性及完整動畫仍未知。完整人物、怪物、字庫、介面、武器、蠟燭、地圖與HD未完成，效能延後。
 
 研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/的wall-normal-GPU-fixed-verification.json、wall-ready-verification.json、native-same-state-verification.json、commands-fixed.json；私人來源／GUI在同名研究區，交付與重開為其workplace/assets/hd-candle-wall-preview-install/delivery-verification.json及reopen-closure-verification.json。唯一現況仍為私人docs/hd-assets-evaluation.md §8。只提交程式、工具與文字，不提交原版、PNG、字圖或包。
+
+## 2026-10-20：燭台破壞四段火焰子集
+
+沿正常首存讀檔、離房、跳躍與揮擊按鍵，在階梯區觀測一盞燭台消失及四段小火焰，沒有PC／RAM或座標注入。心數10、金錢25在原生選單前後相同，沒有拾取證據。正式物件ID與掉落身份未知，不把此盞消失外推為先前壁掛雙藍火的可破壞性。舊b423圖集16×16紅色特效候選仍維持身份未知。
+
+來源2b891c794c2affc2f40a4e28cde871554365fce598c3f2a8e0aaddea9fe147b9為128×128、4bpp，原始8192 bytes命中BIN/F_GAME.BIN檔案byte0x10000，未命中F_GAME2。原生VRAM上傳640,256。先前run/在完成畫面後輸出大量來源JSON時被記憶體限制終止137，保留不完整紀錄；run-v2/縮小觀測ROI並依來源分區圖元，正常至9700得到111組原生／HD點、131467來源列與665分區圖元，四張原生圖精確重現互動試玩。
+
+私人素材規格READY後，以內建imagegen只參考自製燭台風格，畫出四個新火焰階段。1254×1254透明母稿501453 bytes，SHA-256 6be0ea4156e68826cfc34312daa8939852e62dde4d709ed0e15f0aa2dbc69a93。四倍編製只改[64,32,80,48)、[80,32,96,48)、[96,32,112,48)、[112,32,128,48)與兩個實際CLUT的既有配對。新RGB直接採母稿，alpha覆蓋率乘入加法RGB，新可見貼素STP1；共享STP保留原標記並新增1058個新輪廓標記。透明輪廓有意改變，不稱所有解碼bit15保持。
+
+正式Go核對524288新色字精確、未選區507904字保持，父1173條目63611776全彩字及6459392索引保持。乾淨1293檔重製逐位元組相同。直接正式CPU／實際Intel MTL GPU共94例：兩組實際CLUT的50個混色／變換、受控未知CLUT25例、HD8／未知CLUT／未知上傳3例、16筆原始12字0x3f與ABR1四邊形。完整VRAM、畫面與統計相同。受控未知色盤不是第三個遊戲CLUT，不將孤立驗證當完整GPU前端或速度。
+
+最終1175包另一次真BIOS、原首存卡與相同正常按鍵至9700，同機器父1173／新1175共111組HD對照；111個修正後原生摘要、像素、卡片點及父包HD像素相同。正常4224列來源／快取原字精確，1024來源像素完整，16個相鄰來源像素保持，16筆連續火焰圖元及原UV／位置／切換保持；圖元兩HD像素邊界外0。此為70221ea修正後場景基準，不稱獨立硬體oracle，寬螢幕關閉。
+
+同一v.0.7.3-20261020 Linux候選與新包，以正常按鍵至9520，實際1920×1080最後畫面呈現，final_frame與shown_frame均6833、final_drawn=true。新細曲火焰可見且無黑暈，原命中星芒及未覆蓋人物動作仍保留。GUI沿HD2、CPU、Intel顯示、PGXP、xBR、透視、寬螢幕及手把；GUI寬螢幕不作原生同場聲明。
+
+READY後只切換三平台本機素材路徑，現行232來源／1175條目、1072全彩及103索引，26894204 bytes，比壁掛父包增加40292。ZIP26457742 bytes、1293檔，SHA-256 03a41ad3b8c388da28fc239f91ff25f890459cc39d4472c26c2df1ae91938fb3。原72個正式Go來源及三平台執行檔未變，沒有重做無關回歸或新增渲染器特例。manifest452639 bytes、解碼134731520 bytes，019格式及容量限制未改，#14保持開啟。
+真正安裝Linux候選另從其他cwd無素材／後端參數重開602，WM_DELETE正常關窗，388幅已呈現，最後602的final_drawn=false，只驗啟動與設定保存。首次重開誤將設定目錄唯讀掛載而無法寫回，保留gui-reopen-readonly-attempt/；修正可寫設定與唯讀媒體／素材掛載後，在相同映像與腳本乾淨重跑，無設定錯誤。Windows／macOS本批限新包資料與既有程式結構，沒有新平台試玩或真機驗收。
+
+舊壁掛包、舊v.0.7.2、三平台執行檔／原版／OFL、既有記憶卡、其他設定及17張私人PNG均保持。母稿、提示與比較不進執行包。畫廊新增來源比較、正常同場、母稿與四階段慢速GIF，共212草稿／局部入口、483圖片連結全部有效；GIF非原時序或速度證據。正式檔案級HD仍0／264。命中星芒、掉落／拾取、其他燭台、完整人物、怪物、字庫、介面、武器、地圖與HD未完成，效能延後。
+
+研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/fire4-v1/下normal-GPU-verification.json、ready-verification.json及commands.json；私人來源／作者稿／GUI在素材repo workplace/assets/candle-wall-observation-v1/break-effects-v1/，完整交付為workplace/assets/hd-candle-fire4-preview-install/delivery-verification.json。唯一現況仍為私人docs/hd-assets-evaluation.md §8。只提交工具與文字，原版、PNG、字圖與包不進公開引擎或Issue。
+
+本批Docker一次性容器均已移除，兩工作根掃描無root擁有檔案或誤建.md目錄。提交、push與遠端Issue精確回讀另外保存在私人break-effects-v1/publication-verification.json，相關HD工作Issue保持開啟。
