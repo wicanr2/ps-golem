@@ -147,7 +147,7 @@ BIOS 開機到 SCE 開場畫面（SONY 字樣、GTE 投影的鑽石標誌與 Gou
 
 ## 10. 多邊形自身貼圖頁的混色模式
 
-狀態：`READY`。2026-10-20 壁掛燭台的 1080p 寬螢幕抽樣發現黑暈。
+狀態：`CONFORMED`，限本節順序與Linux驗證。2026-10-20 壁掛燭台的 1080p 寬螢幕抽樣發現黑暈。
 `internal/gpu/poly.go` 與 `render/hd/poly.go` 在 `setTPage` 前建立 `f.mode`，
 會沿用上一筆命令的 ABR。相鄰同素材可能因此套用不同混色。
 
@@ -173,3 +173,5 @@ https://psx-spx.consoledev.net/graphicsprocessingunitgpu/#tpage-attribute-parame
 另驗證 RAM、CPU 摘要、記憶卡與輸入序列，並保存新畫面證據。
 
 回歸入口：`internal/gpu/polygon_page_test.go` 的 `TestPolygonOwnTPageBlend`，以正常 GP0 命令同時覆蓋原生與影子側邊。
+
+本節驗收通過：2048組公式、正式套件完整回歸、121組Intel GPU、完整M4雙機262點、232個封存舊機摘要及232個修正後原生像素。1080p實際35000黑暈消失，同一素材檔未改。三平台建置通過；Windows Wine只啟動600，macOS限結構，真機尚未驗。完整收據入口為上述研究區wall-ready-verification.json與私人素材repo的hd-candle-wall-preview-install/delivery-verification.json。

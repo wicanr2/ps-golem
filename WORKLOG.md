@@ -1899,3 +1899,22 @@ READY契約及來源為007 §10。新回歸先在四倍率全部重現previous0/
 原先失敗是跳躍位置太早，未判為產品缺陷。後續35筆16×16特效來源仍是強推論、身份未知。
 容量另由 #14追蹤，1173包manifest451863 bytes、解碼圖素133682944 bytes，未改019格式或限制。
 研究、原失敗圖、正常重播與新回歸日誌入口均為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/。
+
+## 2026-10-20：壁掛雙藍火交付與混色修正驗收
+
+70221ea只改原生與HD兩個正式多邊形取mode順序；與舊8de152e比對全部72個正式Go來源，只有兩檔改變，另新增公式回歸。正式套件完整回歸通過，公開GPU語料維持既有台帳，CPU／GTE及前端測試通過。實際Intel MTL共121例：53個原來源／CLUT／變換，加17筆真實四邊形各測前一ABR0至3的68例。舊53例會先設相同ABR，沒有覆蓋這次跨頁問題。007 §10已CONFORMED，整個GPU規格仍保留原有範圍與已知差異。
+
+首趟修正後雙機重播在12500後以SIGTERM143中斷，沒有驗證assert失敗，原因未知，不稱為逾時或產品缺陷；原normal-fixed-output與中斷紀錄保留。相同程式、素材及輸入以明確命名容器乾淨重跑至45784，262組父1172／新1173 HD配對通過。262組排除VRAM的標準執行摘要與記憶卡相同；研究限定舊ABR機器的232個完整摘要符合封存收據。新原生畫面有103個歷史點改變，修正後N1命令重播232個像素雜湊則全部等於新機。沒有改寫舊oracle或把新圖片宣稱舊版逐位元相同。
+正常139992列原字／快取相同，576來源像素完整，331筆圖元與17筆既有原始CB保持，圖元兩HD像素邊界外差異0。全彩512×512改4042字、區外252928字與STP保持，正常CLUT以外回退，父1172條目保持。
+
+新v.0.7.3-20261020由70221ea建立，三平台乾淨包與本機ZIP完成版號、CRC、UTF-8、素材排除、雜湊、OFL及macOS universal結構核對。原版只以唯讀來源組裝私人local-full。壁掛新稿READY後安裝231來源／1173條目，1070全彩與103索引，含99中文字、一個姓名、兩個HUD與揮擊。26853912 bytes，比父包增加21693；ZIP26420562 bytes、1290檔，SHA-256 20acc609230af39d9c69479d1630dbecadf294c77980e6e9cddc197cb480c267。
+首次安裝因新版本尚無textures父目錄而停止，設定與assembly已回復並核對。安裝器改mkdir parents後從空白備份重跑，失敗收據移至私人研究區install-attempt1，沒有沿用不完整安裝。舊v.0.7.2、其包／設定／原版與17張私人截圖保持。
+
+Linux同一新候選執行檔與最終包，原M4正常至35000，實際1920×1080最後畫面final_drawn=true，25496已呈現。右側黑暈消失，右控制裁切4487像素改變，左控制裁切0；新稿素材檔未變。CPU光柵、Intel GPU顯示，HD2／PGXP／xBR／透視／寬螢幕及手把設定保持。GUI寬螢幕不作原生同場聲明。真正安裝候選從其他cwd無素材／後端參數重開606，WM_DELETE正常關窗，398幅已呈現；最後606的final_drawn=false，只驗啟動與設定，不取代35000定場圖。
+Windows新執行檔的Wine啟動，初次Weston compositor崩潰，保留環境失敗日誌；同一映像改既有Xvfb軟體OpenGL，正常至600、final_drawn=true、設定保持。要求1920×1080，Xvfb桌面視窗實際1920×1058，只算啟動，不算Windows1080p或真機。macOS只驗結構。
+Linux執行檔SHA-256 e52234c47429a93455bc9100f1eea9b28d218345d746ea4d2d9c40b13d7c2fb8；Windows cc0f16ba60462ead72ad6cf9b8cad75d9c5885180b05307b5af29470be3e6870；macOS a536653272b764203257d23c3085ab36f229d72702c1dddd00cc0bd2554fae64。
+
+本機畫廊208草稿／局部入口、479個圖片連結全部有效，三份原版與三份HD總覽保持；正式檔案級HD仍0／264。生成母稿477872 bytes與兩張比較不進執行包。畫廊更新曾把既有總覽輸出目錄整個唯讀掛載而停止，改只放行三個既有總覽檔寫入，原圖與拆檔仍唯讀，乾淨重跑通過。
+前節首存17,37至18,36數值來自015的RAM座標候選，保留假說等級；9250畫面確實離房，但不稱正式房間ID。16×16特效身份、壁掛物件可破壞性及完整動畫仍未知。完整人物、怪物、字庫、介面、武器、蠟燭、地圖與HD未完成，效能延後。
+
+研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/的wall-normal-GPU-fixed-verification.json、wall-ready-verification.json、native-same-state-verification.json、commands-fixed.json；私人來源／GUI在同名研究區，交付與重開為其workplace/assets/hd-candle-wall-preview-install/delivery-verification.json及reopen-closure-verification.json。唯一現況仍為私人docs/hd-assets-evaluation.md §8。只提交程式、工具與文字，不提交原版、PNG、字圖或包。
