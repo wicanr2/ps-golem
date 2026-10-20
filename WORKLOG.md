@@ -1729,3 +1729,15 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 - 實際Intel MTL顯示環境三次正常BIOS開機至706，HD2首次、無resolution參數獨立重開與HD8都呈現1920×1080最後畫面。HD2兩張PNG逐位元相同，設定保持；HD8輸出有不同的較細邊緣。此輪HD光柵化使用CPU，Intel GPU負責OpenGL顯示，不稱HD GPU後端驗收。速度窗口依序0.480、0.783、0.107，非固定負載交錯A/B，未通過速度，不把功能存在當作加速完成。
 - 舊三平台本機候選、原版媒體、127來源／1069條目人物包及設定均未更換。1080p正常遊戲、高解析中文字整合、完整字庫、三平台新包、速度與人工音訊仍待完成；效能優化保持延後。中文專項為私人素材repo #10，1080p為本repo #13，皆保持開啟。
 - 唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，細節及研究工具索引在docs/assets-catalog.md中文字HD節。研究收據為該repo workplace/assets/chinese-font-hd-v1/display1080-font-checkpoint-verification.json，逐字來源、字形原型、正式載入及三次視窗日誌均留本機。只提交文字與Go程式，不新增原版、字模、美術或截圖到Git／Issue。Docker清理與擁有權檢查另記同研究目錄發布收據。
+
+### 2026-10-20 中文字22字實際對話與1080p候選
+
+- 使用者明確指示效能調校延後。本輪沿既有22字原型接入018／019，沒有改效能、CPU、原生GPU或HD光柵路徑。Noto Sans CJK TC八倍索引字圖保留原譯文、字位、換行及遊戲CLUT；其他字回退原版，Unicode名稱為逐字判讀，完整字碼仍未知。
+- 合併149來源／1091條目，含1069全彩及22索引條目；索引條目不固定CLUT，不把1091全稱來源／色盤配對。正式Go逐字核對原1069條目63349632個RGB555／STP字保持，新增22字270336索引精確。字形23檔含獨立manifest22186 bytes，不附完整字型；合併26682664 bytes，執行ZIP26261475 bytes、1207檔。
+- 最終同一合併包22字各25原CLUT混色／變換共550例，加330受控STP、混合STP與全零CLUT，第一字再加HD8與未知來源回退，共882個CPU／實際Intel MTL GPU案例。完整VRAM、畫面與統計一致。HD8僅一字隔離抽樣，不稱全部22字HD8或完整GPU前端、速度驗收。
+- 一次真BIOS、工廠空白卡及原M4按鍵正常新遊戲至15000，寬螢幕關閉，同機器同步1069與1091條目影子，221組HD2對照中56個封存原生摘要、像素與卡片點相同，165點沒有獨立原生對照。差異限制在預定文字區，文字外0。27648列來源／快取涵蓋完整22個12×16矩形，原字與快取一致，新字形未越界。無入口、座標或RAM注入。原型視覺與上述證據審查通過，私人素材規格僅此22字子集升READY後才安裝。
+- 程式來源8de152e由既有tools/build_local.sh重建全新v.0.7.2-20261020七個乾淨產物，版號、CRC、SHA、素材排除與Noto OFL附件通過；macOS兩架構、minos11.0與系統相依結構檢查通過，未稱真機。沒有新Release／tag，原版與HD包不公開。
+- 新三平台含素材候選沿005 §9組裝，私人素材工具install_hd_font_preview.py繼承v.0.7.1的畫質及手把設定，新增1920×1080輸出與新素材路徑，HD仍獨立沿2倍。原版媒體逐項保持，舊v.0.7.1的執行檔、1069條目包及設定保持。首次安裝守門對Windows／macOS省略媒體欄位停止，尚未寫入；依既有唯一候選自動尋找契約修正後成功重跑，不猜補媒體。初次GUI外層命令的環境變數替換錯誤在程式啟動前停止，修正後乾淨執行，非產品缺陷。
+- Linux使用新候選執行檔、其他cwd、無素材／解析度／後端參數，保存1920×1080、HD2、CPU、PGXP、xBR、寬螢幕、透視及手把設定。正常新遊戲至14500並呈現最後HD中文字畫面，卡片與封存原版同場一致；獨立重開至608正常關窗，設定保持。GUI寬螢幕不宣稱原生狀態相同，017既知右側計量圖元仍在。速度僅記原始日誌，未驗收或調校；人工音訊、Windows／macOS真機與通關仍待完成。
+- 私人畫廊184個圖像／動畫入口，新增實際對話原字／新字比較及22字總覽；既有17張私人截圖保持。正式HD檔案級目錄仍0／264，完整中文字庫、其他人物動作、武器、怪物與全遊戲HD未完成。中文Issue為私人素材repo #10，1080p為本repo #13，皆保留開啟。
+- 唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，研究入口workplace/hdtex/perf/chinese-font22-v1/下font22-ready-verification.json、font22-normal-GPU-verification.json及normal-player-output/verification.json。部署為私人素材repo workplace/assets/hd-font22-1080-preview-install/delivery-verification.json；發布回讀及Docker／擁有權核對另記font22-publication-verification.json。只提交工具與文件，不加入原版、字模、美術或新截圖。
