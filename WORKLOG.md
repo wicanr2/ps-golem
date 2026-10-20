@@ -1789,3 +1789,25 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 本機畫廊195個入口，原版／前批／新稿總覽及正常同場比較均保存；101場原始PNG保持，畫廊GIF取26張、333334 bytes供慢速審查，不作原版時序、像素或速度證據。
 圖片、母稿與執行包只留本機，17張既有私人截圖保持。正式HD檔案級目錄仍0／264，完整人物、字庫、血條姓名、所有蠟燭、武器、怪物、全遊戲HD及速度仍未完成，效能調校延後。
 本輪commit／push與容器清理以私人素材repo workplace/assets/candle-redraw-v1/publication-verification.json核對。
+
+
+## 2026-10-20：Richter序章HUD八倍索引子集
+
+沿使用者核准美術及先HD後效能的順序，完成序章Richter血條外框、數字底框、捲草、RICHTER／REST／×00、十個數字、短橫與PAUSE PUSH START重繪。原文、字位、數值、狀態與原生模擬不改，其他主角、日文對話姓名、圖示及完整介面未完成。唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，工作為其 #11。
+
+來源128×128、4bpp圖集與F_GAME2.BIN檔案byte偏移0x18000之8192 bytes相同，上傳鍵6326873f58316d3b8076e611389a1e43428491b370b8320d6734c08af4708883。舊正常原始命令103場觀測615筆HUD圖元、603307列原字／快取、7908來源像素及12組CLUT。Pillow幾何路徑新畫邊框與捲草，Noto Sans CJK TC重新製作字形，沒有圖像生成。八倍索引1024×1024小圖10266 bytes，未分類圖示原樣放大，血量填色來源保持。4244來源像素內變更73390子像素索引，透明輪廓有意更新；顏色、透明與STP沿實際CLUT原字，不將索引0固定透明。
+
+正式Go新1048576索引精確，父1113條目63349632全彩字及44中文字540672索引保持。待提交工具由乾淨來源重製1230包內檔案逐位元組相同。同一1114條目包378組CPU／實際Intel MTL GPU通過，含300實際色盤混色／變換、75受控STP0／混合STP／全零色盤，另HD8、新CLUT索引映射與未知上傳回退3例。非完整GPU前端或速度驗收。
+
+一次真BIOS、工廠空白卡及原M4按鍵至24400，234組同機器雙影子畫面，136封存原生摘要／像素／卡片點相同，98點無獨立原生對照；615筆原始CB及來源／目的／色盤／偏移保持，603307列來源字與快取相同。原M4直接顯示數字0、1、3；其他字有來源字形與直接GPU證據，不稱所有數值都經正常路線。
+
+最後24400場把畫面當貼圖旋轉，原直接HUD邊界檢查停止。原GP0解析器保留封包分組及PGXP精度、跳過光柵操作，取得6431個轉場封包，以五個原HUD封包作正對照。24322快照原樣平移至VRAM Y+256，24398同深度四邊形由實際UV起點12列映射至顯示緩衝。按原頂點與兩輸出像素邊界核對，差異限投影後HUD；其餘233場亦限直接HUD，沒有略過轉場或放寬成整個畫面。此解析不是新CPU或硬體oracle，研究入口workplace/hdtex/perf/hud-redraw-v1/transition24400-verification.json。
+
+同一8de152e候選執行檔與新包，在私人素材repo獨立試用根目錄正常新遊戲，額外20000以START暫停，20020最後1920×1080畫面呈現新暫停字形。內部HD2及CPU，Intel GPU負責OpenGL顯示；PGXP、xBR、透視、寬螢幕與手把沿原設定，GUI因寬螢幕與額外輸入不作原生同場聲明。正式程式及效能路徑不變。
+
+子集升READY後已裝入既有v.0.7.2三平台本機預覽，172來源／1114條目，含1069全彩及45索引，44字保持；26739046 bytes，比燭台包增加10531 bytes，ZIP26314662 bytes、1230檔。只有素材路徑改為castle-hud-richter-v2-compact，舊燭台包、執行檔、原版、Noto OFL與其他設定保持。
+真正Linux候選無素材／後端參數另重開至606，WM_DELETE正常關窗，設定保持，已呈現451幅；最後在途452未呈現，重開只驗啟動、顯示與保存，上述遊戲20020定場為final_drawn=true。Windows／macOS限資料與結構，未驗真機。
+
+圖庫197個圖像／動畫入口，新增原版／HD圖集及正常20000同場比較；既有17張私人截圖保持，正式HD檔案級目錄仍0／264。另以15000及15500封存對話逐字核實八個新字源，仍未接入現行44字包，完整編碼未知。完整HUD、人物、字庫、武器、怪物、蠟燭破壞、全遊戲HD與速度仍未完成，效能調校延後。
+
+研究掛載缺少父包／字型及覆蓋檔遺漏顯示原點方法，均在產品驗證前修正；同一工具鏈與原門檻乾淨重跑。完整研究命令在workplace/hdtex/perf/hud-redraw-v1/commands.txt，正常、GPU及READY入口為hud-v2-normal-GPU-verification.json與hud-v2-ready-verification.json。部署、獨立重開與完整核對在私人素材repo workplace/assets/hd-hud-richter-preview-install/delivery-verification.json及reopen-closure-verification.json。只提交文字與素材工具；圖片、原版及包留本機。提交、遠端回讀與Docker／擁有權核對另記同素材repo workplace/assets/hud-redraw-v1/publication-verification.json。
