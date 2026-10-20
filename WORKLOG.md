@@ -1811,3 +1811,24 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 圖庫197個圖像／動畫入口，新增原版／HD圖集及正常20000同場比較；既有17張私人截圖保持，正式HD檔案級目錄仍0／264。另以15000及15500封存對話逐字核實八個新字源，仍未接入現行44字包，完整編碼未知。完整HUD、人物、字庫、武器、怪物、蠟燭破壞、全遊戲HD與速度仍未完成，效能調校延後。
 
 研究掛載缺少父包／字型及覆蓋檔遺漏顯示原點方法，均在產品驗證前修正；同一工具鏈與原門檻乾淨重跑。完整研究命令在workplace/hdtex/perf/hud-redraw-v1/commands.txt，正常、GPU及READY入口為hud-v2-normal-GPU-verification.json與hud-v2-ready-verification.json。部署、獨立重開與完整核對在私人素材repo workplace/assets/hd-hud-richter-preview-install/delivery-verification.json及reopen-closure-verification.json。只提交文字與素材工具；圖片、原版及包留本機。提交、遠端回讀與Docker／擁有權核對另記同素材repo workplace/assets/hud-redraw-v1/publication-verification.json。
+
+
+## 2026-10-20：對話99字與四角色原文姓名
+
+沿使用者已核准美術、字型及先HD後效能順序，新增55個已核實中文字／標點，原44字一併重製，共99個字源；德古拉、Richter、DEATH、阿魯卡多的原文姓名亦重新製作，沒有改譯、改字位或逐字時序。唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，工作為其 #10／#11及本repo #13。正式模擬、GPU光柵與效能程式均未改。
+
+姓名共享128×128、4bpp圖集b4214b179ca94941c27bca1b5208089550e2295559e2728424de874ace435809，與F_GAME.BIN／F_GAME2.BIN／F_TITLE1.BIN檔案byte偏移0x30000的8192 bytes相同。24個8×8基底格與兩個8×4濁音標記涵蓋1600來源像素，35個基底與7個標記的42筆圖元位置保持。相同ヘ字模由原始CB來源消歧，完整Unicode字表仍未知。共用格在其他介面的重用亦會顯示新字形，不聲稱只影響這四列。
+
+v3誤用字寬與字型側距，濁音及標點過小，視覺審查拒絕，未安裝；其GPU2243例不能替代視覺品質。正常路線14000後主動停止，退出143，GUI於11616正常關窗，均不列為完整驗收。v4先裁實際非零墨跡再置入原框，99字及姓名統一重新製作；原44字全部實際變更。未核實辺／边、說／説、里／裏保持原版，不猜補。Noto Sans CJK TC／OFL，沒有圖像生成或完整字型打包。
+
+正式Go核對100個本批索引條目2265088索引精確，姓名區外946176索引保持。父1070個全彩／HUD條目63349632字與1048576 HUD索引保持。乾淨唯讀輸入重製1286檔逐位元組相同。最終1170條目包直接CPU／Intel MTL GPU共4003例，含100實際來源／CLUT配對2500混色／變換、1500受控STP1／混合STP／零CLUT及首字HD8、新CLUT映射、未知來源3例；兩種實際CLUT，不稱100個不同色盤。完整VRAM、畫面及統計相同，不稱完整GPU前端或速度完成。
+
+一次真BIOS、工廠空白卡及原M4按鍵正常至首次存檔45784，同機器父1114／新1170包265組HD2對照，232封存原生摘要／像素／卡片點一致，33點無獨立原生對照。正常212928列原字／快取相同，99個12×16完整字源19008像素及姓名1600來源像素覆蓋，42筆姓名圖元位置保持。文字圖元外差異0，寬螢幕關閉，無狀態或座標注入。
+
+同一8de152e候選執行檔與新包，在獨立試用根目錄以原M4按鍵正常新遊戲至40600，1920×1080最後畫面呈現死神姓名與三行對話。內部HD2、CPU，Intel GPU顯示；PGXP、xBR、透視、寬螢幕、手把及其他設定保持，卡片與封存同場一致。GUI寬螢幕不作原生狀態同場聲明。
+
+READY後裝入既有v.0.7.2三平台本機預覽，228來源／1170條目，1069全彩與101索引。26810838 bytes，比HUD父包增加71792 bytes；ZIP26382447 bytes、1286檔。真正Linux候選無素材／後端參數獨立重開至606並WM_DELETE正常關窗，已呈現511幅，素材與其他設定保持。關窗最後在途是否呈現另見收據，不把重開當40600定場驗收。舊HUD包、執行檔、原版與OFL保持；Windows／macOS限資料與結構，未驗真機。
+
+本機畫廊201入口，新增99字／四姓名來源總覽與14500／40600前版／本批同場比較。既有17張私人截圖保持，正式檔案級HD仍0／264，圖片、字圖與包不進Git或Issue。正常驗證首度將濁音8×4製圖子矩形當作完整8×8 GPU圖元而停止；原始CB證實上方四列透明，以來源／目的同樣上移四列修正驗證，素材、正常執行及差異範圍不改，重跑原門檻通過，入口name-mark-packet-correction.json。順帶排除F_GAME.BIN偏移0x18000之HUD假說：8192 bytes全零且跨位深共用，匹配上傳鍵不能辨識介面，沒有依該偏移實作。完整字庫、其他姓名、主角HUD、人物、怪物、武器、地圖與蠟燭仍未完成，效能調校延後。
+
+正常、GPU、原型拒絕與READY證據在workplace/hdtex/perf/dialogue-font-v3/及私人素材repo同名研究區，入口dialogue-v4-normal-GPU-verification.json、dialogue-v4-ready-verification.json、Go-GPU-v4-verification.json、reproducibility-v4-verification.json及gui-v4-play/verification.json。部署及重開在私人素材repo workplace/assets/hd-dialogue99-preview-install/delivery-verification.json，提交與遠端回讀另記研究區publication-verification.json。只提交文字、畫廊入口及編製／安裝工具；原始素材與研究圖留本機。
