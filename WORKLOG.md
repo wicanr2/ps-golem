@@ -1871,3 +1871,31 @@ READY後已裝入既有v.0.7.2三平台本機預覽，229來源／1171條目，1
 另由既有原命令重播定位左側壁掛藍火，232張父1170包畫面相同，61個查詢場的976筆ROI圖元與143433列原字／快取成立，9來源／12組來源色盤配對包含背景及人物。b423eb09b08e13f3dc24a1214fcb3a18d9a79f2ecc3499d24328a3bfa4e86cca共用圖集[0,0,24,24)完整576來源像素為雙燭頭藍火外觀，語意為強推論；完整128×128／4bpp載荷命中F_GAME.BIN及F_GAME2.BIN檔案byte0x36000。17筆0x3f在34984至35000隨捲動逐步進入ROI，不將其局部邊界當作完整物件大小。正式ID、實際讀取副本、可破壞性與完整火焰動畫未知，沒有新的壁掛蠟燭美術或安裝。
 
 引擎研究入口workplace/hdtex/perf/weapon-swing-redraw-v1/weapon-normal-GPU-verification.json、weapon-ready-verification.json、normal-field-boundary-correction.json及commands-v2.json。來源、原型、重製與GUI在私人素材repo workplace/assets/weapon-source-observation-v1/swing-redraw-v2-final/；交付為其hd-weapon-swing-preview-install/delivery-verification.json。壁掛定位入口為兩repo各自的candle-wall-observation-v1/，私人repo保存source-provenance.json及wall-candle-component-verification.json。只提交工具與文字，原版、PNG、字圖及包不進公開引擎或Issue。
+
+## 2026-10-20：壁掛新稿揭露多邊形混色順序缺陷
+
+工作為 #15，完整HD仍由 #8追蹤，效能延後。私人素材repo的目前表維持1172條目舊候選。
+新壁掛雙藍火母稿以內建imagegen生成，只參考自製站立燭台；編製後只改b423共用圖集[0,0,24,24)，
+新1173包比父包增加21693 bytes。正式Go、1290檔乾淨重製、70組CPU／Intel GPU通過。
+一次真BIOS／空白卡／原M4至45784，262組父1172／新1173配對、232封存原生點通過，
+139992列原字／快取與576來源像素完整，圖元兩HD像素邊界外0。這些是修正前結果。
+
+同一舊執行檔的1080p實際GUI35000雖呈現兩個新燭台，右邊出現黑暈，因此未安裝。
+查出原生與HD的drawPolygon先取f.mode，再載入自身TPage，違反既有Beetle ProcessFIFO順序。
+固定e57860d82faa953dc0fc10f201fd583739bc2f7d的gpu.c已重新下載核對，SHA-256
+c7aa6dc4b298e149e01d08c3a2f3df5f012d4ead2a94c1edb8c4ee2bf9db094e，GPL-2.0-or-later。
+READY契約及來源為007 §10。新回歸先在四倍率全部重現previous0/current1用錯模式，
+再將原生／HD兩處取mode移到setTPage之後。原生與HD單元全過，新增2048組獨立公式驗證，
+涵蓋前後16種ABR、raw flat／Gouraud三角及四邊形、ABE／STP／透明、倍率1/2/4/8與兩側。
+
+完整套件回歸及修正前後雙機M4正在執行。最初./...誤納ignored研究區的C檔與多個main，
+屬測試範圍錯誤，該容器已停止；改以正式套件明列的相同Docker環境乾淨重跑。
+因Digest含VRAM，研究雙機使用舊ABR僅作封存232點校驗，另比較不含VRAM的執行摘要與記憶卡。
+該舊模式開關只在ignored overlay，沒有進正式GPU。新畫面若不同，另列修正結果，不改舊收據。
+新候選預定v.0.7.3-20261020，待新正常路線、實際GPU、三平台與1080p通過後才交付，舊包保留。
+
+首存離房兩個先前探針未成功，原生互動研究確認正常路線可由9000向右160場，
+9160按CROSS+RIGHT10場，再向右80場，9250已由房間17,37到18,36；未寫PC／RAM或注入座標。
+原先失敗是跳躍位置太早，未判為產品缺陷。後續35筆16×16特效來源仍是強推論、身份未知。
+容量另由 #14追蹤，1173包manifest451863 bytes、解碼圖素133682944 bytes，未改019格式或限制。
+研究、原失敗圖、正常重播與新回歸日誌入口均為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/。

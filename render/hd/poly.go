@@ -42,7 +42,6 @@ func (g *Renderer) drawPolygon(cb []uint32) {
 	f := polyFlags{
 		gouraud:  cmd&0x10 != 0,
 		textured: cmd&0x04 != 0,
-		mode:     g.blendModeOf(cmd),
 	}
 	f.modulate = f.textured && cmd&0x01 == 0
 	nv := 3
@@ -57,6 +56,9 @@ func (g *Renderer) drawPolygon(cb []uint32) {
 		}
 		g.setTPage(cb[idx] >> 16)
 	}
+	// 007 §10：先載入本次 TPage，再選 ABR。Beetle ProcessFIFO，
+	// gpu.c，e57860d82faa953dc0fc10f201fd583739bc2f7d，GPL-2.0-or-later。
+	f.mode = g.blendModeOf(cmd)
 	f.tm = g.texMode
 
 	var vs [4]triVertex

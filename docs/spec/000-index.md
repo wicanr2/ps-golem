@@ -11,7 +11,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `004-cpu-r3000a.md` | CONFORMED | CPU；與參照實作的差異依實機紀錄修正 |
 | `005-cross-platform-delivery.md` | READY（實作完成，macOS 待實機） | 三平台在 Linux docker 內建置與打包 |
 | `006-minimal-machine.md` | CONFORMED | 匯流排、BIOS 開機、PS-EXE 側載、TTY；週邊台帳 |
-| `007-gpu-and-dma.md` | READY（實作中） | GPU 原生光柵化、DMA2；M3 台帳 |
+| `007-gpu-and-dma.md` | READY（實作中） | GPU 原生光柵化、DMA2；M3 台帳；§10 多邊形自身 TPage 混色順序 READY |
 | `008-cycle-model.md` | CONFORMED（含 §7–8 等價優化；速度未過） | 取指令、讀取、乘除法、GTE 的週期成本 |
 | `009-cdrom.md` | CONFORMED | cue／bin、CD-ROM 控制器、DMA3 |
 | `010-pad-and-memcard.md` | READY（手把完成） | SIO0、數位手把、記憶卡、按鍵腳本 |

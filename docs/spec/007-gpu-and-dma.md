@@ -144,3 +144,32 @@ BIOS 開機到 SCE 開場畫面（SONY 字樣、GTE 投影的鑽石標誌與 Gou
 - 不把此捷徑套在帶抖色的多邊形。HD 精靈及替換素材的精靈子像素依相同規則。
 - 驗收對全部 65536 個 16 位元色值，與保留的原 modTexel 路徑比較；
   另跑 GPU 語料、HD 素材與競態回歸。以正常路線及實際速度驗證，不以恆等式單獨宣稱可玩完成。
+
+## 10. 多邊形自身貼圖頁的混色模式
+
+狀態：`READY`。2026-10-20 壁掛燭台的 1080p 寬螢幕抽樣發現黑暈。
+`internal/gpu/poly.go` 與 `render/hd/poly.go` 在 `setTPage` 前建立 `f.mode`，
+會沿用上一筆命令的 ABR。相鄰同素材可能因此套用不同混色。
+
+證據：`beetle-psx-libretro` 的 `mednafen/psx/gpu.c`，固定 commit
+`e57860d82faa953dc0fc10f201fd583739bc2f7d`，GPL-2.0-or-later。
+`ProcessFIFO` 先從 `CB[4 + ((cc >> 4) & 1)] >> 16` 呼叫 `SetTPage`，
+再以 `command->func[GPU.abr][GPU.TexMode]` 分派。下載來源為
+https://raw.githubusercontent.com/libretro/beetle-psx-libretro/e57860d82faa953dc0fc10f201fd583739bc2f7d/mednafen/psx/gpu.c 。
+psx-spx 的 TPage attribute 與 GP0(E1h) 亦規定多邊形貼圖頁含 ABR bit5–6：
+https://psx-spx.consoledev.net/graphicsprocessingunitgpu/#tpage-attribute-parameter-for-textured-polygon-commands 。
+
+| 項目 | 契約 |
+|---|---|
+| 輸入與順序 | 貼圖多邊形先載入自身 TPage，再取 ABR；三角形與四邊形、平面與 Gouraud 都適用 |
+| 非貼圖多邊形 | 維持目前 draw mode 的 ABR |
+| ABE 與 STP | ABE 關閉時不混色；ABE 開啟時只有 STP1 貼素混色；word0 保持透明 |
+| 邊界 | 前一 ABR 與本次 ABR 的 16 組轉換都須正確，側邊畫布與中央相同 |
+| 輸出 | 原生、HD CPU 與 GPU 使用同一個正確模式；不改時序、命令字或 RAM |
+| 驗收 | 獨立整數公式檢查 4 種混色與 ABE/STP/透明；倍率 1/2/4/8、中央與側邊；公開 GPU 語料和現有回歸；正常 M4 與 1080p 重抓 |
+
+研究與原始失敗畫面留在 `workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/`。
+舊有 232 點原生畫面收據保留為修正前基準。新原生畫面若改變，不冒稱與舊錯誤輸出完全相同，
+另驗證 RAM、CPU 摘要、記憶卡與輸入序列，並保存新畫面證據。
+
+回歸入口：`internal/gpu/polygon_page_test.go` 的 `TestPolygonOwnTPageBlend`，以正常 GP0 命令同時覆蓋原生與影子側邊。
