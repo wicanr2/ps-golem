@@ -1941,3 +1941,25 @@ READY後只切換三平台本機素材路徑，現行232來源／1175條目、10
 研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/fire4-v1/下normal-GPU-verification.json、ready-verification.json及commands.json；私人來源／作者稿／GUI在素材repo workplace/assets/candle-wall-observation-v1/break-effects-v1/，完整交付為workplace/assets/hd-candle-fire4-preview-install/delivery-verification.json。唯一現況仍為私人docs/hd-assets-evaluation.md §8。只提交工具與文字，原版、PNG、字圖與包不進公開引擎或Issue。
 
 本批Docker一次性容器均已移除，兩工作根掃描無root擁有檔案或誤建.md目錄。提交、push與遠端Issue精確回讀另外保存在私人break-effects-v1/publication-verification.json，相關HD工作Issue保持開啟。
+
+## 2026-10-20：三段命中星芒交付與裝備選單字源觀測
+
+前一批四段火焰已安裝，本批接續同一正常首存攻擊鏈的三段命中星芒。來源2708d5b9f5a9c71ae09b3627458e75dab535acd5a5b8e3f70558d3ad63631568為128×128、4bpp，8192 bytes同時命中BIN/F_GAME.BIN與F_GAME2.BIN檔案byte0x12000，實際讀取副本未知；VRAM上傳672,256。選定[0,96,32,128)、[32,96,64,128)、[64,96,96,128)，原始0x3d、12字圖元使用CLUT5872210010f00b6966cbe36c19d9ee57d1ca5451b7d85b38dce527dbc1d0506a。原非透明色字STP0且ABE關閉，沒有沿用火焰的加法／STP1契約。
+
+私人素材READY規格後，以Pillow可重現幾何曲線新畫金白多束爆光、中央亮面、藍白收束與向外碎光。未用圖像生成、舊RGB或色盤乘數；四倍全彩RGBA使用0／255 alpha，STP全零。只新增一個實際CLUT條目，另一個已觀測CLUT回退。正式Go核對262144新色字精確、未選區212992字保持，父1175條目64136064全彩字與6459392索引保持。改6146色字，842個原透明位置新增可見子像素、3367個舊可見位置轉透明，均為新輪廓有意變更；原圖元位置與切換不變。乾淨1295檔重製逐位元組相同。
+
+同一最終1176包直接通過59組CPU／實際Intel MTL GPU：兩個實際CLUT共50個混色／變換，一組命中、一組保持原版回退；HD8／未知CLUT／未知上傳3例，另六筆原始不透明四邊形。完整VRAM、畫面與統計相同。正式引擎72個Go來源與三平台執行檔未改，沿70221ea，不重跑無關核心回歸，也不把孤立GPU當完整GPU前端或速度。
+
+真BIOS、原首存卡、相同正常按鍵至9700，同機器父1175／新1176共111組HD對照，111個修正後原生摘要／像素／卡片點及父包HD像素相同。6144列原字／快取相同、3072來源像素完整，六筆原始圖元及UV／位置保持。首次驗證誤預期9518可見而停止，原始繪製9517～9522實際呈現9519～9524，依顯示緩衝位置修正為每張精確對應兩場前的單一圖元。兩HD像素邊界外0，沒有改素材或放寬範圍。原報告及腳本保留於normal-field-assumption-correction.json與verify-normal-field-assumption.py。來源墨跡首報誤以P模式色盤轉換建遮罩而得None，也已改索引原字節建遮罩，首報保留，原載荷／CLUT／圖元證據不變。
+
+Linux同一候選與新包正常讀檔至9520，1920×1080最後畫面已呈現，final_frame與shown_frame均6675、final_drawn=true；新細光束與既有新火焰可見、無黑暈。GUI沿HD2、CPU、Intel顯示、PGXP、xBR、透視、寬螢幕及手把；GUI寬螢幕不作原生同場聲明。獨立試玩設定唯讀造成寫回警告，保留日誌，此趟只驗顯示。真正安裝候選以可寫設定、唯讀原版與素材另無素材／後端參數重開604，WM_DELETE正常關窗，391幅已呈現；最後604的final_drawn=false，只驗啟動與保存。重開首次成功，沒有本批重開失敗；交付metadata一度繼承前批唯讀嘗試措辭，已另存原稿並修正，底層日誌未改。
+
+三平台本機v.0.7.3-20261020只切換素材路徑至textures/castle-hit-star3-v1-compact，舊1175火焰包、壁掛包、舊v.0.7.2、執行檔、原版媒體、OFL、既有卡片與其他設定保持。233來源／1176條目、1073全彩與103索引，26914756 bytes，比火焰父包增加20552；ZIP26476809 bytes、1295檔，SHA-256 6c5b019dc85ccee5cc27f9f5daaa2e5518dd7ddb162e17d2101725bb2cce3bd1。manifest453017 bytes、解碼135255808 bytes，019格式與容量上限未改。Windows／macOS本批限資料與既有程式結構，沒有新平台試玩或真機驗收。17張私人PNG保持；畫廊214個草稿／局部入口、485個圖片連結有效，正式檔案級HD仍0／264。
+
+另外以原生sotnlab從同一正常首存路線9700向左探索，9820在阻擋左側看到心形外觀物件。LEFT、SQUARE、UP與跳躍均未拾取；唯讀roomX候選停在150，跳躍時roomY候選有變化，沒有猜正式房間ID或修碰撞。原生10130選單確認HP70、心數10、金錢25，歸屬及拾取未知，不稱來自前盞燭台。完整按鍵、原生圖、原始數值與限制為break-route-lab/pickup-v1/verification.json；沒有PC／RAM／實體注入，實驗器已EOF正常結束。
+
+裝備選單中文字仍未HD，依字模索引路由進DRAFT觀測。新鮮BIOS／首存卡重播全部實際按鍵到10130，111個舊原生摘要／像素／卡片及HD基準相同，9820、9850、9885、10060、10130五張原生圖與互動試玩逐像素相同。選單ROI取得57646列原字／快取相同、324筆來源分區圖元，辨識13個未在1176包的12×16字源，每字192來源像素完整。尚未回復Unicode或字位，沒有編製新字圖。選單切換為364×240、顯示起點128,256，後續須追繪製／複製／呈現鏈再作非透明字像素匹配，不能沿用256寬遊戲座標或把ROI查詢當完成。入口workplace/hdtex/perf/alucard-hud-redraw-v1/menu10130-v1/capture/verification.json、commands.json及私人同名研究區source-groups.json。
+
+星芒研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/star3-v1/的normal-GPU-verification.json、ready-verification.json及commands.json；私人作者稿／GUI為素材repo workplace/assets/candle-wall-observation-v1/break-effects-v1/，完整交付為workplace/assets/hd-hit-star3-preview-install/delivery-verification.json。工具為私人repo tools/build_hd_hit_star_sample.py與tools/install_hd_hit_star_preview.py。唯一目前表仍為私人docs/hd-assets-evaluation.md §8，提交／push與遠端Issue回讀另在star-publication-verification.json。只提交工具與文字，原版、PNG、字圖與包不進公開引擎或Issue。
+
+本輪所有有界星芒、拾取與選單觀測容器均已移除，兩工作根掃描無root擁有檔案或誤建.md目錄。完整人物、怪物、字庫、介面、武器、蠟燭、地圖與HD尚未完成，效能延後；相關Issue保持開啟。
