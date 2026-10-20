@@ -1832,3 +1832,22 @@ READY後裝入既有v.0.7.2三平台本機預覽，228來源／1170條目，1069
 本機畫廊201入口，新增99字／四姓名來源總覽與14500／40600前版／本批同場比較。既有17張私人截圖保持，正式檔案級HD仍0／264，圖片、字圖與包不進Git或Issue。正常驗證首度將濁音8×4製圖子矩形當作完整8×8 GPU圖元而停止；原始CB證實上方四列透明，以來源／目的同樣上移四列修正驗證，素材、正常執行及差異範圍不改，重跑原門檻通過，入口name-mark-packet-correction.json。順帶排除F_GAME.BIN偏移0x18000之HUD假說：8192 bytes全零且跨位深共用，匹配上傳鍵不能辨識介面，沒有依該偏移實作。完整字庫、其他姓名、主角HUD、人物、怪物、武器、地圖與蠟燭仍未完成，效能調校延後。
 
 正常、GPU、原型拒絕與READY證據在workplace/hdtex/perf/dialogue-font-v3/及私人素材repo同名研究區，入口dialogue-v4-normal-GPU-verification.json、dialogue-v4-ready-verification.json、Go-GPU-v4-verification.json、reproducibility-v4-verification.json及gui-v4-play/verification.json。部署及重開在私人素材repo workplace/assets/hd-dialogue99-preview-install/delivery-verification.json，提交與遠端回讀另記研究區publication-verification.json。只提交文字、畫廊入口及編製／安裝工具；原始素材與研究圖留本機。
+
+
+## 2026-10-20：阿魯卡多HP圓框、飾框與數字子集
+
+沿使用者已核准美術、先HD後效能的順序，完成HP圓框、HP字樣、長條金屬飾框與兩組0～9字形子集。值、位置、輸入及時序不改，完整介面與全遊戲HD仍未完成。唯一現況為私人素材repo docs/hd-assets-evaluation.md §8，工作為其 #11及本repo #13，正式模擬、光柵與效能程式未改。
+
+先以既有M4原命令完整重播至45784，232個畫面與前批1170包相同，取得1724筆圖元及378615列原字／快取。128×128／4bpp圖集697d61bed2c6be9943c3ca51b816b425d225a9e0d4dd9b6eb899a53ef6bcd247的8192 bytes，與F_GAME.BIN及F_GAME2.BIN檔案byte0x38000相同；實際讀取副本未知。該圖集162筆CB及84808來源列成立，0x3d為12字帶貼圖四邊形。填色另用8×50圖條1bf70e5f297d4ed758be1c7d53d7712a654fc3613b6f49693d4a7a360818bb0c，觀測時原生VRAM988,256；一個填色四邊形也會取鄰接原圖集邊界，不能只按第一個來源分類。
+
+Pillow曲線重畫金屬斜面、圓框、鉚釘及葉形捲草，Noto Sans CJK TC／OFL按實際墨跡重製HP與數字，沒有圖像生成或完整字型打包。v1飾框過細、舊內圈仍露出，未安裝；v2以錯誤的小數字前景索引1取代6，實際圖元與CLUT預覽揭露低對比，未安裝。v3用前景6／陰影1修正。取樣預覽的第三組也曾選錯顯示緩衝，改看該組真正繪圖緩衝後只作審查，不冒稱正常顯示frame證據。研究建置的掛載引號、四邊形封包長度及測試檔案變數撞名均在正式驗收前修正，正式程式未改。
+
+八倍1024×1024索引PNG15889 bytes，4640來源像素內變更81508索引；未選區751616、飾框保護通道31616、圓框心形1280索引精確保持。正式Go新1048576索引精確，父1170條目63349632全彩字及3313664索引保持，含99中文字、姓名與Richter HUD。待提交工具增加原PNG及上傳鍵、父包雜湊核對後，乾淨唯讀輸入重建1287檔逐位元組相同。
+
+同一最終1171包728個CPU／Intel MTL GPU案例通過：26實際CLUT共650混色／變換、75 STP1／混合STP／零CLUT控制，另HD8、新CLUT映射與未知來源3例，完整VRAM／畫面／統計相同。不是完整GPU前端或速度。
+一次真BIOS、原首存卡及原有正常讀檔／一般移動腳本至9000，共133組同機器父1170／新1171 HD2對照，全部133個封存原生摘要／像素／卡片點一致，無額外未封存點。505600列原字／快取相同，圓框及飾框2720來源像素完整覆蓋；1120筆原始CB保持，圖元加兩個HD輸出像素邊界外0。正常只覆蓋大數字0、7與小數字0、1，其他字有來源與孤立GPU證據，沒有外推所有數值。
+
+同一8de152e候選執行檔與新包，獨立試用設定按同一正常腳本至9000，1920×1080最後畫面清楚呈現70／10及新框；HD2 CPU光柵、Intel GPU顯示，PGXP、xBR、透視、寬螢幕與手把保持，卡片與封存同場一致。GUI因寬螢幕不作原生同場聲明。
+READY後已裝入既有v.0.7.2三平台本機預覽，229來源／1171條目，1069全彩與102索引。26826992 bytes，比99字姓名包增加16154 bytes；ZIP26396798 bytes、1287檔。只有素材路徑改為castle-alucard-hud-v3-compact，舊包、執行檔、原版、OFL及其他設定保持。真正Linux候選無素材／後端參數獨立重開604並WM_DELETE正常關窗，已呈現523幅，末尾在途524未呈現，重開只驗啟動／保存；上述9000定場final_drawn=true。Windows／macOS限資料與結構，未驗真機。
+
+本機畫廊203入口，新增原版／HD圖集及正常9000比較；既有17張私人截圖保持，正式檔案級HD仍0／264。完整HUD、字庫、人物、怪物、武器、地圖、蠟燭及全遊戲HD未完成，效能調校延後。正常／GPU／READY與原始指令在workplace/hdtex/perf/alucard-hud-redraw-v1/，來源、原型拒絕、重製及實際GUI在私人素材repo同名研究區。交付為其workplace/assets/hd-alucard-hud-preview-install/delivery-verification.json，提交及遠端回讀另記研究區publication-verification.json。只提交文字與工具，圖片、原版與包留本機。
