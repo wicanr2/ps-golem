@@ -2003,3 +2003,9 @@ Linux同一候選與新包正常讀檔至9520，1920×1080最後畫面已呈現�
 引擎研究入口為workplace/hdtex/perf/skeleton-redraw-v2/下native-baseline/、native-kill-lab/、kill-native-baseline/、kill-source-capture/及normal-single-v1/verification.json。私人來源與作者稿入口為素材repo workplace/assets/skeleton-redraw-v2/source-geometry-v2.json、normal-kill-verification.json、prototype-structure-v6/、normal-single-v1/normal-boundary-verification.json、own-art-source-verification.json與protected-existing-verification.json，完整提示由hd-assets/drafts/skeleton-redraw-v2-prompt-set.json索引。唯一目前表docs/hd-assets-evaluation.md §8同步，工具與收據只留本機。提交僅文字文件，不含圖片、來源字、光碟、BIOS、卡片或包。
 
 這輪有界容器均已結束並自動移除，兩工作根無root擁有檔案或誤建.md目錄。接續須完成另一正常色盤、效果與動畫銜接、實際GPU及1080p，再通過READY契約與候選安裝。完整HD仍未完成，效能調校延後，相關Issue保持開啟。
+
+## 2026-10-21：本機HD怪物素材子集更新
+
+已依既有閘門檢查後更新本機怪物HD子集，正式模擬器程式未改。首版的視覺接合問題已修正，修正稿重新驗證後才接入候選。詳細來源、驗證與交付紀錄保存在私人素材專案的既有現況入口，公開紀錄僅保存工作進度。
+
+完整HD仍未完成，CPU與GPU選項保留，效能調校延後。Windows／macOS本次沒有新增真機驗收。本輪有界工具容器均已結束並移除；文件與製作工具提交、推送及Issue回讀另在私人交付紀錄保存。
