@@ -1741,3 +1741,27 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 - Linux使用新候選執行檔、其他cwd、無素材／解析度／後端參數，保存1920×1080、HD2、CPU、PGXP、xBR、寬螢幕、透視及手把設定。正常新遊戲至14500並呈現最後HD中文字畫面，卡片與封存原版同場一致；獨立重開至608正常關窗，設定保持。GUI寬螢幕不宣稱原生狀態相同，017既知右側計量圖元仍在。速度僅記原始日誌，未驗收或調校；人工音訊、Windows／macOS真機與通關仍待完成。
 - 私人畫廊184個圖像／動畫入口，新增實際對話原字／新字比較及22字總覽；既有17張私人截圖保持。正式HD檔案級目錄仍0／264，完整中文字庫、其他人物動作、武器、怪物與全遊戲HD未完成。中文Issue為私人素材repo #10，1080p為本repo #13，皆保留開啟。
 - 唯一現況仍私人素材repo docs/hd-assets-evaluation.md §8，研究入口workplace/hdtex/perf/chinese-font22-v1/下font22-ready-verification.json、font22-normal-GPU-verification.json及normal-player-output/verification.json。部署為私人素材repo workplace/assets/hd-font22-1080-preview-install/delivery-verification.json；發布回讀及Docker／擁有權核對另記font22-publication-verification.json。只提交工具與文件，不加入原版、字模、美術或新截圖。
+
+
+## 2026-10-20：44字子集與血條／蠟燭來源
+
+使用者要求字形、血條、姓名、裝飾與遊戲內蠟燭都HD；效能調校繼續延後。唯一現況表仍是素材repo docs/hd-assets-evaluation.md §8。
+新增22個對話字源，逐字對field14000的9528個非透明HD2像素與原始上傳雜湊，累計44字。原文、字位、換行與顯示時序保持，完整字碼格式未知。
+最終1113條目包正式Go保持1091舊條目，含63349632全彩字與270336舊字索引，新增270336索引精確。
+新增22字在最終包直接通過882組CPU／實際Intel MTL GPU案例；舊22字繼承先前直接GPU及本批逐字保持，非44字都以本批包直接GPU。
+
+正常真BIOS、工廠空白卡及原M4按鍵到14500，301組同機器HD對照、55個封存原生點一致，另外246點無獨立原生對照，文字區外0。
+77320列原字／快取相同，其中38016列完整覆蓋44字來源；另39304列核對血條與蠟燭，目的座標為原生GPU VRAM，含雙緩衝偏移。
+入口workplace/hdtex/perf/chinese-font44-v2/font44-normal-GPU-verification.json及font44-ready-verification.json。正式模擬、HD光柵與效能程式未改，沿既有8de152e候選執行檔。
+
+同一候選與新包在獨立試用設定根目錄正常新遊戲至14000，1920×1080最後畫面呈現，卡片與封存同場一致。GUI寬螢幕不作原生狀態相同聲明；內部沿HD2及CPU。
+44字包裝入現有v.0.7.2三平台本機預覽，171來源／1113條目、26704954 bytes；ZIP26281868 bytes、1229檔。只有素材設定改變，執行檔、原版、舊22字包與其餘設定保持。
+真正Linux候選另零素材／後端參數重開至606，WM_DELETE正常離開，設定保持。Windows／macOS僅資料與結構，沒有真機驗收。部署入口為私人素材repo workplace/assets/hd-font44-preview-install/delivery-verification.json。
+
+血條圖集原始8192 bytes與F_GAME2.BIN的檔案byte偏移0x18000相同；共用小字圖與三份拆檔0x30000相同，實際讀取副本未知。
+蠟燭128×128圖集索引與上傳鍵精確，兩組原觀測CLUT；六場同場取得2016來源像素及一組當場CLUT。圖集也含雕像，不猜整張身份或完整火焰週期。
+蠟燭透明母稿v1只輸入文字，v2只參考自製v1，未上傳原版；兩張母稿未安裝，輪廓、錨點、透明量化與動畫待驗。
+物件、介面與字形追蹤私人素材repo #12、#11、#10，本機畫廊191個入口，正式檔案級HD仍0／264。完整字庫、完整HD、速度、人工音訊與通關未完成。
+
+第一趟GPU驗證選到沒有Weston的Go建置映像，在啟動前停止；保留環境失敗log，改回原有psgolem-wine-verify:noble-r2後同一程式與門檻通過，未另建映像。
+本輪只提交文字與研究工具；圖片、字圖、原版與執行包留本機。commit／push與Docker清理以本輪最終收據核對。
