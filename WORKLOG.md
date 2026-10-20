@@ -1705,3 +1705,16 @@ GPU研究工具依各來源尺寸處理上傳，補末半字填充；正式GPU�
 - 本機畫廊137個圖像／動畫入口，新增26母稿、結構、59來源總覽、站立及停止對照。182張實際畫面GIF僅供慢速審查，不代表遊戲速度。正式HD檔案級目錄仍0／264；完整角色、其他動作、Richter全身、武器、怪物、速度、人工音訊與通關仍待完成。Windows／macOS僅同步資料，未宣稱真機驗收。
 - 研究入口workplace/hdtex/perf/alucard-body-observation-v1/settle26-v1-checkpoint-verification.json、settle26-normal-pixel-verification.json及gpu-settle26-v1-verification.json。安裝、視窗與最終核對在私人素材專案workplace/assets/hd-alucard-body-route-preview-install/delivery-verification.json；唯一現況表仍為該專案docs/hd-assets-evaluation.md §8，角色Issue #6保持開啟。
 - 只推送文件與素材工具，不加入原版、美術、包或新截圖，既有17張私人原始截圖保持。所有本批容器含已停止者均已移除，工作根無root-owned或異常.md目錄；沿用既有映像，未清理共用資源。提交與遠端回讀收據為同研究目錄settle26-v1-publication-verification.json。
+
+### 2026-10-20 Richter全身39來源重繪子集
+
+- 承接已核准的真正重繪方向，內建圖像生成只以自製Richter樣張或同批母稿作參考，新畫五官、髮束、肢體、衣褶及輪廓。39張單姿勢母稿中兩張原v1觸邊，以同工具另畫v2補足靴尖及手部，37張v1保持；原稿與未完成編製保留。來源動作名稱為外觀推論，不稱正式動畫ID。完整提示與圖像雜湊只留私人素材目錄。
+- 原始M4傾印的常用色盤有41來源，一張完全透明、一張128×128多姿勢圖集未解，其餘39單姿勢本批完成。39常用加37已觀測白閃共76條目，四倍小圖最長邊180像素；1098303精簡至679892 bytes，正式Go核對1282752個RGB555／STP字保持。合併127來源／1069條目26660516 bytes，正式Go63349632字；九個舊衣料條目由新全身稿取代，其餘993條目逐字保持。
+- 同一1069條目包直接通過76配對1900組CPU／實際Intel MTL GPU案例，涵蓋五種混色與五種變換，完整VRAM、畫面及取樣統計一致。舊993條目沿用先前直接GPU與本輪Go保持證據，不稱本批全1069條目直接GPU、完整GPU前端或速度驗收。
+- 原始M4命令僅重播必要區間至20700，99個封存畫面與統計保持，137172列原字／快取觀測覆蓋39完整來源矩形。另一次真BIOS、工廠空白卡與原M4按鍵正常新遊戲至20700，同機器同步舊1002／新1069包共428組HD對照；99點另對封存原生摘要、像素與卡片一致，329點沒有獨立原生對照。預定活動區外及三個HUD區保持，正常取樣再得137172列完整來源核對，無入口、座標或RAM注入。
+- 正常路線91人物配對中72命中新稿，含39常用及33白閃；19特殊效果回退原版。另四白閃只有直接GPU證據，多姿勢圖集未解，完整Richter及其他動作仍未完成。查詢場不是顯示姿勢ID，不猜補機制或動畫時序。研究與視覺證據審查後，私人素材目錄僅將此子集升為READY，才新增既有安裝工具的--richter-body-route。
+- 已裝入既有v.0.7.1三平台本機候選，選castle-richter-body39-v2-compact，只改素材相對路徑，備份assembly及設定；舊阿魯卡多人物與雙頭像包保留。三平台執行檔、原版媒體、其他畫質及手把設定保持，1185檔執行ZIP26241200 bytes逐檔與SHA-256核對通過。母稿、提示、比較、GIF與原版資料不進執行ZIP。
+- Linux實際候選從非專案目錄啟動，無素材／後端參數，沿保存的CPU、HD2、PGXP、xBR、寬螢幕及透視設定，正常新遊戲至11724並呈現1280×720最後畫面；卡片與封存原版同場一致。獨立重開至603正常關窗，設定保持。GUI寬螢幕不作原生狀態一致聲明，017既知右側圖元仍在；速度最低0.348、中位0.824未通過，沒有同負載新舊因果比較，未開效能優化。
+- 本機畫廊182個圖像／動畫入口，含39母稿、完整127來源總覽、走動及出招實際比較。走動GIF由66實際場每來源40ms製作，精簡1078321 bytes，只作慢速審查，不代表遊戲速度。出招的鞭子仍原版，未稱武器重繪完成。正式HD檔案級目錄仍0／264；完整角色、圖集、特殊效果、武器、怪物、全遊戲HD、速度、人工音訊及通關仍待完成。Windows／macOS僅資料同步，未宣稱真機驗收。
+- 研究入口workplace/hdtex/perf/richter-body-redraw-v1/下richter-body39-v2-checkpoint-verification.json、richter-normal-v2-pixel-verification.json、richter-body39-v2-go-verification.json及richter-body39-v2-offline-verification.json。私人素材專案workplace/assets/hd-richter-body39-preview-install/delivery-verification.json保存安裝、視窗及交付核對；唯一現況仍該專案docs/hd-assets-evaluation.md §8，角色Issue #6保持開啟。
+- 本批正式模擬、GPU與效能程式未改，只推送文件與素材工具，不加入原版、抽檔、美術、包或新截圖；既有17張私人截圖保持。批次容器與擁有權檢查記於本機發布回讀收據richter-body39-v2-publication-verification.json，不清理其他專案資源。
