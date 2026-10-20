@@ -1963,3 +1963,25 @@ Linux同一候選與新包正常讀檔至9520，1920×1080最後畫面已呈現�
 星芒研究入口為workplace/hdtex/perf/candle-wall-observation-v1/redraw-v1/star3-v1/的normal-GPU-verification.json、ready-verification.json及commands.json；私人作者稿／GUI為素材repo workplace/assets/candle-wall-observation-v1/break-effects-v1/，完整交付為workplace/assets/hd-hit-star3-preview-install/delivery-verification.json。工具為私人repo tools/build_hd_hit_star_sample.py與tools/install_hd_hit_star_preview.py。唯一目前表仍為私人docs/hd-assets-evaluation.md §8，提交／push與遠端Issue回讀另在star-publication-verification.json。只提交工具與文字，原版、PNG、字圖與包不進公開引擎或Issue。
 
 本輪所有有界星芒、拾取與選單觀測容器均已移除，兩工作根掃描無root擁有檔案或誤建.md目錄。完整人物、怪物、字庫、介面、武器、蠟燭、地圖與HD尚未完成，效能延後；相關Issue保持開啟。
+
+## 2026-10-21：選單字形與獨立頭像子集
+
+沿正常首存讀檔、移動、START開選單，導覽右／左手、頭盔、鎧甲、披風、飾品與設定，再進按鍵配置並返回遊戲11000。沒有PC／RAM／座標注入。原生364×240顯示在0,0及128,256雙緩衝切換，實際繪圖偏移與GP1分離核對，期間無VRAM複製。43個非空12×16來源已以原索引／CLUT及31505個原生前景像素匹配，另24像素由確認的後畫白框覆蓋；保留装／撃／単／効／顔原字種。Unicode為視覺轉錄，原編碼未知。
+
+私人素材READY規格後，以Noto Sans CJK TC Regular／OFL重製43字及共用小字圖107選格，74格有正常來源／像素證據，其餘33格限來源與直接GPU。16個舊HD姓名字格整格保持，未選格保持。v1正式測試雖通過，1080p仍發現○／□細邊被HD2取樣漏掉，因此拒絕安裝並停止其未完按鍵試玩；v2只將○×□△改用原墨跡矩形內8個HD像素寬幾何線條，保留原前景索引。其他1339個檔案與前稿相同。不能用GPU一致抵銷可讀性缺陷。
+
+選單頭像另有8bpp來源0d7204456ecda62374545f1d7f63c3c13d5c6a6b4bd249f14810779516be206e，原64×128上方64×96顯示。重用核准自製頭像母稿a8409b081ddbc1d8f12e5ec9bad3f2609fc1fe84edcb5d1a9d5831963d1e8ba3，加自製深色襯底與金框；非原RGB或亮度乘數。4倍RGBA＋STP，原720透明像素刻意變成有框畫像，STP逐位元及底32列空白保持。原上半0x3d raw及下半0x3c Gouraud淡出不改。
+
+最終1220包正式Go逐字核對新增528384 CJK索引、共用小字1048576索引及131072頭像色字。其他1175條目64398208全彩字與5410816索引保持，頭像131072個STP位元／32768底部空字保持。乾淨1340檔重製相同。直接正式CPU／實際Intel MTL GPU共1821例：45來源／實際CLUT配對1125個混色／變換、660個STP／零CLUT控制、4個HD8／未知來源／全彩未知CLUT及8筆原頭像圖元×4先前ABR。實際CLUT共3種。完整VRAM、畫面與統計相同，非完整GPU前端或速度驗收。
+
+無HD／PGXP的正式原生核心建立150點新鮮BIOS／首存卡基準，147既有點保持。最終包另正常11000有150組父1176／新1220 HD2配對，全部150原生摘要／像素／卡片及147既有父HD點相同。170474列原字／快取、1525筆來源分區圖元保持；43字8256來源像素與頭像6144來源像素完整。所有差異點前兩場另有54場有界觀測、530640列與5194分區圖元，按實際顯示緩衝交集核對，全部27差異點的文字／頭像圖元加兩HD像素外0；返回遊戲10760、10800、11000保持。v1邊界觀測的原生、父像素與原始圖元與v2相同，只借用原命令幾何證據，不冒稱v1新字像素等於v2。
+
+同一v.0.7.3-20261020執行檔與最終包，以獨立可寫設定、唯讀原版／素材正常到主選單10130及按鍵配置10540，兩張1920×1080最後畫面已呈現，四種控制符號完整。HD2、CPU光柵、Intel GPU顯示，PGXP、xBR、透視、寬螢幕與手把沿原設定；GUI寬螢幕不作原生同場聲明。真正安裝候選無素材／後端參數重開605，正常WM_DELETE關窗，403幅已呈現，最後605為final_drawn=false，只驗啟動／設定保存。Windows／macOS本批限資料及既有程式結構。
+
+三平台本機包只切換到textures/castle-menu-ui-v1-compact。現行277來源／1220條目、1074全彩與146索引，142個12×16來源不代表142不同Unicode。27176138 bytes，增加261382；ZIP26735920 bytes、1340檔，SHA-256 93e501a924ea7fa7e251ed2a1fd96c9e9ba3f17534da2a24ea939eff4c5eedbf。manifest464647 bytes、解碼圖素計帳136046336 bytes，非程序或GPU峰值。72個正式Go來源、三平台執行檔、37980個既有候選／包／媒體／卡片檔案與17張私人PNG保持。畫廊218草稿／局部入口、489圖片連結有效，正式檔案HD仍0／264。
+
+命令收集器首趟因重複狀態包達既有上限而停止，改為目標場完整包與其間顯示／複製包，原上限及正式程式不變。離線報告變數覆用、研究執行檔／輸出同名及啟動器空命令也已修正，在同一隔離環境乾淨重跑，失敗收據保留，不列產品缺陷。
+
+研究入口為workplace/hdtex/perf/alucard-hud-redraw-v1/menu10130-v1/的capture-v2/verification.json、native-baseline-v1/、normal-v2-validation.json、normal-GPU-verification.json及ready-verification.json。私人作者稿／GUI為素材repo同名研究區，完整交付與重開為workplace/assets/hd-menu-ui-preview-install/delivery-verification.json。私人工具build_hd_menu_sample.py、install_hd_menu_preview.py與唯一目前表docs/hd-assets-evaluation.md §8同步更新。提交／推送及Issue精確回讀另在該研究區publication-verification.json。圖片、字圖、原版及包不入公開引擎或Issue。
+
+本批容器均已移除，兩工作根無root擁有檔案或誤建.md目錄。完整UI、字庫、人物、怪物、武器、關卡、地圖與HD未完成，效能調校延後，相關Issue保持開啟。
