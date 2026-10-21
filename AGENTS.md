@@ -71,3 +71,10 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 `docs/spec/016-hd-output.md` §8.1。接手或自動審查此分支的規格、實作、測試與本機候選包時，
 沿用此授權，不重問同一項架構決定。這不是速度驗收通過，也不放寬原生狀態、素材保護或 Docker 規則。
 目前狀態只以素材專案 `docs/hd-assets-evaluation.md` §8 與本專案 `WORKLOG.md` 的最新證據為準。
+
+
+## HD 美術與研究資料的接續規則（2026-10-21）
+
+使用者已核准目前美術草稿，後續沿用相同 HD 重繪與精簡素材方式。每批最多一次美術審查與一輪整合測試，必要的資料、CPU／GPU、正常遊玩與顯示檢查集中執行。既有通過證據承接，不逐圖重跑或自動擴大驗證；失敗如實記錄，不反覆重測。美術定案與安裝完成分開記錄，現行狀態仍見素材專案 `docs/hd-assets-evaluation.md` §8。
+
+本專案 `workplace/` 的舊研究大型紀錄已無損壓縮。讀取歷史命令、來源取樣或收據遇到原路徑缺檔時，先查相鄰素材專案 `../castlevinia_x/workplace/workspace-storage-index.json`。還原入口為 `../castlevinia_x/WORKLOG.md` 的「還原研究紀錄」，從素材專案執行 `sh tools/workspace_storage.sh list`，再以 `restore --root engine --path workplace/...` 還原需要的檔案。原路徑、長度與 SHA-256 保留，不能把封存當成遺失，也不因此重新跑遊戲。原始光碟、現行完整版與42張新動作研究未壓縮。
