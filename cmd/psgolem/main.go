@@ -162,6 +162,9 @@ func main() {
 		if *texturesFlag != "" {
 			var loadErr error
 			pack, loadErr = hd.LoadTexturePack(*texturesFlag)
+			if loadErr == nil && pack.SpriteRunCount() > 0 {
+				fmt.Fprintf(os.Stderr, "psgolem：HD繪圖序列=%d\n", pack.SpriteRunCount())
+			}
 			if loadErr != nil {
 				return nil, fmt.Errorf("素材包 %s：%w", *texturesFlag, loadErr)
 			}

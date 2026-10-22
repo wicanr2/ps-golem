@@ -83,6 +83,13 @@ func (g *Renderer) WriteGP0(v uint32) {
 }
 
 func (g *Renderer) execute(cb []uint32) {
+	if g.acceptSpriteRun(cb) {
+		return
+	}
+	g.executeRaw(cb)
+}
+
+func (g *Renderer) executeRaw(cb []uint32) {
 	cmd := cb[0] >> 24
 	if cmd == 0x02 || cmd >= 0x20 && cmd < 0x80 {
 		g.prepareSides()

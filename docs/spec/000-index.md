@@ -27,6 +27,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `020-gamepad-toolbar.md` | READY（實作與隔離驗收完成，實體手把待真機） | 自動隱藏工具列、USB／已配對藍芽手把設定、指派、死區與即時測試 |
 | `021-hd-gpu-renderer.md` | READY（GPU功能已驗證，速度未過） | 使用者要求HD繪圖交給GPU；整數像素後端、CPU／GPU相依與等價驗收 |
 | `022-hd-texture-perspective.md` | CONFORMED（限Linux功能及序章抽樣） | HD選用深度追蹤、透視取樣、保守回退與設定保存 |
+| `023-hd-sprite-runs.md` | READY | 可選精靈繪圖序列、來源驗證、逐字格HD替換與保守回退 |
 
 狀態定義：
 

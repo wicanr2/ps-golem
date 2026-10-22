@@ -37,6 +37,9 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type Renderer struct {
+	spriteRun           *spriteRunState
+	runImage            *textureImage
+	runUV               [2]uint32
 	texturePerspective  bool
 	perspectiveTriangle *perspectiveTriangle
 	perspectiveStats    TexturePerspectiveStats
@@ -233,6 +236,7 @@ func (g *Renderer) IRQ() bool { return g.irqPending }
 
 // WriteGP1 處理控制命令。
 func (g *Renderer) WriteGP1(v uint32) {
+	g.flushSpriteRun()
 	cmd := v >> 24
 	v &= 0x00FFFFFF
 	switch cmd {
@@ -437,7 +441,7 @@ func (g *Renderer) put(x, y uint32, v uint16) {
 }
 
 // SetField 接收原生 GPU 的場奇偶，影子不自行推進時間。
-func (g *Renderer) SetField(field bool) { g.fieldRAMReadout = field }
+func (g *Renderer) SetField(field bool) { g.flushSpriteRun(); g.fieldRAMReadout = field }
 
 // DebugState 回傳命令處理的內部狀態（除錯用）。
 func (g *Renderer) DebugState() string {

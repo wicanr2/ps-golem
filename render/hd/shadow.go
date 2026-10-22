@@ -151,12 +151,17 @@ func (s *Shadow) run(g *Renderer) {
 				case 5:
 					g.nextPrecision.Raw, g.nextPrecision.Flags = uint32(v), pgxp.ValidXY
 				case 6:
+					g.flushSpriteRun()
 					g.textures.field = (g.textures.field & 0xffffffff00000000) | uint64(uint32(v))
 				case 8:
 					g.nextPrecision.Z = math.Float32frombits(uint32(v))
 				case 7:
+					g.flushSpriteRun()
 					g.textures.field = (g.textures.field & 0xffffffff) | (uint64(uint32(v)) << 32)
 				}
+			}
+			if b.read != nil || b.stop {
+				g.flushSpriteRun()
 			}
 			if b.read != nil {
 				b.read(g)

@@ -36,8 +36,11 @@ type textureTracking struct {
 }
 
 func (g *Renderer) configureTextures(pack *TexturePack, dump *TextureDump) {
-	if pack.Len() == 0 && dump == nil {
+	if pack.Len() == 0 && pack.SpriteRunCount() == 0 && dump == nil {
 		return
+	}
+	if pack.SpriteRunCount() != 0 {
+		g.spriteRun = &spriteRunState{rules: pack.spriteRuns}
 	}
 	g.textures = &textureTracking{origins: make([]textureOrigin, VRAMWidth*VRAMHeight), pack: pack, dump: dump}
 }
@@ -190,6 +193,11 @@ func (t *textureTracking) resolveTexture(u *textureUpload, depth int, clut [32]b
 }
 
 func (g *Renderer) lookupTexture(tm, u, v uint32) (*textureImage, int, int) {
+	if g.runImage != nil {
+		g.textures.stats.Lookups++
+		g.textures.stats.Hits++
+		return g.runImage, int((u - g.runUV[0]) & 255), int((v - g.runUV[1]) & 255)
+	}
 	t := g.textures
 	if t == nil {
 		return nil, 0, 0

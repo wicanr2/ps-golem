@@ -24,6 +24,7 @@ func (g *Renderer) Screen() *image.RGBA { return g.ScreenInto(nil) }
 
 // ScreenInto 重用尺寸與 stride 相容的後備緩衝。呼叫端保證它不再被讀取。
 func (g *Renderer) ScreenInto(dst *image.RGBA) *image.RGBA {
+	g.flushSpriteRun()
 	defer g.rasterFence()
 	g.syncRaster()
 	hres := [4]uint32{256, 320, 512, 640}[g.displayMode&3]

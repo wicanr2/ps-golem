@@ -59,7 +59,8 @@ type textureImage struct {
 // TexturePack 是已完整驗證的不可變素材包。圖素切片不對外暴露。
 // 格式：019-hd-texture-pack。GPU 接入依 018-hd-texture-replacement。
 type TexturePack struct {
-	entries map[textureKey]*textureImage
+	entries    map[textureKey]*textureImage
+	spriteRuns []*spriteRunRule
 }
 
 // Len 回傳已載入的素材條目數。
@@ -203,6 +204,10 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 		}
 		p.entries[key] = e
 		memory += cost
+	}
+	p.spriteRuns, err = loadSpriteRuns(root, memory)
+	if err != nil {
+		return nil, fmt.Errorf("sprite-runs.json：%w", err)
 	}
 	return p, nil
 }
