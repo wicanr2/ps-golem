@@ -247,6 +247,13 @@ func (g *Renderer) texturePixel(e *textureImage, x, y int, fu, fv uint32, bits u
 	x = x*e.scale + int(uint64(fu)*uint64(e.scale)>>bits)
 	y = y*e.scale + int(uint64(fv)*uint64(e.scale)>>bits)
 	g.textures.stats.ReplacedSamples++
+	if e.tiles != nil {
+		v, indexed := e.tiles.pixel(x, y)
+		if indexed {
+			return g.clutCache[v]
+		}
+		return v
+	}
 	if e.indices != nil {
 		return g.clutCache[e.indices[y*e.width+x]]
 	}

@@ -51,6 +51,7 @@ type textureKey struct {
 }
 
 type textureImage struct {
+	tiles                *textureTileImage
 	width, height, scale int
 	indices              []byte
 	colors               []uint16
@@ -126,6 +127,7 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 	p := &TexturePack{entries: make(map[textureKey]*textureImage, len(m.Entries))}
 	dimensions := map[[32]byte][2]int{}
 	var memory uint64
+	var tileBuilder *textureTileBuilder
 	for i, s := range m.Entries {
 		_, hasCLUT := fields[i]["clut_sha256"]
 		_, hasSTP := fields[i]["stp"]
@@ -148,8 +150,14 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 		if key.color {
 			cost *= 2
 		}
-		if memory+cost > textureMemoryLimit {
-			return nil, fmt.Errorf("entries[%d]：解碼資料超過 %d bytes", i, textureMemoryLimit)
+		if tileBuilder == nil && memory+cost > textureMemoryLimit {
+			tileBuilder = newTextureTileBuilder(textureMemoryLimit)
+			for _, prior := range p.entries {
+				if err := tileBuilder.add(prior); err != nil {
+					return nil, fmt.Errorf("entries[%d]：%w", i, err)
+				}
+			}
+			memory = tileBuilder.used
 		}
 		img, err := texturePNG(root, s.Image, w, h)
 		if err != nil {
@@ -202,8 +210,15 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 				}
 			}
 		}
+		if tileBuilder != nil {
+			if err := tileBuilder.add(e); err != nil {
+				return nil, fmt.Errorf("entries[%d]：%w", i, err)
+			}
+			memory = tileBuilder.used
+		} else {
+			memory += cost
+		}
 		p.entries[key] = e
-		memory += cost
 	}
 	p.spriteRuns, err = loadSpriteRuns(root, memory)
 	if err != nil {
