@@ -80,7 +80,7 @@ func spriteKeys(raw json.RawMessage, names ...string) error {
 	return nil
 }
 
-func loadSpriteRuns(root string, memory uint64) ([]*spriteRunRule, error) {
+func loadSpriteRuns(root string, memory, memoryLimit uint64) ([]*spriteRunRule, error) {
 	const name = "sprite-runs.json"
 	if _, err := os.Lstat(filepath.Join(root, name)); os.IsNotExist(err) {
 		return nil, nil
@@ -151,8 +151,8 @@ func loadSpriteRuns(root string, memory uint64) ([]*spriteRunRule, error) {
 			return nil, fmt.Errorf("runs[%d]倍率無效", i)
 		}
 		cost := uint64(len(s.Steps) * 64 * s.Scale * s.Scale)
-		if memory+cost > textureMemoryLimit {
-			return nil, fmt.Errorf("精靈序列超過整包記憶體界線")
+		if memory+cost > memoryLimit {
+			return nil, &textureBudgetError{"精靈序列超過整包記憶體界線"}
 		}
 		memory += cost
 		rule := &spriteRunRule{id: s.ID, upload: key, width: s.WidthWords, height: s.Height, tpage: [2]uint32{s.TPage[0], s.TPage[1]}, offset: [2]int32{s.Offset[0], s.Offset[1]}, plane: s.BufferY256}

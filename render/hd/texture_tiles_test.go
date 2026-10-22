@@ -82,7 +82,7 @@ func TestTextureTileResidentLimit(t *testing.T) {
 	}
 	var block [textureTilePixels]uint16
 	tight := newTextureTileBuilder(textureTilePixels*2 - 1)
-	if _, e := tight.colorID(&block); e == nil {
+	if _, e := tight.colorID(block[:]); e == nil {
 		t.Fatal("color payload budget ignored")
 	}
 }

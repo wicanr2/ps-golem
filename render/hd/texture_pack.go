@@ -75,6 +75,15 @@ func (p *TexturePack) Len() int {
 // LoadTexturePack 從本機目錄的 manifest.json 整包驗證並載入。
 // 失敗一律回傳 nil pack，不改寫輸入或交回部分結果。
 func LoadTexturePack(directory string) (*TexturePack, error) {
+	return loadTexturePackWithMemoryLimit(directory, textureMemoryLimit)
+}
+
+// The production entry fixes the budget; the private form exercises real PNG
+// validation and all representation transitions with small synthetic inputs.
+func loadTexturePackWithMemoryLimit(directory string, memoryLimit uint64) (*TexturePack, error) {
+	if memoryLimit == 0 || memoryLimit > textureMemoryLimit {
+		return nil, fmt.Errorf("素材包記憶體界線無效")
+	}
 	root, err := filepath.Abs(directory)
 	if err != nil {
 		return nil, err
@@ -150,12 +159,10 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 		if key.color {
 			cost *= 2
 		}
-		if tileBuilder == nil && memory+cost > textureMemoryLimit {
-			tileBuilder = newTextureTileBuilder(textureMemoryLimit)
-			for _, prior := range p.entries {
-				if err := tileBuilder.add(prior); err != nil {
-					return nil, fmt.Errorf("entries[%d]：%w", i, err)
-				}
+		if tileBuilder == nil && memory+cost > memoryLimit {
+			tileBuilder, err = startTextureTiles(p.entries, memoryLimit)
+			if err != nil {
+				return nil, fmt.Errorf("entries[%d]：%w", i, err)
 			}
 			memory = tileBuilder.used
 		}
@@ -211,7 +218,14 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 			}
 		}
 		if tileBuilder != nil {
-			if err := tileBuilder.add(e); err != nil {
+			err := tileBuilder.add(e)
+			if isTextureBudget(err) && tileBuilder.bank.shift != textureSmallTileShift {
+				tileBuilder, err = compactTextureEntries(p.entries, memoryLimit, textureSmallTileShift)
+				if err == nil {
+					err = tileBuilder.add(e)
+				}
+			}
+			if err != nil {
 				return nil, fmt.Errorf("entries[%d]：%w", i, err)
 			}
 			memory = tileBuilder.used
@@ -220,7 +234,23 @@ func LoadTexturePack(directory string) (*TexturePack, error) {
 		}
 		p.entries[key] = e
 	}
-	p.spriteRuns, err = loadSpriteRuns(root, memory)
+	p.spriteRuns, err = loadSpriteRuns(root, memory, memoryLimit)
+	if isTextureBudget(err) {
+		if tileBuilder == nil {
+			tileBuilder, err = startTextureTiles(p.entries, memoryLimit)
+			if err == nil {
+				memory = tileBuilder.used
+				p.spriteRuns, err = loadSpriteRuns(root, memory, memoryLimit)
+			}
+		}
+		if isTextureBudget(err) && tileBuilder != nil && tileBuilder.bank.shift != textureSmallTileShift {
+			tileBuilder, err = compactTextureEntries(p.entries, memoryLimit, textureSmallTileShift)
+			if err == nil {
+				memory = tileBuilder.used
+				p.spriteRuns, err = loadSpriteRuns(root, memory, memoryLimit)
+			}
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("sprite-runs.json：%w", err)
 	}
