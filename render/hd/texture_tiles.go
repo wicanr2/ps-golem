@@ -16,9 +16,11 @@ const textureTilePixels = textureTileSide * textureTileSide
 const textureSmallTileShift = 3
 
 type textureTileBank struct {
-	shift   uint
-	indices [][]byte
-	colors  [][]uint16
+	shift        uint
+	indices      [][]byte
+	colors       [][]uint16
+	paletted     bool
+	packedColors []textureColorTile
 }
 type textureTileImage struct {
 	bank    *textureTileBank
@@ -88,9 +90,19 @@ func (b *textureTileBuilder) colorID(block []uint16) (uint32, error) {
 	}
 	key := textureTileKey{b.hash(raw), false}
 	for _, id := range b.seen[key] {
-		if slices.Equal(b.bank.colors[id], block) {
+		if (b.bank.paletted && b.bank.packedColors[id].equal(block)) || (!b.bank.paletted && slices.Equal(b.bank.colors[id], block)) {
 			return id, nil
 		}
+	}
+	if b.bank.paletted {
+		tile := encodeTextureColorTile(block)
+		if err := b.reserve(tile.residentBytes()); err != nil {
+			return 0, err
+		}
+		id := uint32(len(b.bank.packedColors))
+		b.bank.packedColors = append(b.bank.packedColors, tile)
+		b.seen[key] = append(b.seen[key], id)
+		return id, nil
 	}
 	if err := b.reserve(uint64(len(block)) * 2); err != nil {
 		return 0, err
@@ -171,6 +183,9 @@ func (t *textureTileImage) pixel(x, y int) (uint16, bool) {
 	if t.indexed {
 		return uint16(t.bank.indices[id][at]), true
 	}
+	if t.bank.paletted {
+		return t.bank.packedColors[id].pixel(at), false
+	}
 	return t.bank.colors[id][at], false
 }
 
@@ -188,7 +203,10 @@ func compactTextureEntries(entries map[textureKey]*textureImage, limit uint64, s
 func startTextureTiles(entries map[textureKey]*textureImage, limit uint64) (*textureTileBuilder, error) {
 	b, err := compactTextureEntries(entries, limit, textureTileShift)
 	if isTextureBudget(err) {
-		return compactTextureEntries(entries, limit, textureSmallTileShift)
+		b, err = compactTextureEntries(entries, limit, textureSmallTileShift)
+	}
+	if isTextureBudget(err) {
+		return compactTexturePaletteEntries(entries, limit)
 	}
 	return b, err
 }

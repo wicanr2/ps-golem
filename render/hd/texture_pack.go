@@ -225,6 +225,12 @@ func loadTexturePackWithMemoryLimit(directory string, memoryLimit uint64) (*Text
 					err = tileBuilder.add(e)
 				}
 			}
+			if isTextureBudget(err) && (tileBuilder == nil || !tileBuilder.bank.paletted) {
+				tileBuilder, err = compactTexturePaletteEntries(p.entries, memoryLimit)
+				if err == nil {
+					err = tileBuilder.add(e)
+				}
+			}
 			if err != nil {
 				return nil, fmt.Errorf("entries[%d]：%w", i, err)
 			}
@@ -249,6 +255,13 @@ func loadTexturePackWithMemoryLimit(directory string, memoryLimit uint64) (*Text
 				memory = tileBuilder.used
 				p.spriteRuns, err = loadSpriteRuns(root, memory, memoryLimit)
 			}
+		}
+	}
+	if isTextureBudget(err) && tileBuilder != nil && !tileBuilder.bank.paletted {
+		tileBuilder, err = compactTexturePaletteEntries(p.entries, memoryLimit)
+		if err == nil {
+			memory = tileBuilder.used
+			p.spriteRuns, err = loadSpriteRuns(root, memory, memoryLimit)
 		}
 	}
 	if err != nil {
