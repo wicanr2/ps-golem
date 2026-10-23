@@ -2118,3 +2118,6 @@ v.0.7.6-20261022三平台乾淨候選的建置、CRC、版號、授權與原版�
 唯一render/hd及render/hdgpu回歸184項含子測例通過，失敗／skip0；包含所有編碼、0／0x8000、碰撞、邊緣、原表示、實際PNG容量轉換、晚期非法alpha及姓名合計容量。八個新表示合成Intel MTL實體GPU案例完整VRAM、畫面及統計相同，全部單一硬體精靈、Triangles0／Fallbacks0／Readbacks1；原素材115例及其他已完成矩陣不重跑，沒有新全套race。
 
 完整2999條目正式載入及資料核對一次通過，482090816父像素、29622272新預期字、1822464邊界、四姓名保持，常駐資料132782541 bytes守原268435456，非程序／GPU峰值。來源包與原失敗收據不改，所有原版／母稿／圖板只留相鄰素材專案，公開repo不含遊戲資料。§8.2只標載入及資料取樣CONFORMED；正常新區域、1080p與玩家包未驗收，速度調校延後。具體SHA、命令、184／8及完整資料由素材專案LIB入口storage-study-v1/storage-acceptance-v1.json索引。
+
+
+容量實作及規格以d543ab1提交推送；從該乾淨提交建置v.0.7.8-20261023三平台純引擎候選至dist-all同版本patch目錄。Linux／Windows各6檔、macOS8檔逐檔與封包SHA相同，版號、設定入口、授權與素材排除通過；Linux實際-version正確，macOS兩程式雙架構、簽章、最低11.0及系統依賴四道通過。Windows／macOS無新增真機，沒有新GUI、AppImage、tag／Release或玩家包切換。候選收據為素材專案LIB儲存研究根candidate-build-verification-v1.json，公開容量#14進展留言6367440165。後續背景已接DAI原始來源DRAFT，完整HD與速度仍未完成。
