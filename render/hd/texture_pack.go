@@ -20,8 +20,8 @@ import (
 
 // 素材包格式與資源界線：019-hd-texture-pack。這一層不接觸模擬器狀態。
 const (
-	textureManifestLimit = 1 << 20
-	textureEntryLimit    = 4096
+	textureManifestLimit = 4 << 20
+	textureEntryLimit    = 8192
 	texturePixelLimit    = 16 << 20
 	textureFileLimit     = 64 << 20
 	textureMemoryLimit   = 256 << 20

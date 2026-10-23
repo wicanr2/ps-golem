@@ -1,6 +1,6 @@
 # 019 HD 素材包格式與載入
 
-狀態：`CONFORMED`，限素材包載入與驗證層。GPU 替換、傾印與 CLI 另依 CONFORMED `018-hd-texture-replacement.md` 接入，不屬本載入器層驗收。
+狀態：`CONFORMED`，限素材包載入與驗證層；§8.3 為 `CONFORMED`。GPU 替換、傾印與 CLI 另依 CONFORMED `018-hd-texture-replacement.md` 接入，不屬本載入器層驗收。
 
 ## 1. 決定與範圍
 
@@ -98,7 +98,7 @@ alpha=0 的貼素仍檢查 STP 圖格式，但 RGB 不受黑色限制。
 ## 4. 邊界與失敗行為
 
 - 先整包驗證再交回不可變 TexturePack，任何錯誤都不交回部分結果。
-- manifest 上限 1 MiB、4096 個條目；單張 PNG 上限 16 Mi 貼素、64 MiB 壓縮檔；
+- manifest 上限 4 MiB、8192 個條目（§8.3）；單張 PNG 上限 16 Mi 貼素、64 MiB 壓縮檔；
   整包常駐解碼資料上限 256 MiB。這些是初版載入器資源界線，不是磁碟檔案格式的編碼上限。
 - PNG 先 DecodeConfig 檢查尺寸與資源界線，再完整解碼，防止先分配越界影像。
 - 路徑使用 `/`，不接受絕對路徑、反斜線、空路徑、`.`、`..` 或非正規路徑。
@@ -206,3 +206,23 @@ GPU 上傳、來源、快取、傾印與真實遊戲替換已依 `018` 通過 RE
 §8.2驗收：同次render/hd及render/hdgpu回歸184項含子測例，失敗／skip0；八個新表示公開合成Intel MTL GPU案例的完整VRAM、畫面及統計與線性色字相同，全部Sprites1、Triangles0、Fallbacks0、Readbacks1。四種混色、翻轉、裁切及兩未知控制保持，原素材115例未重跑。
 
 完整未改動2999條目由正式256MiB入口載入，2886父條目的482090816圖素、29622272新預期字、1822464原邊界及四姓名規則／像素精確。圖塊含模式及索引payload100743301、圖格31996232、姓名43008，合計132782541 bytes；全部2999條目採新8圖塊表示，父2886條目仍沿原8表示。這是常駐資料計帳，非程序／GPU峰值。私人原容量失敗與唯一美術失敗收據保持，未重審、未切換玩家包。正常新區域、1080p、三平台交付與完整HD仍待完成。證據由相鄰素材專案docs/assets-catalog.md的LIB入口及storage-study-v1/storage-acceptance-v1.json索引。
+
+### 8.3 有界清單容量（CONFORMED，2026-10-24）
+
+本節只擴充清單中介資料的界線。原§4及§8–8.2的1MiB／4096是既有版本界線，本節改為4MiB／8192。v1 schema、素材識別與所有像素契約保持。來源定位為基準3d9737716389961301065f92e7bf7e24deebca59的render/hd/texture_pack.go內textureManifestLimit、textureEntryLimit及loadTexturePackWithMemoryLimit，原版位址空間不適用。
+
+契約：
+
+1. manifest.json以io.LimitReader最多讀取4MiB加一byte，超過4MiB立即整包拒絕。剛好4MiB仍須通過UTF-8、唯一JSON欄位、schema與尾隨內容驗證，合法空白計入長度。
+2. entries最多8192條，8193在任何PNG解碼與pack圖像分配前拒絕。全部條目仍逐項驗證；圖片路徑相同也不略過PNG，重複素材鍵與晚期內容錯誤仍回傳nil pack與錯誤。
+3. 單張16Mi貼素／64MiB檔案、總圖像資料256MiB、姓名及全部內部表示的計帳保持。JSON樹、字串、map與解碼暫存不計入圖像資料，本節不宣稱程序或GPU峰值。
+4. 不增加設定、遊戲專屬例外或第二套格式。renderer、CPU／RAM、輸入、光碟與存檔保持。舊包的取樣與內部表示不變，正式入口仍先完整Load，再交給呼叫端。
+
+驗收只使用自製素材：
+
+- 同一張4×1索引PNG與8192個不同合成來源鍵經正式Load成功，逐條索引與原輸入檔案保持。合成JSON超過舊1MiB，同時跨越舊條目與位元組界線。
+- 8193條搭配不存在的PNG，必須先回報條目界線；4MiB合法JSON成功，4MiB加一拒絕。
+- 舊4096之後的最後一條壞PNG與重複鍵均拒絕整包，不回傳部分結果。原UTF-8、重複JSON屬性、尾隨資料及其餘圖像守門由既有回歸承接。
+- 一輪render/hd及render/hdgpu合計190項回歸與新增容量的六項race檢查通過，失敗／skip0。首輪hdgpu因未設定DISPLAY在測例前停止，原環境紀錄保留；補上有界xvfb-run後只執行未開始的40項，150項HD不重跑。
+
+本節CONFORMED僅限清單載入契約，不推定美術、正常遊玩、顯示、效能或三平台交付完成。入口沿000-index.md的019，工作歷程只追加既有WORKLOG.md。
