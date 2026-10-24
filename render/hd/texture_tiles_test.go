@@ -89,6 +89,8 @@ func TestTextureTileResidentLimit(t *testing.T) {
 
 func TestTexturePackCompactsOnlyAtResidentBoundary(t *testing.T) {
 	dir := t.TempDir()
+	// Keep the original transition and late-PNG guard at the former budget.
+	const budget = 256 << 20
 	const w, h = 2048, 1024
 	im := image.NewNRGBA(image.Rect(0, 0, w, h))
 	for i := 0; i < len(im.Pix); i += 4 {
@@ -131,7 +133,7 @@ func TestTexturePackCompactsOnlyAtResidentBoundary(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	pack, e := LoadTexturePack(dir)
+	pack, e := loadTexturePackWithMemoryLimit(dir, budget)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -158,7 +160,7 @@ func TestTexturePackCompactsOnlyAtResidentBoundary(t *testing.T) {
 			}
 		}
 	}
-	if len(bank.colors) != 1 || len(bank.indices) != 0 || uint64(refs*4+textureTilePixels*2) >= textureMemoryLimit {
+	if len(bank.colors) != 1 || len(bank.indices) != 0 || uint64(refs*4+textureTilePixels*2) >= budget {
 		t.Fatal("physical sharing or budget invalid")
 	}
 	after, e := os.ReadFile(filepath.Join(dir, "color.png"))
@@ -171,7 +173,7 @@ func TestTexturePackCompactsOnlyAtResidentBoundary(t *testing.T) {
 	write("bad.png", badImage)
 	bad := map[string]any{"upload_sha256": fmt.Sprintf("%064x", 66), "width_words": 256, "height": 512, "depth": 4, "scale": 2, "kind": "color", "clut_sha256": fmt.Sprintf("%064x", 1), "image": "bad.png", "stp": "mask.png"}
 	manifest(append(entries, bad))
-	if partial, e := LoadTexturePack(dir); e == nil || partial != nil {
+	if partial, e := loadTexturePackWithMemoryLimit(dir, budget); e == nil || partial != nil {
 		t.Fatal("late invalid PNG returned a partial pack")
 	}
 }

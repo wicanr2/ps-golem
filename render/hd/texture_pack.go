@@ -24,7 +24,7 @@ const (
 	textureEntryLimit    = 8192
 	texturePixelLimit    = 16 << 20
 	textureFileLimit     = 64 << 20
-	textureMemoryLimit   = 256 << 20
+	textureMemoryLimit   = 512 << 20
 )
 
 type textureManifest struct {
