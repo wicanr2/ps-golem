@@ -28,6 +28,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `021-hd-gpu-renderer.md` | READY（GPU功能已驗證，速度未過） | 使用者要求HD繪圖交給GPU；整數像素後端、CPU／GPU相依與等價驗收 |
 | `022-hd-texture-perspective.md` | CONFORMED（限Linux功能及序章抽樣） | HD選用深度追蹤、透視取樣、保守回退與設定保存 |
 | `023-hd-sprite-runs.md` | READY | 可選精靈繪圖序列、來源驗證、逐字格HD替換與保守回退 |
+| `024-poster-presentation.md` | CONFORMED（限Linux；Windows／macOS已編譯，待真機） | 外部成對海報、工具列切換、外側GPU融合、安全等比放大及設定保存 |
 
 狀態定義：
 

@@ -38,6 +38,8 @@ bin/psgolem -bios <BIOS> -cue <光碟 cue>
 HD 素材包可用 `-hd 2 -textures <目錄>` 選擇，路徑會保存，下次雙擊自動載入。
 GPU 後端用 `-hd-renderer gpu` 選擇，預設為 `cpu`；選項與限制見 [遊玩說明](docs/play.md)。
 
+外部海報包可用`-posters <目錄> -poster a -widescreen=false`載入。F1工具列可切換款式、外側融合與安全放大，選項會保存；格式與限制見[024](docs/spec/024-poster-presentation.md)及[遊玩說明](docs/play.md#兩側海報)。公開執行器不附遊戲海報。
+
 ## 原版素材
 
 本 repo 不含任何 BIOS、光碟映像或從光碟抽出的檔案。執行時由玩家指定自己的檔案。

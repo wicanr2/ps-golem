@@ -35,6 +35,8 @@ type settings struct {
 	PGXP               bool                    `json:"pgxp"`
 	Gamepad            *ebiten.GamepadSettings `json:"gamepad,omitempty"`
 	Textures           string                  `json:"textures,omitempty"`
+	Posters            string                  `json:"posters,omitempty"`
+	Poster             *ebiten.PosterSettings  `json:"poster,omitempty"`
 }
 
 // version 見 early.Version。
@@ -60,6 +62,10 @@ func main() {
 	filterFlag := flag.String("filter", "none", "輸出濾鏡：none、xbr；省略時取設定檔")
 	wideFlag := flag.Bool("widescreen", false, "月下寬螢幕遊戲修改模式；預設關閉")
 	texturesFlag := flag.String("textures", "", "HD 素材包目錄；省略時取設定檔，-textures= 清除")
+	postersFlag := flag.String("posters", "", "海報目錄；省略取設定檔，空值清除")
+	posterFlag := flag.String("poster", "", "海報代號；空值關閉")
+	posterSoft := flag.Bool("poster-soft", true, "海報外側柔和融合")
+	posterZoom := flag.Bool("poster-zoom", true, "黑邊足夠時等比放大中央")
 	dumpFlag := flag.String("dump-textures", "", "本次傾印到新的本機目錄，不保存此路徑")
 	flag.Parse()
 	if *showVersion {
@@ -137,6 +143,38 @@ func main() {
 		fmt.Fprintln(os.Stderr, "psgolem:", err)
 		os.Exit(2)
 	}
+	*postersFlag = location.texturePath(*postersFlag, set["posters"], st.Posters)
+	if *postersFlag != "" {
+		*postersFlag, err = filepath.Abs(*postersFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+	}
+	posterSettings := ebiten.PosterSettings{Soft: true, Zoom: true}
+	if st.Poster != nil {
+		posterSettings = *st.Poster
+	}
+	if set["poster"] {
+		posterSettings.ID = *posterFlag
+	}
+	if set["poster-soft"] {
+		posterSettings.Soft = *posterSoft
+	}
+	if set["poster-zoom"] {
+		posterSettings.Zoom = *posterZoom
+	}
+	if err := posterSettings.Validate(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	var posterPack *ebiten.PosterPack
+	if *postersFlag != "" {
+		posterPack, err = ebiten.LoadPosterPack(*postersFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "psgolem：海報未載入：", err)
+		}
+	}
 	gamepadSettings := ebiten.DefaultGamepadSettings()
 	if st.Gamepad != nil {
 		if e := st.Gamepad.Validate(); e != nil {
@@ -145,7 +183,7 @@ func main() {
 			gamepadSettings = st.Gamepad.Clone()
 		}
 	}
-	st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: *biosPath, Cue: *cuePath, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+	st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: *biosPath, Cue: *cuePath, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
 	saveGamepad := func(next ebiten.GamepadSettings) error {
 		updated := st
 		updated.Gamepad = &next
@@ -153,6 +191,16 @@ func main() {
 			return err
 		}
 		gamepadSettings = next.Clone()
+		st = updated
+		return nil
+	}
+	savePoster := func(next ebiten.PosterSettings) error {
+		updated := st
+		updated.Poster = &next
+		if err := saveSettings(location.path, location.forSave(updated)); err != nil {
+			return err
+		}
+		posterSettings = next
 		st = updated
 		return nil
 	}
@@ -239,7 +287,7 @@ func main() {
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }
 		}
-		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag}
+		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
 		if err := saveSettings(location.path, location.forSave(st)); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
@@ -251,6 +299,7 @@ func main() {
 		Press: press, UntilField: *untilField, Stats: *showStats,
 		Filter: *filterFlag, Widescreen: *wideFlag,
 		Gamepad: &gamepadSettings, SaveGamepad: saveGamepad,
+		Posters: posterPack, Poster: posterSettings, SavePoster: savePoster,
 	})
 	err = errors.Join(err, dumpErr)
 	if err != nil {

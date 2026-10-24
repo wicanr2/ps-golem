@@ -91,8 +91,22 @@ func (g *Game) updateControllerUI() {
 	}
 	clicked := inpututil.IsMouseButtonJustPressed(eb.MouseButtonLeft)
 	if !g.padUI.open {
-		if clicked && g.padUI.visible && image.Pt(x, y).In(image.Rect(116, 2, 222, 30)) {
-			g.openControllerPanel()
+		if clicked && g.padUI.visible {
+			p := image.Pt(x, y)
+			switch {
+			case p.In(image.Rect(116, 2, 222, 30)):
+				g.openControllerPanel()
+			case g.cfg.Posters != nil && p.In(image.Rect(230, 2, 324, 30)):
+				g.cyclePoster()
+			case g.cfg.Posters != nil && p.In(image.Rect(332, 2, 402, 30)):
+				n := g.poster
+				n.Soft = !n.Soft
+				g.changePoster(n)
+			case g.cfg.Posters != nil && p.In(image.Rect(410, 2, 480, 30)):
+				n := g.poster
+				n.Zoom = !n.Zoom
+				g.changePoster(n)
+			}
 		}
 		return
 	}
@@ -263,7 +277,34 @@ func (g *Game) drawControllerUI(screen *eb.Image) {
 		font.label(screen, image.Rect(14, 2, 108, 30), "ps-golem", uiWhite, false, 1)
 		roundedUI(screen, image.Rect(116, 2, 222, 30), 4, color.RGBA{62, 72, 89, 255})
 		font.label(screen, image.Rect(124, 2, 214, 30), "手把設定", uiWhite, true, 1)
-		if screen.Bounds().Dx() >= 500 {
+		if g.cfg.Posters != nil {
+			text := "海報 關閉"
+			if g.cfg.Posters.index(g.poster.ID) >= 0 {
+				text = "海報 " + g.poster.ID
+			}
+			for i, r := range []image.Rectangle{image.Rect(230, 2, 324, 30), image.Rect(332, 2, 402, 30), image.Rect(410, 2, 480, 30)} {
+				label := text
+				active := g.poster.ID != ""
+				if i == 1 {
+					label = "柔和"
+					active = g.poster.Soft
+				}
+				if i == 2 {
+					label = "放大"
+					active = g.poster.Zoom
+				}
+				c := uiButton
+				if active {
+					c = uiAccent
+				}
+				roundedUI(screen, r, 4, c)
+				font.label(screen, image.Rect(r.Min.X+4, r.Min.Y, r.Max.X-4, r.Max.Y), label, uiWhite, true, 0.875)
+			}
+			if g.posterError != "" {
+				font.label(screen, image.Rect(14, 34, screen.Bounds().Dx()-14, 62), g.posterError, uiWhite, false, .875)
+			}
+		}
+		if screen.Bounds().Dx() >= 720 {
 			font.label(screen, image.Rect(screen.Bounds().Dx()-170, 2, screen.Bounds().Dx()-12, 30), "F1 設定工具列", uiMuted, true, 1)
 		}
 	}

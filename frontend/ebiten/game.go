@@ -45,6 +45,9 @@ type Config struct {
 	Widescreen  bool
 	Gamepad     *GamepadSettings
 	SaveGamepad func(GamepadSettings) error
+	Posters     *PosterPack
+	Poster      PosterSettings
+	SavePoster  func(PosterSettings) error
 }
 
 // Game 實作 ebiten.Game。
@@ -75,6 +78,11 @@ type Game struct {
 	padUI                       controllerPanel
 	uiFont                      *bitmapUIFont
 	viewSize                    image.Point
+	poster                      PosterSettings
+	posterSafeZoom              bool
+	posterImages                [][2]*eb.Image
+	posterShader                *eb.Shader
+	posterError                 string
 }
 
 // Run 開視窗並執行到關閉。
@@ -82,7 +90,25 @@ func Run(cfg Config) error {
 	if cfg.Scale <= 0 {
 		cfg.Scale = 3
 	}
-	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath}
+	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath, poster: cfg.Poster}
+	if err := g.poster.Validate(); err != nil {
+		return err
+	}
+	if cfg.Posters != nil {
+		var err error
+		g.posterShader, err = eb.NewShader([]byte(posterBlendSource))
+		if err != nil {
+			return fmt.Errorf("海報融合：%w", err)
+		}
+		defer func() {
+			g.posterShader.Deallocate()
+			for _, pair := range g.posterImages {
+				for _, im := range pair {
+					im.Deallocate()
+				}
+			}
+		}()
+	}
 	g.controller = DefaultGamepadSettings()
 	if cfg.Gamepad != nil {
 		if err := cfg.Gamepad.Validate(); err != nil {
@@ -264,6 +290,9 @@ func (g *Game) drawGame(screen *eb.Image) {
 			return
 		}
 		if no != g.frameNo {
+			if g.cfg.Posters != nil {
+				g.posterSafeZoom = posterZoomSafe(img)
+			}
 			g.frame.WritePixels(img.Pix)
 			g.frameNo = no
 		}
@@ -275,8 +304,11 @@ func (g *Game) drawGame(screen *eb.Image) {
 	g.shown = sb.Size()
 	screen.Clear()
 	r := fit(sb.Dx(), sb.Dy())
+	target := screen
 	if g.cfg.Widescreen {
 		r = fitWide(sb.Dx(), sb.Dy())
+	} else if index := g.cfg.Posters.index(g.poster.ID); index >= 0 {
+		r, target = g.drawPosters(screen, index)
 	}
 	op := &eb.DrawImageOptions{}
 	op.GeoM.Scale(float64(r.Dx())/float64(b.Dx()), float64(r.Dy())/float64(b.Dy()))
@@ -286,9 +318,9 @@ func (g *Game) drawGame(screen *eb.Image) {
 		shaderOp := &eb.DrawRectShaderOptions{}
 		shaderOp.GeoM = op.GeoM
 		shaderOp.Images[0] = g.frame
-		screen.DrawRectShader(b.Dx(), b.Dy(), g.xbr, shaderOp)
+		target.DrawRectShader(b.Dx(), b.Dy(), g.xbr, shaderOp)
 	} else {
-		screen.DrawImage(g.frame, op)
+		target.DrawImage(g.frame, op)
 	}
 }
 

@@ -101,6 +101,7 @@ func (l settingsLocation) forSave(st settings) settings {
 	}
 	st.BIOS, st.Cue = relative(st.BIOS), relative(st.Cue)
 	st.Textures = relative(st.Textures)
+	st.Posters = relative(st.Posters)
 	return st
 }
 
