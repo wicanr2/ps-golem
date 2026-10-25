@@ -37,7 +37,7 @@ func blend(mode int, bg, fore uint16) uint16 {
 func (g *GPU) plot(x, y int32, fore uint16, mode int, textured bool) {
 	ux, uy := uint32(x)&1023, uint32(y)&511
 	idx := uy<<10 | ux
-	bg := g.VRAM[idx]
+	bg := g.vram[idx]
 	if mode >= 0 && fore&0x8000 != 0 {
 		fore = blend(mode, bg, fore)
 	}
@@ -47,7 +47,7 @@ func (g *GPU) plot(x, y int32, fore uint16, mode int, textured bool) {
 	if !textured {
 		fore &= 0x7FFF
 	}
-	g.VRAM[idx] = fore | g.maskSetOR
+	g.vram[idx] = fore | g.maskSetOR
 }
 
 // updateCLUT 載入 CLUT 快取。tm 為 2 以上（15 位元）時不用 CLUT。

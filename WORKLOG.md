@@ -2194,3 +2194,11 @@ Windows amd64與macOS雙架構編譯及格式核對完成，未做兩平台真�
 - 完整GPU含像素快取、逐字GPUSTAT／IRQ與讀回相同，克隆隔離通過。GPU三三角形／25精靈／2568像素，兩次CPU回退／11回讀；使用軟體Mesa，當前預設容器glxinfo確為llvmpipe，不宣稱新實體GPU或速度。兩次獨立正常開機／同卡讀檔、移動與跳躍8382，七點完整RAM／GPU含CLUT與貼圖快取／摘要／卡片相同，控制側562672精靈、98887多邊形等像素處理由N1 CPU平面承接，不宣稱省掉相容運算。
 - CPU／GPU公開VRAM陣列負控制都證實同步前過期。下一正式切片先收束原生觀測／別名，再同掛HD4主畫面與相容平面；025保持DRAFT。正式候選、7365條素材、海報、設定、媒體及存檔保持，正常GPU平面、實體GPU、HD4同掛、GUI／速度與完整HD未驗。
 - 原執行runner及來源雜湊按intake-v2保留，提交來源只做gofmt，另存格式化副本逐字比對。accept_native_plane.py只讀收據與原始輸入，research-verification-v1.json接受限定研究，原v.0.7.10交付manifest3509d959不變。兩庫來源提交、Issue回讀與Docker清理另存本機publication，不用研究通過取代正式交付。
+
+## 2026-10-26：HD4與GPU相容平面同掛、正式顯存觀測封裝
+
+- 沿既有復古逆向／規格路由與文件職責，承接前批N1研究；新native-dual-v1保存獨立覆蓋與5da8162完整來源tar，不改前批來源／二進位。GP0／GP1／場奇偶分送兩角色，精度及素材場只送HD4，C0讀回僅N1，原生觀測自動同步。CPU／GPU各三組契約及直接公開陣列編譯失敗負對照通過，沒有呼叫端手動同步。
+- 正常真BIOS／同卡兩機、完整已核准素材、CPU HD4／PGXP／透視，候選另掛GPU N1；一次至8382，七點完整RAM、原生GPU含CLUT／貼圖快取、摘要、卡片及完整HD4 VRAM／畫面／統計相同。1024×960兩張原圖逐RGBA相同，一次集中技術檢視；GPU N1有115766三角形／499453精靈，PGXP命中135906。789.58秒是雙機阻塞研究耗時，不是遊戲FPS。軟體Mesa，不是兩個GPU裝置、實體GPU、新GUI或速度驗收。
+- 025 §9先獨立READY，再將原生陣列私有化，新增GPU.VRAMSnapshot並接Machine.VRAM／Digest；像素熱路徑只改欄位名稱，既有同步繪圖保留。所有權、原生GPU、PGXP、仿射中心及M3台帳回歸通過。M3五項既有非零差異保留；TestShadowPS1GPU的17項通過，只比較自身同步後端。第一輪全編譯誤掃workplace舊研究六項失敗，原日誌保留，219正式檔乾淨來源同命令編譯23套件通過；只補原篩選漏跑的HD測試，沒有為舊研究修改正式程式。
+- accept_native_dual.py只讀收據、固定來源tar與正式編譯來源，接受雙平面研究及獨立觀測封裝，後者CONFORMED。025主規格仍DRAFT，正式原生像素分工、雙GPU生命週期與玩家接入尚未完成。v.0.7.10雙擊候選程式、manifest3509d959、7365條素材、設定與卡片保持；新美術審查0，已完成素材矩陣不重跑。資料與原圖只留本機，工具／規格可提交，沒有tag或Release。
+- 收據及本機對照頁沿素材docs/assets-catalog.md#render-control進入。兩庫提交／遠端Issue回讀與Docker所有權／容器清理結果另存native-dual-v1/publication-v1.json；後續保持整體HD目標，不將此切片稱為全HD或全場景寬視野完成。

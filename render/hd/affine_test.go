@@ -33,7 +33,7 @@ func TestAffineTextureSampleCenters(t *testing.T) {
 	}
 	// XY：(0,0)、(60,0)、(0,60)；UV：(0,0)、(100,0)、(0,100)。
 	write(0x25000000, 0, 0, 60, 0x01100064, 60<<16, 100<<8)
-	native := g.VRAM[10*1024+10]
+	native := g.VRAMSnapshot()[10*1024+10]
 	scaled := s.VRAMCopy()[20*2048+20]
 	if native != 0x8231 || scaled != 0x8210 {
 		t.Fatalf("取樣中心改變：原生=%04x，HD2=%04x", native, scaled)

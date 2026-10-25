@@ -89,7 +89,7 @@ func BenchmarkSpriteNeutral(b *testing.B) {
 			}
 			for y := uint32(0); y < 128; y++ {
 				for x := uint32(0); x < 64; x++ {
-					g.VRAM[y*1024+x] = uint16(x*999 + y)
+					g.vram[y*1024+x] = uint16(x*999 + y)
 				}
 			}
 			b.ResetTimer()

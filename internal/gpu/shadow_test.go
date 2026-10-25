@@ -32,7 +32,7 @@ func TestShadowForwarding(t *testing.T) {
 				g.ReadData()
 			}
 		}
-		if !slices.Equal(g.VRAM[:], s.VRAMCopy()) {
+		if !slices.Equal(g.vram[:], s.VRAMCopy()) {
 			t.Fatalf("第 %d 組轉送不同", i)
 		}
 	}
@@ -42,7 +42,7 @@ func TestShadowForwarding(t *testing.T) {
 		g.WriteGP0(0x6800ff00)
 		g.WriteGP0(uint32(n%500)<<16 | 64)
 	}
-	if !slices.Equal(g.VRAM[:], s.VRAMCopy()) {
+	if !slices.Equal(g.vram[:], s.VRAMCopy()) {
 		t.Fatal("隔行轉送不同")
 	}
 	clone := g.Clone()
@@ -51,14 +51,14 @@ func TestShadowForwarding(t *testing.T) {
 	}
 	clone.WriteGP0(0x680000ff)
 	clone.WriteGP0(64)
-	if !slices.Equal(g.VRAM[:], s.VRAMCopy()) {
+	if !slices.Equal(g.vram[:], s.VRAMCopy()) {
 		t.Fatal("Clone 的輸入洩漏至影子")
 	}
 	for n := 0; n < 10000; n++ {
 		g.WriteGP0(0x680000ff)
 		g.WriteGP0(uint32(n%500)<<16 | 32)
 	}
-	if !slices.Equal(g.VRAM[:], s.VRAMCopy()) {
+	if !slices.Equal(g.vram[:], s.VRAMCopy()) {
 		t.Fatal("跨批次轉送不同")
 	}
 }

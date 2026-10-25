@@ -37,7 +37,7 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type GPU struct {
-	VRAM [VRAMWidth * VRAMHeight]uint16
+	vram [VRAMWidth * VRAMHeight]uint16
 
 	// 命令緩衝
 	buf    [16]uint32
@@ -143,8 +143,8 @@ var ditherTable = [4][4]int8{
 }
 
 func (g *GPU) power() {
-	for i := range g.VRAM {
-		g.VRAM[i] = 0
+	for i := range g.vram {
+		g.vram[i] = 0
 	}
 	g.clutCacheVB = ^uint32(0)
 	g.clutCacheN = 0
@@ -441,9 +441,9 @@ func (g *GPU) lineSkip(y uint32) bool {
 
 // ---- VRAM ----
 
-func (g *GPU) texel(x, y uint32) uint16 { return g.VRAM[(y&511)<<10|(x&1023)] }
+func (g *GPU) texel(x, y uint32) uint16 { return g.vram[(y&511)<<10|(x&1023)] }
 
-func (g *GPU) put(x, y uint32, v uint16) { g.VRAM[(y&511)<<10|(x&1023)] = v }
+func (g *GPU) put(x, y uint32, v uint16) { g.vram[(y&511)<<10|(x&1023)] = v }
 
 // DebugState 回傳命令處理的內部狀態（除錯用）。
 func (g *GPU) DebugState() string {

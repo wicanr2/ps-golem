@@ -88,7 +88,7 @@ func TestPolygonOwnTPageBlend(t *testing.T) {
 									}
 								}
 							}
-							if got := g.VRAM[10*1024+10]; got != want {
+							if got := g.vram[10*1024+10]; got != want {
 								t.Fatalf("native prev=%d current=%d cmd=%x tex=%x got=%x want=%x", previous, current, cmd, texel, got, want)
 							}
 							im := s.Screen()

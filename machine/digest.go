@@ -13,7 +13,7 @@ func (m *Machine) Digest() string {
 	h := sha256.New()
 	h.Write(m.ram[:])
 	h.Write(m.scratchpad[:])
-	for _, v := range m.GPU.VRAM {
+	for _, v := range m.GPU.VRAMSnapshot() {
 		h.Write([]byte{byte(v), byte(v >> 8)})
 	}
 	var b [4]byte

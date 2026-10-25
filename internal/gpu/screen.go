@@ -31,7 +31,7 @@ func (g *GPU) ScreenInto(dst *image.RGBA) *image.RGBA {
 	rgb24 := g.displayMode&0x10 != 0
 	for y := uint32(0); y < h; y++ {
 		vy := (g.displayYStart + y) & (VRAMHeight - 1)
-		row := g.VRAM[vy*VRAMWidth : (vy+1)*VRAMWidth]
+		row := g.vram[vy*VRAMWidth : (vy+1)*VRAMWidth]
 		for x := uint32(0); x < w; x++ {
 			o := img.PixOffset(int(x), int(y))
 			if rgb24 {

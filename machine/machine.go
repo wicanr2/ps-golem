@@ -131,8 +131,8 @@ func (m *Machine) Clone() *Machine {
 // Cycles 回傳開機以來的 CPU 週期數。
 func (m *Machine) Cycles() uint64 { return m.cycles }
 
-// VRAM 回傳 GPU 的 VRAM（1024×512，觀測用，勿改）。
-func (m *Machine) VRAM() []uint16 { return m.GPU.VRAM[:] }
+// VRAM 回傳 1024×512 原生字的獨立快照，保留 RGB555／STP。呼叫者持有其副本。
+func (m *Machine) VRAM() []uint16 { return m.GPU.VRAMSnapshot() }
 
 // Field 回傳開機以來經過的 VBlank 次數。
 func (m *Machine) Field() uint64 { return m.field }
