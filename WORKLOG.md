@@ -2202,3 +2202,14 @@ Windows amd64與macOS雙架構編譯及格式核對完成，未做兩平台真�
 - 025 §9先獨立READY，再將原生陣列私有化，新增GPU.VRAMSnapshot並接Machine.VRAM／Digest；像素熱路徑只改欄位名稱，既有同步繪圖保留。所有權、原生GPU、PGXP、仿射中心及M3台帳回歸通過。M3五項既有非零差異保留；TestShadowPS1GPU的17項通過，只比較自身同步後端。第一輪全編譯誤掃workplace舊研究六項失敗，原日誌保留，219正式檔乾淨來源同命令編譯23套件通過；只補原篩選漏跑的HD測試，沒有為舊研究修改正式程式。
 - accept_native_dual.py只讀收據、固定來源tar與正式編譯來源，接受雙平面研究及獨立觀測封裝，後者CONFORMED。025主規格仍DRAFT，正式原生像素分工、雙GPU生命週期與玩家接入尚未完成。v.0.7.10雙擊候選程式、manifest3509d959、7365條素材、設定與卡片保持；新美術審查0，已完成素材矩陣不重跑。資料與原圖只留本機，工具／規格可提交，沒有tag或Release。
 - 收據及本機對照頁沿素材docs/assets-catalog.md#render-control進入。兩庫提交／遠端Issue回讀與Docker所有權／容器清理結果另存native-dual-v1/publication-v1.json；後續保持整體HD目標，不將此切片稱為全HD或全場景寬視野完成。
+
+## 2026-10-26：正式相容平面與實體Intel正常路線
+
+- 沿復古驗收／規格及回填路由，上輪正式接線、CPU／GPU三組與回歸屬進展。本輪續同一個6301／63072程序，沒有因觀察逾時重啟。原軟體雙機1800秒停止，四點相同、最後記錄6900；GUI確認實體環境後停止，最後報告4800，原結果不改稱通過。
+- Ada客戶端先缺UID1000的NSS對應，補該容器passwd／group映射，不建新image、不搬憑證。橋接與主機路由SSH均連線逾時，沒有啟動遠端工作或移轉原版資料。代理端不見GPU節點屬命名空間差異；唯讀確認Docker主機renderD128／GID992及card1／GID44後，沿DRE既有WestonGL／Xwayland／Intel MTL工具鏈。GLX確認Accelerated=yes。
+- 025 §11先READY再實作NativePlane與兩入口，保留解析／時序／游標，像素由一倍無美術平面供應；快照／Screen／Clone／Digest／讀回／卸下同步原字與快取。事件4096後有界fence，前端完成通知等兩角色，正常Close在Cancel前。Trace前置觀測及異常返回清理等待後補，只有針對性競爭測試及玩家重建；最後實體GUI直接用包含兩修正的來源。
+- 正式CPU／雙GPU各三例通過；競爭檢查原1／2／4倍與新所有權／角色／關閉通過，8倍達時限，只接未完成8倍非競爭檢查及未開始影子，不重跑前綴。M3原18筆台帳、17項機器HD、PGXP及23正式套件編譯通過，五項原非零差異保持。原225檔及最後三檔精確差異、新測試保存。
+- 首次實體GPU正常兩機8382七點完整RAM／GPU含CLUT及貼圖快取／摘要／卡片與HD4畫面／統計相同。最後正式GPU前端正常8382、1920×1080、frame／shown=8270、final_drawn=true，原卡及副本保持，正常關閉通過。硬體GUI首次副本漏執行模式，Popen前停止、遊戲未開始；原目錄／收據存GUI-prestart-stop-v1，只修模式後接續同一首輪，未重播遊戲。一次集中技術檢視、新美術審查0，無速度或硬體exact聲明。
+- accept_native_production.py接納025 §11，其他圖文交易、跨房視野與完整HD仍待完成。021回填NATIVE-PLANE-ROLE-20261026，普通HD隔離與精確原生角色分開。新1080p原PNG只依授權保存私人repo；公開引擎不帶原圖。v.0.7.10程式、manifest3509d959、7365素材、偏好與卡片保持，來源未安裝。兩庫提交／push、Issue回讀及Docker清理保存native-production-v1/publication-v1.json，下一步交付新來源並續其餘HD，整體目標保持。
+
+- 收尾補記：實體正常容器退出0、1909秒，原外層軟時限124保留。GUI程式退出0且最後幀8270已畫出；外部X11搜尋未定位的原false收據保持，另以已存Layout／Draw畫布、設定／卡片／原PNG接納，不宣稱外部幾何搜尋通過，沒有重啟遊戲。未來啟動器已補轉送TERM與強制kill-after界限，僅做bash語法核對，原執行腳本及SHA保持。

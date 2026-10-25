@@ -37,6 +37,7 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type Renderer struct {
+	nativeCompatibility bool
 	spriteRun           *spriteRunState
 	runImage            *textureImage
 	runUV               [2]uint32

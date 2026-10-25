@@ -134,6 +134,8 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 		if wideEnabled {
 			shadow.SetSideMargin(48)
 		}
+		native := hd.NewNativePlane(nil)
+		m.GPU.SetNativePlane(native)
 		m.GPU.SetShadow(shadow)
 		defer func() {
 			var stats hd.TextureStats
@@ -142,6 +144,8 @@ func run(biosPath, exePath string, boot, cycles uint64, vramOut string, state bo
 			}
 			m.DisablePGXP()
 			m.GPU.SetShadow(nil)
+			m.GPU.SetNativePlane(nil)
+			native.Close()
 			shadow.Close()
 			if dump != nil {
 				runErr = errors.Join(runErr, dump.WriteDirectory(dumpPath))

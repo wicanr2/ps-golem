@@ -54,12 +54,13 @@ type Config struct {
 
 // Game 實作 ebiten.Game。
 type Game struct {
-	closing  bool
-	hasDrawn bool
-	cfg      Config
-	sess     *Session
-	m        *machine.Machine
-	emu      *emulator
+	sessionClosing chan struct{}
+	closing        bool
+	hasDrawn       bool
+	cfg            Config
+	sess           *Session
+	m              *machine.Machine
+	emu            *emulator
 	// 設定畫面（012 §9）：m 為 nil 時顯示。
 	biosPath, cuePath, setupErr string
 	text                        *eb.Image
@@ -171,6 +172,9 @@ func Run(cfg Config) error {
 	if g.sess != nil && g.sess.Close != nil {
 		g.sess.Close()
 	}
+	if g.sessionClosing != nil {
+		<-g.sessionClosing
+	}
 	if errors.Is(err, eb.Termination) {
 		err = nil
 	}
@@ -206,6 +210,9 @@ func (g *Game) Update() error {
 				return nil
 			}
 		}
+		if !g.finishSession() {
+			return nil
+		}
 		return eb.Termination
 	}
 	if g.finishing {
@@ -220,10 +227,13 @@ func (g *Game) Update() error {
 		if !g.finishDrawn {
 			return nil
 		}
-		if g.cfg.Screenshot != "" && g.canvas != nil {
+		if g.sessionClosing == nil && g.cfg.Screenshot != "" && g.canvas != nil {
 			if err := savePNG(g.canvas, g.cfg.Screenshot); err != nil {
 				g.err = err
 			}
+		}
+		if !g.finishSession() {
+			return nil
 		}
 		return eb.Termination
 	}

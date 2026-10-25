@@ -112,7 +112,11 @@ func (g *Renderer) executeRaw(cb []uint32) {
 	case cmd >= 0xA0 && cmd < 0xC0:
 		g.fbWriteStart(cb)
 	case cmd >= 0xC0 && cmd < 0xE0:
-		g.invalidateTexCache()
+		if g.nativeCompatibility {
+			g.fbReadStart(cb)
+		} else {
+			g.invalidateTexCache()
+		}
 	case cmd == 0xE1:
 		g.setTPage(cb[0])
 		g.spriteFlip = cb[0] & 0x3000

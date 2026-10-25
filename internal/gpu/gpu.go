@@ -8,7 +8,10 @@
 // UV 修正（Calc_UVOffsets_Adjust_Verts）不搬。
 package gpu
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/wicanr2/ps-golem/render/hd"
+)
 
 // VRAM 尺寸。
 const (
@@ -37,7 +40,9 @@ const (
 
 // GPU 是一顆 GPU 的完整狀態。零值不可用，請用 New。
 type GPU struct {
-	vram [VRAMWidth * VRAMHeight]uint16
+	nativePlane   *hd.NativePlane
+	nativeSkipped [6]uint64
+	vram          [VRAMWidth * VRAMHeight]uint16
 
 	// 命令緩衝
 	buf    [16]uint32
@@ -206,6 +211,9 @@ func (g *GPU) IRQ() bool { return g.irqPending }
 
 // WriteGP1 處理控制命令。
 func (g *GPU) WriteGP1(v uint32) {
+	if g.nativePlane != nil {
+		g.nativePlane.GP1(v)
+	}
 	if g.shadow != nil {
 		g.shadow.GP1(v)
 	}
@@ -323,9 +331,16 @@ func (g *GPU) ReadData() uint32 {
 	if g.inCmd != inFBRead {
 		return g.readBuffer
 	}
-	var r uint32
+	var r, planeWord uint32
+	if g.nativePlane != nil {
+		planeWord = g.nativePlane.ReadData()
+	}
 	for i := 0; i < 2; i++ {
-		r |= uint32(g.texel(g.fbCurX&1023, g.fbCurY&511)) << (16 * i)
+		if g.nativePlane != nil {
+			r |= planeWord & (0xffff << uint(16*i))
+		} else {
+			r |= uint32(g.texel(g.fbCurX&1023, g.fbCurY&511)) << (16 * i)
+		}
 		g.fbCurX++
 		if g.fbCurX == g.fbX+g.fbW {
 			if g.fbCurY+1 == g.fbY+g.fbH {
@@ -405,6 +420,9 @@ func (g *GPU) endOfLine() bool {
 			g.fieldRAMReadout = !g.field
 		} else {
 			g.fieldRAMReadout = false
+		}
+		if g.nativePlane != nil && oldField != g.fieldRAMReadout {
+			g.nativePlane.Field(g.fieldRAMReadout)
 		}
 		if g.shadow != nil && oldField != g.fieldRAMReadout {
 			g.shadow.Field(g.fieldRAMReadout)

@@ -4,6 +4,7 @@ import (
 	"github.com/wicanr2/ps-golem/internal/pgxp"
 	"github.com/wicanr2/ps-golem/render/hd"
 	"image"
+	"sync/atomic"
 )
 
 // Shadow 的渲染與非同步佇列位於 render/hd，不持有機器指標。
@@ -45,7 +46,10 @@ func (g *GPU) OutputScreenInto(dst *image.RGBA) *image.RGBA {
 
 // Clone 只複製原生機器狀態，不複製或共用影子。
 func (g *GPU) Clone() *GPU {
+	g.syncNativePixels()
 	n := *g
+	n.nativePlane = nil
+	n.nativeSkipped = [6]uint64{}
 	n.shadow = nil
 	return &n
 }
@@ -77,15 +81,44 @@ func (g *GPU) RequestOutputScreen(dst *image.RGBA, fn func(*image.RGBA)) bool {
 	if g.shadow == nil {
 		return false
 	}
-	g.shadow.RequestScreen(dst, fn)
+	if g.nativePlane == nil {
+		g.shadow.RequestScreen(dst, fn)
+		return true
+	}
+	var left atomic.Int32
+	left.Store(2)
+	var img *image.RGBA
+	finish := func() {
+		if left.Add(-1) == 0 {
+			fn(img)
+		}
+	}
+	g.nativePlane.Fence(finish)
+	g.shadow.RequestScreen(dst, func(v *image.RGBA) { img = v; finish() })
 	return true
 }
 
 // RequestFence 在影子命令邊界通知完成；原生同步路徑回傳 false，不呼叫 fn。
 func (g *GPU) RequestFence(fn func()) bool {
-	if g.shadow == nil {
+	if g.shadow == nil && g.nativePlane == nil {
 		return false
 	}
-	g.shadow.Fence(fn)
+	if g.nativePlane == nil {
+		g.shadow.Fence(fn)
+		return true
+	}
+	if g.shadow == nil {
+		g.nativePlane.Fence(fn)
+		return true
+	}
+	var left atomic.Int32
+	left.Store(2)
+	finish := func() {
+		if left.Add(-1) == 0 {
+			fn()
+		}
+	}
+	g.nativePlane.Fence(finish)
+	g.shadow.Fence(finish)
 	return true
 }

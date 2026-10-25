@@ -13,6 +13,10 @@ func (g *GPU) ditherEnabled() bool { return g.dtd }
 // ---- Sprite（Beetle gpu_sprite.c）----
 
 func (g *GPU) drawSpriteCmd(cb []uint32) {
+	if g.nativePlane != nil {
+		g.nativeSkipped[0]++
+		return
+	}
 	cmd := cb[0] >> 24
 	textured := cmd&0x04 != 0
 	raw := cmd&0x01 != 0
@@ -212,6 +216,10 @@ func lineDivide(delta int64, dk int32) int64 {
 }
 
 func (g *GPU) drawLine(p [2]linePoint, gouraud bool, mode int) {
+	if g.nativePlane != nil {
+		g.nativeSkipped[1]++
+		return
+	}
 	dx := abs32(p[1].x - p[0].x)
 	dy := abs32(p[1].y - p[0].y)
 	k := dx

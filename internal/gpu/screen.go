@@ -7,6 +7,7 @@ func (g *GPU) Screen() *image.RGBA { return g.ScreenInto(nil) }
 
 // ScreenInto 同 Screen，dst 尺寸相同時重用它的記憶體（前端每個 field 呼叫，避免配置）。
 func (g *GPU) ScreenInto(dst *image.RGBA) *image.RGBA {
+	g.syncNativePixels()
 	hres := [4]uint32{256, 320, 512, 640}[g.displayMode&3]
 	if g.displayMode&0x40 != 0 {
 		hres = 368

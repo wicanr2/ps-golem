@@ -56,6 +56,9 @@ func (g *GPU) writeGP0(v uint32) {
 	if g.Trace != nil {
 		g.Trace(v)
 	}
+	if g.nativePlane != nil {
+		g.nativePlane.GP0(v)
+	}
 	switch g.inCmd {
 	case inFBWrite:
 		g.fbWriteWord(v)
@@ -166,6 +169,10 @@ func (g *GPU) recalcTexWindow() {
 // ---- VRAM 填色、複製、上傳、下載 ----
 
 func (g *GPU) fbFill(cb []uint32) {
+	if g.nativePlane != nil {
+		g.nativeSkipped[3]++
+		return
+	}
 	r := cb[0] & 0xFF
 	gg := (cb[0] >> 8) & 0xFF
 	b := (cb[0] >> 16) & 0xFF
@@ -199,6 +206,10 @@ func (g *GPU) fbCopy(cb []uint32) {
 		h = 0x200
 	}
 	g.invalidateTexCache()
+	if g.nativePlane != nil {
+		g.nativeSkipped[4]++
+		return
+	}
 	var tmp [128]uint16
 	for y := uint32(0); y < h; y++ {
 		for x := uint32(0); x < w; x += 128 {
@@ -236,9 +247,12 @@ func (g *GPU) fbWriteStart(cb []uint32) {
 }
 
 func (g *GPU) fbWriteWord(v uint32) {
+	if g.nativePlane != nil {
+		g.nativeSkipped[5]++
+	}
 	for i := 0; i < 2; i++ {
 		x, y := g.fbCurX&1023, g.fbCurY&511
-		if g.texel(x, y)&g.maskEvalAND == 0 {
+		if g.nativePlane == nil && g.texel(x, y)&g.maskEvalAND == 0 {
 			g.put(x, y, uint16(v)|g.maskSetOR)
 		}
 		g.fbCurX++

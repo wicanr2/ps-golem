@@ -252,12 +252,28 @@ func main() {
 					selected = "gpu"
 				}
 			}
+			var nativeRaster hd.RasterDevice
+			if selected == "gpu" {
+				device, deviceErr := hdgpu.New(0)
+				if deviceErr != nil {
+					if *rendererFlag == "gpu" {
+						raster.Close()
+						s.Close()
+						return nil, deviceErr
+					}
+					fmt.Fprintf(os.Stderr, "psgolem：GPU相容裝置建立失敗，原生相容使用CPU：%v\n", deviceErr)
+				} else {
+					nativeRaster = device
+				}
+			}
+			native := hd.NewNativePlane(nativeRaster)
 			fmt.Fprintf(os.Stderr, "psgolem：HD繪圖後端=%s\n", selected)
 			shadow := hd.NewShadowWithDevice(shift, pack, dump, raster)
 			shadow.SetTexturePerspective(*perspectiveFlag)
 			if *wideFlag {
 				shadow.SetSideMargin(48)
 			}
+			s.Machine.GPU.SetNativePlane(native)
 			s.Machine.GPU.SetShadow(shadow)
 			closeSession := s.Close
 			s.Close = func() {
@@ -272,6 +288,8 @@ func main() {
 				}
 				s.Machine.DisablePGXP()
 				s.Machine.GPU.SetShadow(nil)
+				s.Machine.GPU.SetNativePlane(nil)
+				native.Close()
 				shadow.Close()
 				if dump != nil {
 					dumpErr = errors.Join(dumpErr, dump.WriteDirectory(*dumpFlag))

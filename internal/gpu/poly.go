@@ -54,6 +54,10 @@ func (g *GPU) drawPolygon(cb []uint32) {
 	// gpu.c，e57860d82faa953dc0fc10f201fd583739bc2f7d，GPL-2.0-or-later。
 	f.mode = g.blendModeOf(cmd)
 	f.tm = g.texMode
+	if g.nativePlane != nil {
+		g.nativeSkipped[2]++
+		return
+	}
 
 	var vs [4]triVertex
 	i := 0
