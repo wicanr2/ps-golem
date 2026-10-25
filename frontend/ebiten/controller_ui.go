@@ -102,6 +102,8 @@ func (g *Game) updateControllerUI() {
 				n := g.poster
 				n.Soft = !n.Soft
 				g.changePoster(n)
+			case g.cfg.SaveWidescreen != nil && p.In(g.widescreenButtonRect()):
+				g.changeWidescreen(!g.nextWidescreen)
 			case g.cfg.Posters != nil && p.In(image.Rect(410, 2, 480, 30)):
 				n := g.poster
 				n.Zoom = !n.Zoom
@@ -300,11 +302,30 @@ func (g *Game) drawControllerUI(screen *eb.Image) {
 				roundedUI(screen, r, 4, c)
 				font.label(screen, image.Rect(r.Min.X+4, r.Min.Y, r.Max.X-4, r.Max.Y), label, uiWhite, true, 0.875)
 			}
-			if g.posterError != "" {
-				font.label(screen, image.Rect(14, 34, screen.Bounds().Dx()-14, 62), g.posterError, uiWhite, false, .875)
-			}
 		}
-		if screen.Bounds().Dx() >= 720 {
+		if g.cfg.SaveWidescreen != nil {
+			r := g.widescreenButtonRect()
+			label := "視野 原版"
+			c := uiButton
+			if g.nextWidescreen {
+				label = "視野 擴大"
+				c = uiAccent
+			}
+			roundedUI(screen, r, 4, c)
+			font.label(screen, image.Rect(r.Min.X+4, r.Min.Y, r.Max.X-4, r.Max.Y), label, uiWhite, true, .875)
+		}
+		notice := g.widescreenNotice
+		if notice == "" {
+			notice = g.posterError
+		}
+		if notice != "" {
+			font.label(screen, image.Rect(14, 34, screen.Bounds().Dx()-14, 62), notice, uiWhite, false, .875)
+		}
+		hintMin := 720
+		if g.cfg.SaveWidescreen != nil && g.cfg.Posters != nil {
+			hintMin = 822
+		}
+		if screen.Bounds().Dx() >= hintMin {
 			font.label(screen, image.Rect(screen.Bounds().Dx()-170, 2, screen.Bounds().Dx()-12, 30), "F1 設定工具列", uiMuted, true, 1)
 		}
 	}
@@ -411,4 +432,29 @@ func (g *Game) filterGameplayInput(b uint16) uint16 {
 		return 0
 	}
 	return b
+}
+
+// 017 §8: this is a saved preference for the next process, never a live patch.
+func (g *Game) widescreenButtonRect() image.Rectangle {
+	x := 230
+	if g.cfg.Posters != nil {
+		x = 488
+	}
+	return image.Rect(x, 2, x+152, 30)
+}
+func (g *Game) changeWidescreen(next bool) {
+	if g.cfg.SaveWidescreen == nil {
+		return
+	}
+	if err := g.cfg.SaveWidescreen(next); err != nil {
+		g.widescreenNotice = "視野設定儲存失敗：" + err.Error()
+		g.shown = image.Point{}
+		return
+	}
+	g.nextWidescreen = next
+	g.widescreenNotice = "視野設定已儲存"
+	if next != g.cfg.Widescreen {
+		g.widescreenNotice += "，下次啟動套用"
+	}
+	g.shown = image.Point{}
 }

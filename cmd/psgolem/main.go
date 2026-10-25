@@ -204,6 +204,13 @@ func main() {
 		st = updated
 		return nil
 	}
+	saveWidescreen := func(next bool) error {
+		updated, err := saveWidescreenPreference(location, st, next)
+		if err == nil {
+			st = updated
+		}
+		return err
+	}
 	var dumpErr error
 	open := func(bios, cue string) (*ebiten.Session, error) {
 		var pack *hd.TexturePack
@@ -287,7 +294,7 @@ func main() {
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }
 		}
-		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: *wideFlag, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
+		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: st.Widescreen, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
 		if err := saveSettings(location.path, location.forSave(st)); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)
 		}
@@ -297,7 +304,7 @@ func main() {
 		Open: open, BIOSPath: *biosPath, CuePath: *cuePath, Scale: *scale, WindowWidth: width, WindowHeight: height,
 		Title: "ps-golem " + version, Frames: *frames, Screenshot: *shot, Mute: *mute,
 		Press: press, UntilField: *untilField, Stats: *showStats,
-		Filter: *filterFlag, Widescreen: *wideFlag,
+		Filter: *filterFlag, Widescreen: *wideFlag, SaveWidescreen: saveWidescreen,
 		Gamepad: &gamepadSettings, SaveGamepad: saveGamepad,
 		Posters: posterPack, Poster: posterSettings, SavePoster: savePoster,
 	})

@@ -41,13 +41,15 @@ type Config struct {
 	// Stats 為 true 時每 600 個 field 在標準錯誤印出實際 FPS 與每個 field 的模擬耗時。
 	Stats bool
 	// Filter 是 none 或 xbr，只影響呈現。
-	Filter      string
-	Widescreen  bool
-	Gamepad     *GamepadSettings
-	SaveGamepad func(GamepadSettings) error
-	Posters     *PosterPack
-	Poster      PosterSettings
-	SavePoster  func(PosterSettings) error
+	Filter     string
+	Widescreen bool
+	// SaveWidescreen 只保存下次啟動的模式，本次呈現與模擬保持原設定。
+	SaveWidescreen func(bool) error
+	Gamepad        *GamepadSettings
+	SaveGamepad    func(GamepadSettings) error
+	Posters        *PosterPack
+	Poster         PosterSettings
+	SavePoster     func(PosterSettings) error
 }
 
 // Game 實作 ebiten.Game。
@@ -83,6 +85,8 @@ type Game struct {
 	posterImages                [][2]*eb.Image
 	posterShader                *eb.Shader
 	posterError                 string
+	nextWidescreen              bool
+	widescreenNotice            string
 }
 
 // Run 開視窗並執行到關閉。
@@ -90,7 +94,7 @@ func Run(cfg Config) error {
 	if cfg.Scale <= 0 {
 		cfg.Scale = 3
 	}
-	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath, poster: cfg.Poster}
+	g := &Game{cfg: cfg, biosPath: cfg.BIOSPath, cuePath: cfg.CuePath, poster: cfg.Poster, nextWidescreen: cfg.Widescreen}
 	if err := g.poster.Validate(); err != nil {
 		return err
 	}
