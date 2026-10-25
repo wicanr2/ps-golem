@@ -2213,3 +2213,10 @@ Windows amd64與macOS雙架構編譯及格式核對完成，未做兩平台真�
 - accept_native_production.py接納025 §11，其他圖文交易、跨房視野與完整HD仍待完成。021回填NATIVE-PLANE-ROLE-20261026，普通HD隔離與精確原生角色分開。新1080p原PNG只依授權保存私人repo；公開引擎不帶原圖。v.0.7.10程式、manifest3509d959、7365素材、偏好與卡片保持，來源未安裝。兩庫提交／push、Issue回讀及Docker清理保存native-production-v1/publication-v1.json，下一步交付新來源並續其餘HD，整體目標保持。
 
 - 收尾補記：實體正常容器退出0、1909秒，原外層軟時限124保留。GUI程式退出0且最後幀8270已畫出；外部X11搜尋未定位的原false收據保持，另以已存Layout／Draw畫布、設定／卡片／原PNG接納，不宣稱外部幾何搜尋通過，沒有重啟遊戲。未來啟動器已補轉送TERM與強制kill-after界限，僅做bash語法核對，原執行腳本及SHA保持。
+
+## 2026-10-26：v.0.7.11交付與跨房間候選定位
+
+- 純程式以0e527b4乾淨來源建置七包至dist-all/v.0.7.11-20261026/patch，macOS結構、ZIP／SHA、Linux依賴與AppImage實際payload通過。三平台含媒體包僅組入相鄰素材專案既有local-full例外；舊v.0.7.10與卡片保持，無tag／Release。
+- 新Linux雙擊包一次正常真BIOS／同卡讀檔、移動／跳躍8382，CPU HD4／1920×1080，frame／shown=5664、final_drawn=true；一次保存設定重開至605正常關窗。全檔、媒體及卡片保持。新美術審查0、集中技術檢視1，實體GPU證據直接承接，速度與完整HD未完成；025 §11.5只接納此交付範圍，主規格仍DRAFT。
+- 按使用者要求核對mm3的075／076，沿用直接命令與必要相容資料的契約，不移植程式碼。既存大房間終點的左43像素在靜態矩形下分別落在兩個鄰房，屬強推論候選；沒有新遊戲執行或正式寬視野改動。017補證據界線，實際場景工作另立Issue #18，#16只處理序章框外直條。
+- 兩庫提交／push、遠端Issue回讀、交付manifest與Docker清理收據留在相鄰素材專案native-delivery-v1/publication-v1.json。公開repo不加原圖、媒體、RAM、素材包或卡片。
