@@ -2288,3 +2288,10 @@ tools/probe_sotn_draw_state.go已用Go高階資料流程產生完整RAM、scratc
 GO-CALL-STATE-20261026明文回填§12.2–12.4的早期未知，對照及自動護欄在私人direct-go-v1/call-state-resolution-v1.json。舊收據保持原範圍，新美術／技術畫面審查／舊繪圖矩陣重播0。唯一私人§8與網頁已同步，後續來源、Issue與清理收據由publication-live-state-v1.json列管。
 
 補充本輪證據界限：正常呼叫沒有HD影子或PGXP，CPU.precision／pgxp.Tracker不在12欄位比較範圍；後續HD接線須保留並驗證精度追蹤及原生／HD排序效果。此補充沒有改動已驗Go來源、二進位或收據。
+
+
+## 2026-10-26 Go時鐘與正常原生入口研究
+
+025 §12.8–12.9記錄五態完整16個CPU欄位及原生Go入口新證據，GO-CALL-CLOCK-20261026回填§12.2–12.7。時鐘足跡不讀opcode或計算繪圖，繪圖仍由高階Go資料生成。原真實狀態42321指令／3947 RAM讀取／1162取指成本，共59271模型週期，不使用人工227393固定值。首次helper未用fmt導致建置停止、案例0；來源／日誌保存，只修準備後首次五態比較通過。
+
+相鄰素材的新正常真BIOS／同卡路線以Go接管60次原呼叫，8383至8442的60場完整Machine.Clone正規化值相同，略過0、卡片保持；支援呼叫CPU.Step／MIPS解碼0。研究覆蓋只加返回資料、原生所有權與週邊轉接，正式Go來源未改。無HD／PGXP，跨IRQ／field及守門負例尚未驗，不能稱正式HD接管。新正常路線1條，新美術／畫面檢視及舊GPU矩陣重播0，46.76秒不作速度聲明。工具、來源、覆蓋與收據在私人素材direct-go-v1，由其docs/assets-catalog.md#render-control索引；接受入口tools/accept_sotn_go_entry.py只讀收據。025保持DRAFT，接續HD型別化工作、原生相容排序與PGXP；正式候選不變。

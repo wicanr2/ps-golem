@@ -207,6 +207,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 
 **後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
 
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
+
 ### 12.3 純Go前景原型的已驗範圍
 
 相鄰素材專案tools/probe_sotn_direct_scene.go直接讀保存NO3 15號房RAM／原生VRAM及F_NO3，建立材質與圖塊。tools/hd_direct_scene_research.go由Go採樣既有HD材質，直接寫CPU像素或送既有RasterJob給GPU；主路徑沒有Machine、CPU.Step、Shadow、GP0解碼或原routine執行。原MIPS已保存封包僅在比較器使用，沒有重跑原函式。
@@ -218,6 +220,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 正常遊戲入口尚未替換，必要返回／RAM／顯存／時間效果待證明，本節仍DRAFT。工具、來源SHA、覆蓋、二進位、原PNG與驗證由相鄰素材docs/assets-catalog.md#render-control的direct-go-v1索引；圖片、原資料與素材包不進公開引擎。
 
 **後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
+
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
 ### 12.4 完整呼叫效果與Go資料計畫
 
@@ -235,6 +239,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 
 **後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
 
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
+
 ### 12.5 Go背景與前景直接合成
 
 狀態：DRAFT限定原型已驗證。沿同一tools/probe_sotn_direct_scene.go的room模式，Go直接讀NO3普通前景及kind1背景的執行時圖層。原版256寬為185背景＋109前景，擴大342寬為188背景＋154前景，各19個來源／色盤材質；來源字、CLUT及bit15逐格核對。兩層直接經render/hd研究覆蓋的型別化工作繪製，沒有Machine、原MIPS或GP0送出，不以原生幀作HD輸入。
@@ -244,6 +250,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 這是保存狀態的普通兩層，沒有角色、文字、HUD、特殊背景或跨房合成。左側黑區屬目前房間界外，不當成更廣場景已完成。新生成／美術審查0，前批單層案例不重播，其精確來源另存foreground-executed-source-v1.go；重建舊證據須唯讀掛到原工具路徑，不用擴充後來源冒稱舊二進位。
 
 接納入口是相鄰素材direct-go-v1/index.html、room-Go-verification-v1.json及room-technical-view-v1.json，來源由room-inputs-DRAFT-v1.json固定。正常遊戲入口仍未替換，025 §12的CPU／時間與其他呈現工作依原範圍接續，整體保持DRAFT。
+
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
 ### 12.6 真實呼叫者與正常機器狀態
 
@@ -258,6 +266,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 本次正常入口未掛HD影子、未啟用PGXP。12個CPU欄位不包含CPU.precision／pgxp.Tracker；數值相符不證明精度追蹤標籤／失效效果已保留，後續HD接管必須另驗。原生GPU與HD工作排序／快取相容仍依§12.2的正常入口閘門，不以此原呼叫取代HD整合驗收。
 
 相鄰素材專案tools/ida_sotn_draw_callers.py及probe_sotn_live_draw_call.go為工具入口，研究沿direct-go-v1/caller-IDA-v1.json、live-caller-inputs-DRAFT-v1.json及live-caller-verification-v1.json，包含全部CPU前後、機器週期／待同步期限、RAM／scratch／原生VRAM與存取。Go資料計畫在此實際入口再次相符，這是新呼叫者證據，不重播舊受控函式或美術矩陣。已證實範圍限本次呼叫，其他中斷與呼叫狀態保持未知。
+
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
 ### 12.7 Go完整儲存效果與CPU值
 
@@ -275,3 +285,36 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 已驗型別化流程限定NO3房15、普通flags3前景、一個kind1背景、無相機偏移、完整來源掃描列及已證實容量狀態。額外背景、特殊旗標與部分模式容量等未知上下文會在輸出套用前拒絕，沒有把未證實分支猜補進正式路徑。這不縮小整體HD目標，其他角色、文字、圖層與場景仍須接續。
 
 收據為direct-go-v1/call-state-verification-v1.json，來源固定於call-state-inputs-DRAFT-v1.json。GO-CALL-STATE-20261026回填§12.2–12.4的早期未知，對照與護欄由同根call-state-resolution-v1.json索引。沒有替換正常Go遊戲入口或更動正式候選；025 §12與整體保持DRAFT，下一閘門是時間／快取及週邊事件，再接正常Go繪圖。
+
+**後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
+
+
+### 12.8 Go相容時鐘與完整CPU返回值
+
+狀態：DRAFT限定五態已驗。原始身分仍為PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10，函式40dfd40f完整SHA沿§12.4，四個helper原bytes沿§12.6。原資料與程式碼唯讀，不改原名。
+
+tools/probe_sotn_draw_clock.go只描述此版本的相容取指足跡、RAM讀取點與列乘法期限，不讀opcode、不執行MIPS、不產生像素／封包／暫存器；這些仍由高階Go圖層／材質資料流程生成。快取模型沿008 §2.2及internal/cpu/cpu.go，來源1810cb99a730b1ef810ed684e7df0f14323755e6、GPL-3.0-or-later，早期Beetle參照與授權沿008 §4。此相容足跡只服務CPU時鐘，不能成為繪圖主實作。
+
+| 比較 | 結果 |
+|---|---|
+| 空緩衝、追加、容量耗盡、倒數與真實入口 | 五態所有16個CPU欄位相符，含now／cost／muldivDone及全部256行快取 |
+| 步數及RAM讀取 | 與保存原匯流排觀測獨立核對，不重播原函式 |
+| 真實入口 | 42321指令、3947 RAM讀取、1162取指額外週期，總59271模型週期 |
+| 人工未開快取初態 | 依原每次取指成本4，不能拿227393固定值替代正常入口 |
+| Go路徑 | Machine建立、MIPS執行、opcode解碼及GP0送出均0 |
+
+五態乘法等待為0，模型仍保留完成期限。只接已證實普通flags3與完整掃描列，未知版本／資料形狀拒絕。PGXP不在此模型內。首次helper多留未用fmt import，建置停止、案例0；首次來源／計畫／日誌與call-clock-build-stop-v1.json保留。只修import及明確計畫輸入後首次五態比較全過，未為測值改模型。來源及結果為direct-go-v1/call-clock-inputs-DRAFT-v2.json及call-clock-verification-v1.json。
+
+### 12.9 正常原生Go入口的隔離研究
+
+狀態：DRAFT限定原型已驗，不是正式HD入口。tools/probe_sotn_go_call_entry.go由真BIOS／同卡正常開機、讀檔移動到8382，再於實際0x800ECC10前以Go圖層／儲存／時鐘替換支援呼叫。沒有改寫遊戲程式字或注入PC／RAM初態，Go返回值屬明示研究接管結果。
+
+研究覆蓋只加CPU返回資料套用、同步原生GPU所有權守門及機器事件轉接，正式來源不改。候選在獨立clone按相容退休成本推進既有週邊期限，不呼叫CPU.Step或解碼opcode，預覽成功才套Go RAM／scratch／CPU值。只接受無HD／PGXP／BREAK觀測、DMA0至6未啟動、無MDEC等待、無待處理IRQ且成本在呼叫者預算內的上下文。
+
+預覽內跨IRQ／field、裝置改寫RAM／scratch或不相容CPU返回會拒絕，原機器不改。此受限上下文才可在返回前提交暫存資料；不得外推有裝置RAM寫入或觀測的呼叫。拒絕分支已有實作，本批未另驗負例，不稱全部守門契約通過。
+
+原路徑與候選從同一正常入口clone、沿相同後續按鍵比較。60次支援呼叫內CPU.Step／MIPS解碼0，略過0；8383至8442共60場完整Machine.Clone正規化值相同，涵蓋CPU／時鐘／快取、RAM／scratch、原生GPU／顯存／快取、週邊／音訊及卡片。Clone只移除既有呈現綁定與診斷略過計數，兩側相同處理，不用局部摘要代替全值。SPU緩衝為值陣列，CD DMA緩衝由Clone獨立複製，沒有共享可變緩衝掩蓋差異。
+
+新增正常路線1條、卡片保持、新美術／技術畫面檢視0、舊四個原函式與GPU素材矩陣重播0。46.76秒為蒐證耗時，不作FPS、硬體精確或實體GPU聲明。圖層HD證據沿§12.5，本批無HD影子、PGXP或新GUI。來源、覆蓋、輸入與結果在相鄰素材direct-go-v1/go-entry-inputs-DRAFT-v1.json、go-entry-overlay-v1.json及go-entry-verification-v1.json。tools/accept_sotn_go_entry.py只讀收據與回填，不重播遊戲。
+
+GO-CALL-CLOCK-20261026及call-clock-resolution-v1.json回填較早時間未知。正式引擎與雙擊候選仍不變，下一步接型別化HD工作、原生相容排序及PGXP，再驗正常HD入口。跨IRQ／field、其他場景／人物／文字與完整HD仍未完成，025與本節保持DRAFT。
