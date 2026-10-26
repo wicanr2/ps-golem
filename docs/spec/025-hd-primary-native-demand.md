@@ -255,6 +255,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 - 原呼叫42321條指令、59271模型週期，前後field8382；該次中斷0、直接I/O讀寫0，原卡與機器內卡片保持。CPU快取已啟用，不能以早期人工初態的227393週期充當正常呼叫固定成本。
 - 入口距下一週邊同步期限僅1013週期。新的Go接線仍須保留週邊事件邊界，尚未實作完整時間／快取效果，不能僅將PC移到返回點。61.60秒為本次正常路線及蒐證耗時，不作速度或硬體精確聲明。
 
+本次正常入口未掛HD影子、未啟用PGXP。12個CPU欄位不包含CPU.precision／pgxp.Tracker；數值相符不證明精度追蹤標籤／失效效果已保留，後續HD接管必須另驗。原生GPU與HD工作排序／快取相容仍依§12.2的正常入口閘門，不以此原呼叫取代HD整合驗收。
+
 相鄰素材專案tools/ida_sotn_draw_callers.py及probe_sotn_live_draw_call.go為工具入口，研究沿direct-go-v1/caller-IDA-v1.json、live-caller-inputs-DRAFT-v1.json及live-caller-verification-v1.json，包含全部CPU前後、機器週期／待同步期限、RAM／scratch／原生VRAM與存取。Go資料計畫在此實際入口再次相符，這是新呼叫者證據，不重播舊受控函式或美術矩陣。已證實範圍限本次呼叫，其他中斷與呼叫狀態保持未知。
 
 ### 12.7 Go完整儲存效果與CPU值

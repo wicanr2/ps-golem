@@ -2286,3 +2286,5 @@ Go相容計畫四例各2096896個非堆疊RAM位元組精確，堆疊50／50／3
 tools/probe_sotn_draw_state.go已用Go高階資料流程產生完整RAM、scratch及CPU值。五份保存狀態各2MiB RAM、1KiB scratch與12個CPU欄位精確，35格GPR、HI／LO與返回流程均在範圍內；Go狀態流程沒有Machine、原MIPS或GP0。CPU的now、cost、muldivDone、icache與週邊事件仍待接，正常Go入口及完整HD未完成，主規格維持DRAFT。
 
 GO-CALL-STATE-20261026明文回填§12.2–12.4的早期未知，對照及自動護欄在私人direct-go-v1/call-state-resolution-v1.json。舊收據保持原範圍，新美術／技術畫面審查／舊繪圖矩陣重播0。唯一私人§8與網頁已同步，後續來源、Issue與清理收據由publication-live-state-v1.json列管。
+
+補充本輪證據界限：正常呼叫沒有HD影子或PGXP，CPU.precision／pgxp.Tracker不在12欄位比較範圍；後續HD接線須保留並驗證精度追蹤及原生／HD排序效果。此補充沒有改動已驗Go來源、二進位或收據。
