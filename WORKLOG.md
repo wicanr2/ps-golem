@@ -2304,3 +2304,12 @@ GO-CALL-STATE-20261026明文回填§12.2–12.4的早期未知，對照及自動
 完整HD前綴由CPU獨立分叉，事件預覽成功才轉移HD附件。PGXP、NativePlane、正常GPU／GUI、IRQ／field跨越、其他圖層與正式入口待接。1219.15秒含645秒整包載入，不作速度聲明。完整包載入接近原容器3GiB上限，查Docker主機約31GiB後只將同一程序上限調為5GiB，未重啟／改輸入，最後退出0。一次文件定位讀取不存在的素材CONTEXT只屬唯讀工具失敗，改讀既有唯一§8，遊戲未重播。
 
 GO-ORDERED-HD-20261026回填四個較早段落，同地址017原資料契約不受影響。保存來源、原圖、限定接納、Issue同步與本輪容器／UID清理由相鄰direct-go-v1/publication-ordered-HD-v1.json索引；原資料不入公開repo。
+
+
+## 2026-10-26 Go精度標籤與雙平面同掛研究
+
+025 §12.11–12.12追加DRAFT限定證據，正式Go及候選不改。一次原PGXP呼叫42321指令／59271模型週期、18251回呼；高階Go整理全部標籤，不重播回呼。六份完整保存精度相符，其中後五份連完整CPU／RAM／scratch相符。另一條正常真BIOS／同卡路線以PGXP／無美術HD2／CPU NativePlane同掛，Go接管一個呼叫，後續六場完整原生、精度、HD2與原生像素／快取相同；310圖塊、930個HD字免解析，拒絕0，83.43秒蒐證耗時不作速度聲明。正常兩機分叉前後的診斷累計範圍不同，不要求nativeSkipped總數相等。
+
+七個新精度／雙平面守門案例通過，包含浮點NaN／負零與完整深度位元；另兩個穩定物件提交核心案例分版本接納。提交v1錯把SIO None空埠當nil，正例在守門停止，負例已過；保留首次來源，依實際SIO.New修正後只接未完成正例。初模型也曾因活動倒數的有效零上半字標籤被過嚴守門拒絕，重查Tracker.checked契約後首個全值比較通過。Go來源目錄及Python縮排兩次準備停止皆為遊戲0，原紀錄保留。沒有反覆重播完成矩陣或原函式。
+
+新美術／畫面檢視及舊矩陣重播0。GO-PRECISION-PLANES-20261026回填六個舊段，接受與執行來源索引在相鄰direct-go-v1/precision-planes-DRAFT-acceptance-v1.json、precision-frozen-sources-v1.json及publication-precision-planes-v1.json。正式Step、就地提交的正常玩家路徑、017 BREAK協作、整包HD4正常同掛／GPU、IRQ／field及其他場景／人物／文字仍待接。原始資料及新無美術HD2圖只留本機，公開引擎無新圖片；本輪提交、Issue與容器／UID收尾見publication。

@@ -211,6 +211,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 
 **後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
 
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
+
 ### 12.3 純Go前景原型的已驗範圍
 
 相鄰素材專案tools/probe_sotn_direct_scene.go直接讀保存NO3 15號房RAM／原生VRAM及F_NO3，建立材質與圖塊。tools/hd_direct_scene_research.go由Go採樣既有HD材質，直接寫CPU像素或送既有RasterJob給GPU；主路徑沒有Machine、CPU.Step、Shadow、GP0解碼或原routine執行。原MIPS已保存封包僅在比較器使用，沒有重跑原函式。
@@ -257,6 +259,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 
 **後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
 
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
+
 ### 12.6 真實呼叫者與正常機器狀態
 
 狀態：DRAFT限定證據。原始身分為PS1／SLPM-860.23／DRA.BIN SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308，函式KSEG0 0x800ECC10..0x800ED52B及既有40dfd40f完整SHA。IDA 9.4查詢既有DB SHA895cdf47932611fbb9e056503be75544e873e94dafe6081289600634ae60c273的一次性副本；主程式SLPM_860.23 SHA a68adcd6fc8a426bebeee28383d80550037d6199cf3a41a8d4fa743ae3d61166。原檔與來源DB唯讀，未改原名或語意命名。
@@ -274,6 +278,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 **後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
 **後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
+
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
 
 ### 12.7 Go完整儲存效果與CPU值
 
@@ -311,6 +317,8 @@ tools/probe_sotn_draw_clock.go只描述此版本的相容取指足跡、RAM讀�
 
 五態乘法等待為0，模型仍保留完成期限。只接已證實普通flags3與完整掃描列，未知版本／資料形狀拒絕。PGXP不在此模型內。首次helper多留未用fmt import，建置停止、案例0；首次來源／計畫／日誌與call-clock-build-stop-v1.json保留。只修import及明確計畫輸入後首次五態比較全過，未為測值改模型。來源及結果為direct-go-v1/call-clock-inputs-DRAFT-v2.json及call-clock-verification-v1.json。
 
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
+
 ### 12.9 正常原生Go入口的隔離研究
 
 狀態：DRAFT限定原型已驗，不是正式HD入口。tools/probe_sotn_go_call_entry.go由真BIOS／同卡正常開機、讀檔移動到8382，再於實際0x800ECC10前以Go圖層／儲存／時鐘替換支援呼叫。沒有改寫遊戲程式字或注入PC／RAM初態，Go返回值屬明示研究接管結果。
@@ -326,6 +334,8 @@ tools/probe_sotn_draw_clock.go只描述此版本的相容取指足跡、RAM讀�
 GO-CALL-CLOCK-20261026及call-clock-resolution-v1.json回填較早時間未知。正式引擎與雙擊候選仍不變，下一步接型別化HD工作、原生相容排序及PGXP，再驗正常HD入口。跨IRQ／field、其他場景／人物／文字與完整HD仍未完成，025與本節保持DRAFT。
 
 **後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
+
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
 
 ### 12.10 正常Go圖層直接進HD排序佇列
 
@@ -348,3 +358,41 @@ Shadow只接收自有值，消費端不讀Machine。此批CPU完整HD前綴在�
 來源為公開規格4e7e0a5與相鄰私人素材的tools/prepare_sotn_ordered_hd.py、hd_ordered_sprite_research.go、gpu_ordered_sprite_research.go、machine_ordered_sprite_research.go及兩份research_test。正式引擎Go來源保持唯讀，只用研究overlay；舊原生Go與已定案美術收據承接。來源、映射與二進位SHA在direct-go-v1/ordered-HD-sources-v1.json、ordered-HD-overlay-v1.json及ordered-HD-DRAFT-acceptance-v1.json，執行來源副本由ordered-HD-frozen-sources-v1.json索引。accepted結果SHA 76a8c1ddd73b017b0dc5aaf8d5a0713e4a8c368172e242c66a206be59c14b9d9。工具入口為相鄰docs/assets-catalog.md#render-control；accept_sotn_ordered_hd.py只讀收據，不重啟遊戲。
 
 GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、12.6、12.9的普通圖層HD排序研究缺口。017的同地址原圖塊／寬視野資料證據不受影響，000-index更新現況入口。正式雙擊v.0.7.12、其程式／素材／偏好／媒體／卡片保持；下一閘門是PGXP精度與NativePlane所有權，再完成正式Go入口及其他場景。
+
+**後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
+
+### 12.11 Go精度相容與PGXP／雙平面同掛
+
+狀態：DRAFT限定研究已驗，尚未進正式Step。不可變身分為PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10，原函式SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c，caller 0x800E3C24／返回0x800E3C2C。正式來源基準87b5532；原資料只在私人素材專案。
+
+先由真BIOS／同卡正常路線到實際入口，僅觀測一個原呼叫的PGXP。原呼叫42321指令／59271模型週期，18251次load／store／move回呼；原呼叫中PGXP的RAM標籤只改三格，GTE與深度來源計數不變，不等於遊戲RAM只改三格。觀測器按值紀錄並一對一委派既有Tracker，包含輪詢捷徑；收集只在選定呼叫啟用。此步無HD附件，保留Machine.writeGP0的ReadMemory驗證，不當成正常HD呈現。
+
+高階Go流程從圖層、圖塊、相容幀及既有時鐘足跡產生標籤結果，不讀原執行輸出、不重播18251回呼、不解碼MIPS。最後載入期限由時鐘足跡中的原始位置計算；位置只服務相容時間，不作繪圖主實作。快照完整保留浮點位元、失效標籤內的舊值、深度來源、暫存器、延遲載入、scratch、GTE、port與計數。稀疏RAM只省略完整位元零值，負零與NaN不省略。
+
+目前精度守門限定NO3房15普通flags3前景／一個kind1背景、完整兩層模式、零起始緩衝及無前景倒數。暫存器及輸入載入需為已證實的中性標籤形狀；未使用的r1及失效r13載入舊值保留。scratch與來源欄位不能攜帶未知浮點／深度來源；活動圖層倒數可保留無效低半字與有效零上半字，依Tracker.checked不會改寫該標籤。其他上下文拒絕，不猜補。
+
+| 比較 | 實際接納 |
+|---|---|
+| 首次保存原呼叫 | Go完整PGXP狀態精確；初版過嚴倒數守門在全值比較前拒絕，保留v1後依checked契約修正；首個完成的全值比較通過 |
+| 一條新的PGXP／HD2／CPU NativePlane正常路線 | 真BIOS／同卡到8382，Go接管一個選定呼叫；8383至8388六場完整原生Machine.Clone、完整PGXP、HD2顯存／畫面及NativeSnapshot含CLUT／貼圖快取相同，拒絕0 |
+| 型別化圖塊 | 310個工作送出／消化，略去HD端930命令字；Go支援呼叫CPU.Step／MIPS解碼0 |
+| 同次正常路線的後五個新原呼叫狀態 | 不改模型，五份完整PGXP／CPU／2MiB RAM／1KiB scratch全部精確；離線比較不重播遊戲或原函式 |
+| 七個新核心案例 | NaN／負零／完整深度與延遲載入往返、資料邊界／旗標拒絕、無效CPU／精度返回與非預期Tracker保持雙平面及完整狀態 |
+
+事件預覽在獨立機器推進已證實成本，來源CPU的Tracker必須是Machine持有的同一個；成功後才套完整精度副本並移交兩個呈現附件，拒絕保持來源。精度讀回也在每個被型別化替代的GP0字執行一次，維持ReadMemory的標籤失效效果。附加守門拒絕呈現場奇偶在預覽中變化與GPU Trace；活動DMA、MDEC等待、IRQ／field跨越及BREAK觀測的限制承接前節。
+
+正常候選分叉後原生端實際委派1608精靈、110多邊形、5填色及6836上傳字；診斷計數在Clone清零，不能拿它與基準的開機累計數要求相等，完整像素與快取另逐場比較。正常程序退出0，83.43秒是蒐證耗時，不作速度聲明。此步HD2無美術包，新增美術／畫面檢視與舊矩陣重播0；前批完整HD4素材與GPU排序證據直接承接，不能合稱本輪正常整包HD4／GPU或1080p GUI已驗。
+
+工具為相鄰素材tools/probe_sotn_pgxp_call.go、probe_sotn_precision_model.go、prepare_sotn_precision_normal.py、probe_sotn_precision_following.go及精度／雙平面研究覆蓋，入口docs/assets-catalog.md#render-control。結果由direct-go-v1/precision-planes-DRAFT-acceptance-v1.json索引，完整執行來源別名在precision-frozen-sources-v1.json。正常Go接管一個、完整保存精度六份，不能寫成正常連續六次Go接管。
+
+首次量測器Go建置因主檔與helper目錄不同停止，遊戲0；只修來源位置後首次原呼叫完成。整合準備曾假定card宣告縮排而停止，遊戲0；依實際版面與逐字相同的中間檔接續，未覆寫不同來源。這些準備停止與模型初版守門停止均保留，不改稱原批通過。
+
+### 12.12 保留前端物件位址的提交研究
+
+狀態：DRAFT核心契約已驗，正常整合仍使用前節的後繼機器變數，沒有驗正常玩家的就地提交或正式Step。研究只接收已成功預覽的後繼值；保留Machine、CPU、GPU、CD、SIO、MDEC、SPU、手把與記憶卡物件位址，搬入完整值後重綁CPU匯流排及SIO 1P引用。GPU接受後繼的唯一HD／NativePlane附件後，清掉暫存GPU的附件，不能留下兩個呈現擁有者。
+
+兩個新增核心案例包含完整正規化機器／精度相同、物件位址與CPU記憶體所有權、RAM獨立、雙平面仍有工作，以及拒絕前完全不變。第一版正例在守門前停止，因SIO.New空埠使用不可變sio.None{}，不是nil；原失敗與已通過負例保留。依internal/sio/sio.go的實際契約接受nil或None，仍拒絕第二個已連線裝置；只接續尚未完成的正例，負例不重跑。正例v2通過，不宣稱同一來源整批重跑。
+
+來源為相鄰tools/machine_go_adopt_research.go、gpu_go_adopt_research.go、cpu_go_adopt_research.go與對應核心測試。資料與原版行為無新增猜測，但前端生命週期、正式入口與017的BREAK／擴大掃描協作仍須接續；不在此默默關掉寬視野，也不稱正式繪圖接管完成。
+
+GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段落的PGXP／NativePlane研究缺口。017原寬視野契約不受影響；其既有掛鉤協作仍待正式實作。CPU／RAM原契約不縮減，正式v.0.7.12程式、素材、偏好、媒體與卡片保持，完整HD未完成。
