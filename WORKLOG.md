@@ -2357,3 +2357,17 @@ CPU／GTE／PGXP先通過，首次HD消費端誤用Shadow.GP0名稱讓GPU建置�
 唯一正常路線真BIOS／同卡／固定按鍵到8382，再自然到0x800ECC10，未注入PC／RAM／座標。正式Go連續60次、8383至8442六十場完整原生、PGXP、HD2與NativeSnapshot像素／CLUT／快取相同；18,323型別化精靈實送、54,969 HD字免解析，過期／環境拒絕0。觀測覆蓋僅初態複製／完整精度讀取，正式執行／提交／DMA／apps／HD替換0。另兩場寬視野原路徑控制相同，Go接受0／嘗試2，原Check／BREAK與鄰房保留，不稱Go寬視野接管已完成。
 
 單場RunUntilField＋HD畫面／原生快照完成中位數原6.517ms／Go7.423ms，第一個從場中真入口開始，不能當穩態FPS；速度仍未過。83.87秒為蒐證耗時。§12.17只限普通NO3／CPU HD2同掛CONFORMED，GO-FORMAL-ENTRY-20261026回填八段正式入口缺口。新美術／畫面檢視與舊矩陣重跑0；原媒體、卡片、海報／設定及v.0.7.12保持，未打新包／tag／Release。完整素材HD4／GPU／GUI、新候選、原版／HD熱切換、寬視野Go協作及其餘場景／角色／文字／3D仍待接。來源／接納沿entry-frozen-sources-v1.json、entry-summary-v1.json，commit／push／Issue及UID／容器收尾見publication-formal-entry-v1.json。
+
+
+## 2026-10-27 下一段Go物件動畫
+
+
+#### 物件幾何集中驗證 GO-ACTOR-GEOMETRY-20261027
+
+一條真BIOS／同卡／固定正常按鍵路線，未注入PC／RAM／程式，自然擷取8382至8393共12次原函式。Go直接讀入口動畫資料產生181個型別化四邊形與144個圖像上傳／清邊工作；12次全部封包bytes、完整512筆排序表與計數相同。角色語意沿原槽位列出，不把抽樣槽位稱為全部主角／怪物動畫。
+
+原函式觀測有1008次CPU I/O讀、1625次CPU I/O寫及0次中斷入口。已保存每次完整前後RAM／scratch、CPU、位址存取與到訪足跡。Go幾何未執行原MIPS或提交GP0，但圖像工作尚未由Go執行，SDK裝置／非同步搬移、完整CPU／RAM／scratch／stack／clock／PGXP及正式註冊仍DRAFT。下一閘門是上傳／清邊事件及相依契約，不能直接把此原型接入正式遊戲。
+
+首次觀測準備漏HD附件，EnablePGXP在CPU執行前停止，正常路線與幾何案例0；保留binary／來源／日誌，只補既有HD2 shadow。首次正常12次擷取完成，第一次Go比較11次通過，第12次因槽63的flags3縮放被守門拒絕。根據已查詢0x800EB544的固定8位小數公式補縮放，第二次只用保存12態離線比較，全數通過；沒有重開遊戲或重驗美術。第一版來源／拒絕／日誌保留，不稱首次全過。旋轉及bank15複製仍拒絕。無新畫面、完整HD4／1080p GUI／硬體GPU或速度聲明。先完成全部Go接管，效能後續；CPU／GPU及海報保持。限定來源／收據由私人direct-go-v1/actor-summary-v1.json與actor-frozen-sources-v1.json索引，本節維持DRAFT。
+
+本repo僅更新規格／索引／決策與紀錄，正式程式不改；原型與原資料留相鄰私人素材專案。提交／push及Issue由該專案direct-go-v1/publication-actor-geometry-v1.json記錄。
