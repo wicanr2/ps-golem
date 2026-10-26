@@ -306,38 +306,101 @@ func regionOf(boot string) string {
 // BootFile 回傳 SYSTEM.CNF 指定的開機檔名（例如 SLPM_860.23）；不是 PS1 光碟回 ""。
 func (d *Disc) BootFile() string { return d.boot }
 
-// ReadFile 從 ISO9660 根目錄讀一個檔案（不分大小寫，忽略 ";1" 版本號）。
+// ReadFile reads the existing 2048-byte ISO view, including relative subpaths.
+// 009 §7. The original root-name behavior and io.EOF result are retained.
 func (d *Disc) ReadFile(name string) ([]byte, error) {
+	return d.ReadFileLimit(name, ^uint32(0))
+}
+
+// ReadFileLimit is a host-side read and does not advance the emulated drive.
+func (d *Disc) ReadFileLimit(name string, maxBytes uint32) ([]byte, error) {
+	parts := strings.Split(strings.ReplaceAll(name, "\\", "/"), "/")
+	if len(parts) > 16 {
+		return nil, fmt.Errorf("ISO path too deep")
+	}
+	for i, p := range parts {
+		p, _, _ = strings.Cut(p, ";")
+		if p == "" || p == "." || p == ".." {
+			return nil, fmt.Errorf("invalid ISO path")
+		}
+		parts[i] = p
+	}
 	pvd := d.userData(16)
-	if string(pvd[1:6]) != "CD001" || pvd[0] != 1 {
+	if pvd[0] != 1 || string(pvd[1:6]) != "CD001" || pvd[6] != 1 {
 		return nil, fmt.Errorf("不是 ISO9660")
 	}
-	rootLBA := binary.LittleEndian.Uint32(pvd[156+2:])
-	rootLen := binary.LittleEndian.Uint32(pvd[156+10:])
-	for off := uint32(0); off < rootLen; off += 2048 {
-		sec := d.userData(int32(rootLBA + off/2048))
-		for p := 0; p < 2048; {
-			l := int(sec[p])
-			if l == 0 {
-				break
-			}
-			rec := sec[p : p+l]
-			nl := int(rec[32])
-			fn := string(rec[33 : 33+nl])
-			if i := strings.Index(fn, ";"); i >= 0 {
-				fn = fn[:i]
-			}
-			if strings.EqualFold(fn, name) {
-				lba := binary.LittleEndian.Uint32(rec[2:])
-				size := binary.LittleEndian.Uint32(rec[10:])
-				var out bytes.Buffer
-				for n := uint32(0); n*2048 < size; n++ {
-					out.Write(d.userData(int32(lba + n)))
-				}
-				return out.Bytes()[:size], nil
-			}
-			p += l
-		}
+	lba, size, err := d.isoExtent(pvd[156:190])
+	if err != nil {
+		return nil, err
 	}
-	return nil, io.EOF
+	for level, part := range parts {
+		if size > 16<<20 {
+			return nil, fmt.Errorf("ISO directory too large")
+		}
+		found := false
+		var nextLBA, nextSize uint32
+		for off := uint32(0); off < size && !found; off += 2048 {
+			sec := d.userData(int32(lba + off/2048))
+			end := min(uint32(2048), size-off)
+			for p := uint32(0); p < end; {
+				n := uint32(sec[p])
+				if n == 0 {
+					break
+				}
+				if n < 34 || n > end-p {
+					return nil, fmt.Errorf("invalid ISO directory record")
+				}
+				rec := sec[p : p+n]
+				nl := uint32(rec[32])
+				if 33+nl > n {
+					return nil, fmt.Errorf("invalid ISO filename length")
+				}
+				fn, _, _ := strings.Cut(string(rec[33:33+nl]), ";")
+				if strings.EqualFold(fn, part) {
+					if rec[25]&0x80 != 0 {
+						return nil, fmt.Errorf("multi-extent ISO file unsupported")
+					}
+					if level < len(parts)-1 && rec[25]&2 == 0 {
+						return nil, io.EOF
+					}
+					nextLBA, nextSize, err = d.isoExtent(rec)
+					if err != nil {
+						return nil, err
+					}
+					found = true
+					break
+				}
+				p += n
+			}
+		}
+		if !found {
+			return nil, io.EOF
+		}
+		lba, size = nextLBA, nextSize
+	}
+	if size > maxBytes || uint64(size) > uint64(int(^uint(0)>>1)) {
+		return nil, fmt.Errorf("ISO file exceeds read limit")
+	}
+	out := make([]byte, int(size))
+	for off := uint32(0); off < size; {
+		sec := d.userData(int32(lba + off/2048))
+		n := min(uint32(2048), size-off)
+		copy(out[off:off+n], sec[:n])
+		off += n
+	}
+	return out, nil
+}
+
+func (d *Disc) isoExtent(rec []byte) (uint32, uint32, error) {
+	if len(rec) < 34 {
+		return 0, 0, fmt.Errorf("invalid ISO extent record")
+	}
+	lba, size := binary.LittleEndian.Uint32(rec[2:]), binary.LittleEndian.Uint32(rec[10:])
+	if lba != binary.BigEndian.Uint32(rec[6:]) || size != binary.BigEndian.Uint32(rec[14:]) {
+		return 0, 0, fmt.Errorf("inconsistent ISO extent")
+	}
+	if uint64(lba)+(uint64(size)+2047)/2048 > uint64(d.sectors) {
+		return 0, 0, fmt.Errorf("ISO extent outside image")
+	}
+	return lba, size, nil
 }

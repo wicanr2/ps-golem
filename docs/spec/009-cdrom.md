@@ -69,3 +69,15 @@ func (m *Machine) InsertDisc(d *disc.Disc)
 - cue 檔名退回：本案例的 Big5 檔名找不到，自動改用 `sotn.bin` 並回報。
 - `internal/disc` 單元測試（合成映像，不需原版素材）通過。
 - ps1-tests `cdrom/*`：tests.zip 只有互動程式、沒有期望輸出，未列入。
+
+## 7. 唯讀階層檔案工具
+
+狀態：CONFORMED，限本節唯讀階層工具。此切片只擴充原有ISO9660工具，不改CD控制器的暫存器、FIFO、時序或ReadN／ReadS。原有根檔名讀取保持，增加以斜線或反斜線分隔的相對路徑，以及ReadFileLimit(name string, maxBytes uint32)。ReadFile仍忽略目錄項的版本尾碼並採不分大小寫比對，找不到回io.EOF；路徑空段、點段及非目錄中間項拒絕。
+
+證據沿既有本片SYSTEM.CNF根讀取與相鄰素材tools/extract_assets.py的實際ISO目錄抽取；後者已核對大小端extent／size、記錄長度、2048邊界、目錄旗標及原檔SHA。只讀本片MODE2/2352的2048資料視圖，並非通用ISO所有擴充。資料原始位址基準是bin的LBA及扇區24位移，不與CPU虛擬位址混用。
+
+每個目錄上限16MiB，最多16個路徑元件；extent不能超出映像，目錄項不能跨2048邊界，大小端欄位必須相同，拒絕multi-extent。ReadFileLimit在配置輸出前檢查檔案長度，讀取結果獨立持有。最後項為目錄時仍沿原工具回其資料，避免擅改舊行為；只有中間項必須是目錄。工具使用獨立ReadAt，沒有模擬器週期或光碟機狀態效果。
+
+驗證包含原根讀取、巢狀路徑與大小寫、缺檔／壞路徑、損壞extent／記錄及長度上限。真正月下來源另外核對ST/NO3/F_NO3.BIN與BIN/F_GAME.BIN的SHA；缺原片則skip，不以合成映像冒充原檔。合成小映像僅驗工具邊界。此切片不重開原CD硬體時序或音訊驗收。
+
+§7結果：巢狀／大小寫／反斜線路徑、長度上限、缺檔與四種損壞記錄通過；原片BOOT、F_NO3與F_GAME完整SHA正確，區域與開機檔名保持。這是外部唯讀工具，不重開原CD硬體、原生M4或音訊驗收。實際收據由相鄰素材neighbor-modes-v1/production-v1索引。

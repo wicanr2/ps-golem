@@ -308,6 +308,7 @@ func main() {
 		}
 		if *wideFlag {
 			w := &sotn.Widescreen{}
+			w.SetSourceCue(cue)
 			s.AfterField = w.Check
 			closeSession := s.Close
 			s.Close = func() { w.Disable(s.Machine); closeSession() }

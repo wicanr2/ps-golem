@@ -16,6 +16,7 @@ const tilemapSize = 2332
 const widescreenBreakCode = 0x5753
 const widescreenForegroundCode = 0x5754
 const widescreenBackgroundCode = 0x5755
+const widescreenSceneCode = 0x5756
 
 var tilemapHash = [32]byte{0x40, 0xdf, 0xd4, 0x0f, 0x6a, 0x99, 0x22, 0xdd, 0x5e, 0xd1, 0xb6, 0x9f, 0x1f, 0xd3, 0x2a, 0xda, 0x3f, 0x7a, 0x81, 0x39, 0xb7, 0x93, 0x98, 0x4f, 0x49, 0xd3, 0x73, 0xd3, 0xf3, 0x1b, 0x79, 0x7c}
 
@@ -29,6 +30,7 @@ var widescreenWords = [...]struct{ addr, original, patched uint32 }{
 	{0x800eccf0, 0xa6030000, widescreenBreakCode<<6 | 0x0d},
 	{0x800ece80, 0x01ec1021, widescreenForegroundCode<<6 | 0x0d},
 	{0x800ed260, 0x01ec1021, widescreenBackgroundCode<<6 | 0x0d},
+	{0x800ed520, 0x27bd0048, widescreenSceneCode<<6 | 0x0d},
 }
 
 // Widescreen 只由遊玩端持有，不接入觀測 API 或 Machine.Step。
@@ -37,6 +39,10 @@ type Widescreen struct {
 	applied      bool
 	warned       bool
 	Applications uint64
+	sceneReady   bool
+	sceneFrames  uint64
+	sourceCue    string
+	sources      sceneSources
 }
 
 // Check 把已知改字還原後驗簽。非原字或已知改字也算不符，不掩蓋未知改動。
@@ -60,11 +66,15 @@ func (w *Widescreen) check(m *machine.Machine, expected [32]byte) error {
 	}
 	actual := sha256.Sum256(b)
 	if !valid || actual != expected {
+		w.sceneReady = false
 		if w.applied && !w.warned {
 			fmt.Fprintf(os.Stderr, "寬螢幕：field %d RenderTilemap 簽章不符：%x；保留現有改字\n", m.Field(), actual)
 			w.warned = true
 		}
 		return nil
+	}
+	if sceneHeader(m) {
+		w.sources.load(w.sourceCue)
 	}
 	changed := false
 	for _, p := range widescreenWords {
@@ -76,7 +86,20 @@ func (w *Widescreen) check(m *machine.Machine, expected [32]byte) error {
 	if changed {
 		w.Applications++
 	}
-	m.CPU.SetBreakHandler(widescreenTrap)
+	m.CPU.SetBreakHandler(func(c *cpu.CPU, pc, code uint32) bool {
+		if pc == 0x800eccf0 && code == widescreenBreakCode {
+			w.sceneReady = m.Read32(0x800730ac) == 0 && m.Read16(0x800730a0)&1 != 0 && (m.Read32(0x800730f4) == 0 || m.Read32(0x80073100) == 0)
+		}
+		if pc == 0x800ed520 && code == widescreenSceneCode {
+			if w.sceneReady {
+				w.appendNeighborScene(m)
+			}
+			w.sceneReady = false
+			c.SetBreakGPR(29, c.GPR(29)+0x48)
+			return true
+		}
+		return widescreenTrap(c, pc, code)
+	})
 	w.applied = true
 	return nil
 }
@@ -107,5 +130,7 @@ func (w *Widescreen) Disable(m *machine.Machine) {
 	}
 	m.CPU.SetBreakHandler(nil)
 	w.applied = false
+	w.sceneReady = false
+	w.sources = sceneSources{}
 	w.warned = false
 }

@@ -277,6 +277,7 @@ func runCycles(m *machine.Machine, n uint64) error {
 	var wide *sotn.Widescreen
 	if wideEnabled {
 		wide = &sotn.Widescreen{}
+		wide.SetSourceCue(cue)
 	}
 	end := m.Cycles() + n
 	speedLog := os.Getenv("PSGOLEM_SPEEDLOG") != ""
