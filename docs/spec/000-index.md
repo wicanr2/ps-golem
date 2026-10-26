@@ -21,7 +21,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `014-cross-oracle.md` | READY | mednafen 交叉 oracle：時間表送鍵、平移比對截圖 |
 | `015-sotn-autoplay.md` | DRAFT（M4 驗收完成，見 §7） | 《月下》RAM 位址台帳、Clone 搜尋自動遊玩、M4 驗收 |
 | `016-hd-output.md` | READY（第 1、2、3 階段實作完成，驗收見 §7） | 影子 GPU 內部解析度放大、xBR 濾鏡、PGXP；寬螢幕見 017 |
-| `017-sotn-widescreen.md` | READY（實作與指定驗收完成，平台限制見 §7） | 《月下》寬螢幕：遊戲修改模式（圖塊繪製改動＋影子 GPU 側邊畫布） |
+| `017-sotn-widescreen.md` | READY（實作與指定驗收完成，平台限制見 §7） | 《月下》寬螢幕：遊戲修改模式與側邊畫布；§9至§11 DRAFT捲軸／鄰房命令研究 |
 | `018-hd-texture-replacement.md` | CONFORMED（既有素材鏈）；§4.1 快取 READY | 上傳辨識、傾印、索引／全彩素材包、子貼素與來源／快取追蹤 |
 | `019-hd-texture-pack.md` | CONFORMED（僅載入器層）；§8 CONFORMED；§8.1 CONFORMED（載入／資料取樣）；§8.2 CONFORMED（載入／資料取樣）；§8.3 CONFORMED（清單界線）；§8.4 CONFORMED（圖像容量／接續繪圖資料） | HD manifest v1、索引 PNG、全彩 PNG 與 STP 遮罩的載入與驗證 |
 | `020-gamepad-toolbar.md` | READY（實作與隔離驗收完成，實體手把待真機） | 自動隱藏工具列、USB／已配對藍芽手把設定、指派、死區與即時測試 |
