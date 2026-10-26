@@ -205,6 +205,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 
 原routine入口接管另須證明呼叫者可見效果、排序／原生相容需求、未知分支與還原。只有此切片READY後才接apps/sotn正式入口；其餘原型留相鄰素材專案workplace/render-control-v1，由其docs/assets-catalog.md#render-control索引。已定案美術與已過矩陣直接承接，效能仍待HD完成後沿Issue #9。
 
+**後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
+
 ### 12.3 純Go前景原型的已驗範圍
 
 相鄰素材專案tools/probe_sotn_direct_scene.go直接讀保存NO3 15號房RAM／原生VRAM及F_NO3，建立材質與圖塊。tools/hd_direct_scene_research.go由Go採樣既有HD材質，直接寫CPU像素或送既有RasterJob給GPU；主路徑沒有Machine、CPU.Step、Shadow、GP0解碼或原routine執行。原MIPS已保存封包僅在比較器使用，沒有重跑原函式。
@@ -214,6 +216,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 一次技術檢視確認前景石塊、階梯與橋面，新增美術0。GPU為軟體Mesa介面，不稱新實體GPU；188.58秒含完整7387條素材載入，不作速度驗收。原型限定普通flags3前景、無相機偏移、原生透明及不透明直接圖塊；背景、角色、文字、其他變體與跨房整體場景未由本批完成。
 
 正常遊戲入口尚未替換，必要返回／RAM／顯存／時間效果待證明，本節仍DRAFT。工具、來源SHA、覆蓋、二進位、原PNG與驗證由相鄰素材docs/assets-catalog.md#render-control的direct-go-v1索引；圖片、原資料與素材包不進公開引擎。
+
+**後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
 
 ### 12.4 完整呼叫效果與Go資料計畫
 
@@ -229,6 +233,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 
 這使Go相容資料的範圍可證明，但沒有替換正常遊戲入口，也不構成完整呼叫等價。下一閘門為實際呼叫者、CPU／堆疊／scratch及時間效果，再接正常Go繪圖入口。025整體及本節仍DRAFT。
 
+**後續回填 GO-CALL-STATE-20261026：** 真實呼叫者、限定五態的完整RAM／scratch與CPU值已由§12.6–12.7證明；CPU時間、指令快取、週邊事件與正常Go入口仍未完成。本段較早收據保持原範圍。
+
 ### 12.5 Go背景與前景直接合成
 
 狀態：DRAFT限定原型已驗證。沿同一tools/probe_sotn_direct_scene.go的room模式，Go直接讀NO3普通前景及kind1背景的執行時圖層。原版256寬為185背景＋109前景，擴大342寬為188背景＋154前景，各19個來源／色盤材質；來源字、CLUT及bit15逐格核對。兩層直接經render/hd研究覆蓋的型別化工作繪製，沒有Machine、原MIPS或GP0送出，不以原生幀作HD輸入。
@@ -238,3 +244,32 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 這是保存狀態的普通兩層，沒有角色、文字、HUD、特殊背景或跨房合成。左側黑區屬目前房間界外，不當成更廣場景已完成。新生成／美術審查0，前批單層案例不重播，其精確來源另存foreground-executed-source-v1.go；重建舊證據須唯讀掛到原工具路徑，不用擴充後來源冒稱舊二進位。
 
 接納入口是相鄰素材direct-go-v1/index.html、room-Go-verification-v1.json及room-technical-view-v1.json，來源由room-inputs-DRAFT-v1.json固定。正常遊戲入口仍未替換，025 §12的CPU／時間與其他呈現工作依原範圍接續，整體保持DRAFT。
+
+### 12.6 真實呼叫者與正常機器狀態
+
+狀態：DRAFT限定證據。原始身分為PS1／SLPM-860.23／DRA.BIN SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308，函式KSEG0 0x800ECC10..0x800ED52B及既有40dfd40f完整SHA。IDA 9.4查詢既有DB SHA895cdf47932611fbb9e056503be75544e873e94dafe6081289600634ae60c273的一次性副本；主程式SLPM_860.23 SHA a68adcd6fc8a426bebeee28383d80550037d6199cf3a41a8d4fa743ae3d61166。原檔與來源DB唯讀，未改原名或語意命名。
+
+- 直接xref在sub_800E3880內的0x800E3C24，原字0x0C03B304，延遲槽NOP，返回0x800E3C2C，接著呼叫原sub_800EB998。只找到此直接xref，不宣稱涵蓋所有間接呼叫。
+- 另匯出原0x800135F0、0x80011F18、0x80013900及0x80013B24的bytes／引用／資料流，用於相容幀及原模式資料。沒有重匯出已知圖塊函式本體，不逐指令翻寫成繪圖實作。
+- 正常真BIOS／同卡開機、讀檔、移動及跳躍至8382後，以自然Machine.Step到實際入口，沒有注入PC、RAM或程式，沒有使用會額外sync的RunUntilPC。只捕捉一次原呼叫及原返回，不把它當Go入口已接入。
+- 原呼叫42321條指令、59271模型週期，前後field8382；該次中斷0、直接I/O讀寫0，原卡與機器內卡片保持。CPU快取已啟用，不能以早期人工初態的227393週期充當正常呼叫固定成本。
+- 入口距下一週邊同步期限僅1013週期。新的Go接線仍須保留週邊事件邊界，尚未實作完整時間／快取效果，不能僅將PC移到返回點。61.60秒為本次正常路線及蒐證耗時，不作速度或硬體精確聲明。
+
+相鄰素材專案tools/ida_sotn_draw_callers.py及probe_sotn_live_draw_call.go為工具入口，研究沿direct-go-v1/caller-IDA-v1.json、live-caller-inputs-DRAFT-v1.json及live-caller-verification-v1.json，包含全部CPU前後、機器週期／待同步期限、RAM／scratch／原生VRAM與存取。Go資料計畫在此實際入口再次相符，這是新呼叫者證據，不重播舊受控函式或美術矩陣。已證實範圍限本次呼叫，其他中斷與呼叫狀態保持未知。
+
+### 12.7 Go完整儲存效果與CPU值
+
+狀態：DRAFT限定五態已驗。相鄰素材tools/probe_sotn_draw_state.go從Go圖層／掃描結果及呼叫幀產生相容儲存，沒有Machine、MIPS解碼／執行或GP0送出。原始執行輸出只由比較器讀取，buildEffects不讀oracle結果。繪圖仍沿§12.5的型別化場景，不將相容幀儲存視作另一套ASM繪圖迴圈。
+
+| 效果 | 本次證據 |
+|---|---|
+| 全部RAM含堆疊 | 五份狀態各2097152 bytes精確，不再排除256-byte堆疊 |
+| scratch | 五份狀態各1024 bytes精確，包含精靈樣板、圖層／來源游標及紋理視窗 |
+| CPU值與流程狀態 | 12個欄位精確，包含35格GPR、HI／LO、PC／nextPC、load／branch狀態、COP0、GTE與未變的GTE期限 |
+| 仍待實作 | now、cost、muldivDone、icache及機器週邊排程，完整CPU／時間相容未完成 |
+
+五份狀態為既存空緩衝、追加、容量耗盡、前景倒數四例，以及§12.6的新真實呼叫。原四個函式與正常路線不重播；舊Go圖層計畫僅作產生新完整狀態的必要前綴。一次新狀態比較全部通過，新美術／繪圖矩陣重播0。原50／50／33／50及真實42個堆疊差異已解開，舊失敗／限縮收據仍保留。
+
+已驗型別化流程限定NO3房15、普通flags3前景、一個kind1背景、無相機偏移、完整來源掃描列及已證實容量狀態。額外背景、特殊旗標與部分模式容量等未知上下文會在輸出套用前拒絕，沒有把未證實分支猜補進正式路徑。這不縮小整體HD目標，其他角色、文字、圖層與場景仍須接續。
+
+收據為direct-go-v1/call-state-verification-v1.json，來源固定於call-state-inputs-DRAFT-v1.json。GO-CALL-STATE-20261026回填§12.2–12.4的早期未知，對照與護欄由同根call-state-resolution-v1.json索引。沒有替換正常Go遊戲入口或更動正式候選；025 §12與整體保持DRAFT，下一閘門是時間／快取及週邊事件，再接正常Go繪圖。

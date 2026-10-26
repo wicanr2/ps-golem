@@ -2275,3 +2275,14 @@ Go相容計畫四例各2096896個非堆疊RAM位元組精確，堆疊50／50／3
 新普通背景／前景合成原版294格、擴大342格，各19材質；143520原生像素與獨立圖層PNG合成精確，2296320 HD4色字CPU／GPU精確。Go繪圖路徑沒有Machine、MIPS或GP0，一次技術檢視、新美術0。GPU為軟體Mesa，356.08秒含完整素材載入，不稱新實體GPU、1080p GUI或速度通過。正常遊戲入口、其他圖層／角色／文字與完整HD仍未完成，025主規格及§12保持DRAFT。
 
 研究根為相鄰素材workplace/render-control-v1/direct-go-v1，由其docs/assets-catalog.md#render-control索引。來源／構建／執行／技術收據及最後Issue、commit、容器清理核對分別保存。前批前景精確來源另存，不以擴充後工具冒稱舊二進位。正式v.0.7.12交付與原版模式不變。
+
+
+## 2026-10-26 真實caller與Go完整儲存狀態
+
+025 §12.6–12.7新增原0x800E3C24→0x800ECC10→0x800E3C2C的IDA直接xref與正常機器證據，原名／bytes保留，不外推全部間接呼叫。DRA／boot／來源DB SHA由規格及私人固定計畫保存，原資料、資料庫、圖片與CPU收據不進公開repo。本repo仍只改規格與工作記錄，正式Go來源及候選不變。
+
+素材專案tools/probe_sotn_live_draw_call.go從真BIOS及同卡正常讀檔移動到8382，再自然Step捕捉一次原呼叫，未注入狀態。原呼叫42321指令、59271模型週期，該次I/O及中斷0；卡片保持。這不是正常Go接管或速度聲明。完整CPU／機器時鐘、期限、RAM／scratch／VRAM及存取供下一時間切片使用，原四個受控函式不重播。
+
+tools/probe_sotn_draw_state.go已用Go高階資料流程產生完整RAM、scratch及CPU值。五份保存狀態各2MiB RAM、1KiB scratch與12個CPU欄位精確，35格GPR、HI／LO與返回流程均在範圍內；Go狀態流程沒有Machine、原MIPS或GP0。CPU的now、cost、muldivDone、icache與週邊事件仍待接，正常Go入口及完整HD未完成，主規格維持DRAFT。
+
+GO-CALL-STATE-20261026明文回填§12.2–12.4的早期未知，對照及自動護欄在私人direct-go-v1/call-state-resolution-v1.json。舊收據保持原範圍，新美術／技術畫面審查／舊繪圖矩陣重播0。唯一私人§8與網頁已同步，後續來源、Issue與清理收據由publication-live-state-v1.json列管。
