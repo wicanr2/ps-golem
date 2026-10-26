@@ -2313,3 +2313,14 @@ GO-ORDERED-HD-20261026回填四個較早段落，同地址017原資料契約不�
 七個新精度／雙平面守門案例通過，包含浮點NaN／負零與完整深度位元；另兩個穩定物件提交核心案例分版本接納。提交v1錯把SIO None空埠當nil，正例在守門停止，負例已過；保留首次來源，依實際SIO.New修正後只接未完成正例。初模型也曾因活動倒數的有效零上半字標籤被過嚴守門拒絕，重查Tracker.checked契約後首個全值比較通過。Go來源目錄及Python縮排兩次準備停止皆為遊戲0，原紀錄保留。沒有反覆重播完成矩陣或原函式。
 
 新美術／畫面檢視及舊矩陣重播0。GO-PRECISION-PLANES-20261026回填六個舊段，接受與執行來源索引在相鄰direct-go-v1/precision-planes-DRAFT-acceptance-v1.json、precision-frozen-sources-v1.json及publication-precision-planes-v1.json。正式Step、就地提交的正常玩家路徑、017 BREAK協作、整包HD4正常同掛／GPU、IRQ／field及其他場景／人物／文字仍待接。原始資料及新無美術HD2圖只留本機，公開引擎無新圖片；本輪提交、Issue與容器／UID收尾見publication。
+
+
+## 2026-10-26 Go繪圖接管速度與海報保持
+
+依使用者要求提前量速度，025 §12.13追加DRAFT限定研究，正式程式與v.0.7.12不改。第一輪固定暖身1／配對7定位完整精度JSON成本；後續只做型別化精度子集／範圍更新與共用計畫的有界原型。六個既存完整保存態及三個新原子拒絕／範圍外保持案例通過，未重播舊原函式或美術矩陣。第二輪固定暖身1／平衡三路6組，全部原生、精度、HD2、相容像素／快取精確，兩輪後停止。
+
+第二輪六組標準中位數：選定圖層呼叫原模擬1.368ms、原Go58.711ms、型別化Go9.572ms；呼叫至兩VBlank像素完成15.521／73.451／25.540ms。型別化Go相對原Go逐組倍率中位數5.81，仍慢於原模擬7倍。主要成本整機／精度複製與套用5.84ms、輸入1.70ms、時鐘與CPU JSON 1.62ms。原runner偶數摘要取上中位數保留，衍生摘要以全部六組算標準中位數。這不是整包HD4／1080p／GPU／海報穩態FPS，速度未通過。
+
+小驗證器首次sha helper建置失敗、後續缺binary啟動127均案例0；保留來源後只改hash helper，首次六態比較通過。接受工具首次少engine唯讀掛載，補掛後只核對保存結果。原計畫guard_scope殘留no-PGXP文字，實際兩輪PGXP=true；規格與台帳勘誤，不修改原輸入。GO-DRAW-SPEED-20261026回填025三段早期蒐證耗時，來源凍結與原始日誌保留。
+
+六張A／B／C海報及A／soft／zoom保存設定SHA保持；前端只在載入解碼及初始化建立圖像。未新增GUI或美術／畫面檢視；後續正常速度接受須保留海報與既定畫質。正式Step、017協作、移除每呼叫整機／Tracker複製、完整HD4／1080p遊玩速度及全HD仍待接。唯一現況表在素材docs/hd-assets-evaluation.md §8，工具與收據入口docs/assets-catalog.md#render-control。本輪commit／push、Issue #9／#17／素材#13與UID／容器收尾由publication-draw-speed-v1.json記錄，不建立tag／Release。

@@ -337,6 +337,8 @@ GO-CALL-CLOCK-20261026及call-clock-resolution-v1.json回填較早時間未知�
 
 **後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
 
+**後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
+
 ### 12.10 正常Go圖層直接進HD排序佇列
 
 狀態：DRAFT限定原型已驗，未進正式入口。原始身分沿PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10；原函式SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c及caller 0x800E3C24／返回0x800E3C2C保持。這次不新增逆向命名或執行舊四個原函式案例。
@@ -360,6 +362,8 @@ Shadow只接收自有值，消費端不讀Machine。此批CPU完整HD前綴在�
 GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、12.6、12.9的普通圖層HD排序研究缺口。017的同地址原圖塊／寬視野資料證據不受影響，000-index更新現況入口。正式雙擊v.0.7.12、其程式／素材／偏好／媒體／卡片保持；下一閘門是PGXP精度與NativePlane所有權，再完成正式Go入口及其他場景。
 
 **後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
+
+**後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
 
 ### 12.11 Go精度相容與PGXP／雙平面同掛
 
@@ -387,6 +391,8 @@ GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、1
 
 首次量測器Go建置因主檔與helper目錄不同停止，遊戲0；只修來源位置後首次原呼叫完成。整合準備曾假定card宣告縮排而停止，遊戲0；依實際版面與逐字相同的中間檔接續，未覆寫不同來源。這些準備停止與模型初版守門停止均保留，不改稱原批通過。
 
+**後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
+
 ### 12.12 保留前端物件位址的提交研究
 
 狀態：DRAFT核心契約已驗，正常整合仍使用前節的後繼機器變數，沒有驗正常玩家的就地提交或正式Step。研究只接收已成功預覽的後繼值；保留Machine、CPU、GPU、CD、SIO、MDEC、SPU、手把與記憶卡物件位址，搬入完整值後重綁CPU匯流排及SIO 1P引用。GPU接受後繼的唯一HD／NativePlane附件後，清掉暫存GPU的附件，不能留下兩個呈現擁有者。
@@ -396,3 +402,29 @@ GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、1
 來源為相鄰tools/machine_go_adopt_research.go、gpu_go_adopt_research.go、cpu_go_adopt_research.go與對應核心測試。資料與原版行為無新增猜測，但前端生命週期、正式入口與017的BREAK／擴大掃描協作仍須接續；不在此默默關掉寬視野，也不稱正式繪圖接管完成。
 
 GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段落的PGXP／NativePlane研究缺口。017原寬視野契約不受影響；其既有掛鉤協作仍待正式實作。CPU／RAM原契約不縮減，正式v.0.7.12程式、素材、偏好、媒體與卡片保持，完整HD未完成。
+
+### 12.13 Go接管的同態速度量測
+
+狀態：DRAFT限定正確性已驗；速度未通過，沒有進正式Step。GO-DRAW-SPEED-20261026的不可變身分為PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10..0x800ED52B，原函式2332 bytes、SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c，直接caller 0x800E3C24／返回0x800E3C2C。引擎來源43e6e07，Go1.24.13、GOMAXPROCS=2。原函式是普通圖層的選格／封包產生，不代表整個像素繪製器。
+
+使用者要求確認速度並保留海報，故提前做兩輪有界量測，不啟動完整效能調校。每輪真BIOS／同卡正常到8382自然入口，先保存同一初態。第一輪固定一次暖身、七組交錯原模擬／原Go；第二輪固定一次暖身、六組原模擬／原Go／型別化Go的平衡輪替，暖身不入統計。初態複製、顯式GC、載入與查核在計時外；研究實作內的複製、配置、自然GC、JSON、守門、精度整理、事件預覽與呈現附件處理全部計入。另一窗口從呼叫起點量到後續兩個VBlank邊界，包含HD與原生相容像素完成等待，不把工作推遲後報快。
+
+每組均核對完整原生Machine.Clone正規化值、完整PGXP、HD2顯存／畫面與NativeSnapshot像素／CLUT／快取；模擬工作量、59271呼叫模型週期一致。無美術HD2／PGXP／CPU NativePlane同掛，沒有前端／海報／vsync。本窗口從場中開始，不能換算成完整1080p穩態FPS。原生相容平面仍有必要像素工作，沒有宣稱消除全部原版像素計算。
+
+| 第二輪全部六組的標準中位數 | 原模擬 | 原Go研究版 | 型別化Go研究版 |
+|---|---:|---:|---:|
+| 選定圖層呼叫 | 1.368 ms | 58.711 ms | 9.572 ms |
+| 呼叫至兩VBlank並完成像素 | 15.521 ms | 73.451 ms | 25.540 ms |
+| 窗口配置bytes | 2157320 | 51614920 | 38694464 |
+
+型別化Go相對原Go的逐組倍率中位數5.81，仍比原模擬慢7.00倍。兩輪共享主機狀態不同，不跨輪挑最快值。第二輪runner的偶數摘要原本取上中位數，原JSON保持；draw-speed-summary-v1.json明列以全部六組中間兩值平均的標準中位數。passed只表示量測／狀態證據接納，speed_faster_than_original=false。
+
+第一輪原Go的完整精度JSON、還原與事件預覽成為主要成本。後續有界原型將精度輸入改為明確索引的型別值，輸出只清除／設定已證實範圍，其他標籤在獨立追蹤器副本保留；同時共用一次圖塊計畫、成本展開與最後load位置，不逐指令重播繪圖。六份既存原呼叫保存態的完整PGXP／CPU／2MiB RAM／1KiB scratch相同，未重跑舊原函式。三個新守門案例驗範圍外深度保持及不合法索引／旗標的原子拒絕。第二輪所有三路完整狀態仍相同。
+
+型別化版各階段中位數：整機預覽／追蹤器複製與套用5.84ms、輸入擷取1.70ms、時鐘與CPU JSON 1.62ms。每次仍複製完整Machine及約24MiB追蹤器；這是研究隔離成本，下一步應依既有相容契約消除此成本，不能只因使用Go就聲稱更快。階段中位數不可相加當整體中位數。尚未量正常整包HD4／1080p GUI、硬體GPU與海報穩態速度。
+
+海報契約承接[024-poster-presentation.md](024-poster-presentation.md)及frontend/ebiten/poster.go：A／B／C可切換、柔和融合、中央安全放大，已裝偏好為A／soft=true／zoom=true。六PNG及設定逐檔SHA保持；解碼與GPU圖像建立只在載入／初始化，之後合成海報。此為程式與檔案確認，沒有新增GUI或海報速度驗收。正式整合與速度接受須保持海報、解析度及畫質設定，不靠關閉海報／柔和融合／縮放或降低畫質聲稱改善。
+
+第一個小型驗證器建置因sha helper未連結停止，接著不存在的binary啟動退出127，完整比較案例均0。保留首次來源，只改用既有hash helper後首次六態全值比較通過。接受工具首次缺少唯讀engine掛載，補掛後接納同一保存結果，沒有重跑遊戲。來源計畫沿用的guard_scope文字仍殘留「no PGXP」；實際driver啟用PGXP，adapter以researchPrecisionOwnerReady保留它，兩輪輸出PGXP=true。本節及衍生台帳勘誤該文字，不改原輸入表或重標舊收據。
+
+私人素材工具入口docs/assets-catalog.md#render-control。準備／量測由prepare_sotn_draw_speed.py、probe_sotn_draw_speed.go、prepare_sotn_draw_small.py、prepare_sotn_draw_triplet.py提供，精度型別更新為pgxp_small_research.go、machine_precision_small_research.go、sotn_precision_small_research.go；accept_sotn_draw_speed.py只接受保存結果。direct-go-v1/draw-speed-summary-v1.json、draw-speed-frozen-sources-v1.json與draw-speed-resolution-v1.json索引原始／衍生數字、精確來源及回填。總共兩條正常開機路線／兩輪速度、六個保存態／三個新守門；沒有第三輪、美術或畫面重審。正式Step、017 BREAK協作、更多上下文、人物／文字、全HD與完整遊玩速度仍未完成。現行v.0.7.12候選不變。
