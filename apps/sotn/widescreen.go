@@ -45,6 +45,9 @@ type Widescreen struct {
 	sources      sceneSources
 }
 
+// NeighborFrames is read by the player after its emulation goroutine stops.
+func (w *Widescreen) NeighborFrames() uint64 { return w.sceneFrames }
+
 // Check 把已知改字還原後驗簽。非原字或已知改字也算不符，不掩蓋未知改動。
 // DRA 尚未載入時等待；曾套用後失配只警告一次，RAM 與陷阱保持不動。
 func (w *Widescreen) Check(m *machine.Machine) error {

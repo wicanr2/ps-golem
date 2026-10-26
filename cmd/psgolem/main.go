@@ -311,7 +311,13 @@ func main() {
 			w.SetSourceCue(cue)
 			s.AfterField = w.Check
 			closeSession := s.Close
-			s.Close = func() { w.Disable(s.Machine); closeSession() }
+			s.Close = func() {
+				if *showStats {
+					fmt.Fprintf(os.Stderr, "psgolem：鄰房視野=%d\n", w.NeighborFrames())
+				}
+				w.Disable(s.Machine)
+				closeSession()
+			}
 		}
 		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: st.Widescreen, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
 		if err := saveSettings(location.path, location.forSave(st)); err != nil {
