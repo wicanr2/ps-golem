@@ -504,8 +504,10 @@ func (m *Machine) InstructionBusError(a uint32) bool {
 // ReadRAM 複製一段主記憶體（觀測用）。
 func (m *Machine) ReadRAM(phys uint32, n int) []byte {
 	out := make([]byte, n)
-	for i := range out {
-		out[i] = m.ram[(phys+uint32(i))&(ramSize-1)]
+	pos := int(phys & (ramSize - 1))
+	for written := 0; written < len(out); {
+		written += copy(out[written:], m.ram[pos:])
+		pos = 0
 	}
 	return out
 }

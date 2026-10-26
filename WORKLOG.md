@@ -2335,3 +2335,14 @@ GO-ORDERED-HD-20261026回填四個較早段落，同地址017原資料契約不�
 準備曾猜錯frontend檔名及不存在的support檔，依實際索引修正；未執行v1計畫補重用helper的GPU依賴後凍結v2。首次正常量測誤選早期go-entry-support，暖身原路徑已執行、Go接管0、完整比較0；保留首次binary／日誌，改用原計畫已固定的precision-oracle-support後乾淨接續，算法不改、已過六個案例不重跑。兩次開機嘗試、完成正常路線一條，不把環境／觀測工具失敗寫成產品缺陷。
 
 新美術／畫面檢視與舊矩陣重播0，不新增候選、tag或Release。GO-DRAW-COMMIT-20261026回填較早複製瓶頸，來源與結果沿direct-go-v1/draw-commit-summary-v1.json、draw-commit-frozen-sources-v1.json。正式Go源未改；下一步為型別化CPU／輸入、共用時鐘展開、正式Step／017及雙模式玩家入口，再接全部繪圖。原始資料只留本機，提交／push、Issue #9／#17／素材#13與UID／容器收尾見publication-draw-commit-v1.json。
+
+
+## 2026-10-26 CPU型別傳遞與單次相容時鐘
+
+025 §12.16先固定有限READY契約，再將通用CPU CallState按值快照／原子返回與ReadRAM區段複製實作到正式引擎。CPU／GTE全測與新增14個CPU／一個RAM環繞副本案例通過，此有限資料契約CONFORMED；原READY全文保存於transport-spec-READY-v1.md。通用API不改GTE資料／觀測器／匯流排引用，不是遊戲Step接管或任意savestate匯入。
+
+研究圖層不再做CPU JSON，單次cache／時間足跡同時產生退休成本與load前綴。六份原保存態完整CPU／RAM／scratch／PGXP及每例42321個成本精確，原函式不重播；一條正常真BIOS／同卡路線固定暖身1＋六組三路，原生Machine、PGXP、無美術HD2與NativeSnapshot像素／快取全部相同。局部呼叫1.701／4.370／2.836ms、完成窗口19.369／22.477／22.211ms。局部改善、整體窗口改善有限，速度仍未過；共享主機負載不同不跨批挑數字。時鐘／CPU1.693降至0.656ms，窗口配置3217.5降至943次。165.69秒為開機／蒐證耗時，不是FPS。
+
+準備讀取曾猜不存在的machine/ram.go與cpu_test.go，改讀已定位實際檔；沒有因此重跑遊戲。首次比較器建置重複宣告新舊researchEventScalars，案例／遊戲0；只區分新型別名，保留v1覆蓋／計畫，舊generator依原固定SHA精確還原。接續首次六保存態與首次正常比較通過，CPU／GTE／RAM已過案例不重跑，不加第二輪速度。研究機器覆蓋明確承接正式ReadRAM改善，原三路均用新引擎。
+
+新美術／畫面檢視與舊矩陣重播0。A／B／C海報、soft／zoom、設定、素材與v.0.7.12候選manifest保持，未打新包、tag或Release。正式Step、原版／HD模式、017協作、人物／文字／效果／3D及全HD仍待接；完整HD4／1080p／硬體GPU／海報穩態速度未驗。GO-CPU-TRANSPORT-20261026回填§12.14，來源、原始結果與接受沿direct-go-v1/transport-summary-v1.json及transport-frozen-sources-v1.json；提交／push、Issue #9／#17／素材#13與UID／容器收尾見publication-transport-v1.json。

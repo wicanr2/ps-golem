@@ -461,6 +461,8 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 
 無美術HD2／PGXP／CPU原生相容平面，沒有正式GUI、海報或完整HD4速度驗收。六張A／B／C海報、soft／zoom、現行候選manifest及設定SHA保持。新美術／畫面重審0，沒有第二輪調參或第三路線重測。工具／完整來源及接受結果由相鄰docs/assets-catalog.md#render-control、direct-go-v1/draw-commit-summary-v1.json及draw-commit-frozen-sources-v1.json索引。原版／HD分流、全部圖元接管與3D HD仍按§12.15接續。
 
+**後續回填 GO-CPU-TRANSPORT-20261026：** §12.16的通用CPU按值API與等價RAM快照已正式實作並驗證；研究圖層已移除CPU JSON與第二遍成本展開。正式遊戲入口與模式切換仍待接，完整速度未通過，原數字／收據保持。
+
 ### 12.15 原版／HD雙繪圖路徑與比較
 
 狀態：DRAFT待正式接線。2026-10-26使用者明確指定：切回原版時走原版繪圖，HD時由Go接手全部繪圖，以便在ps-golem直接比較差異。此分支已決定，不再重問。既有HD倍率／後端設定不代表新路徑已實作，原版視野選項也不是原版繪圖選項。
@@ -477,3 +479,34 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 比較以同一BIOS／光碟版本、存檔與按鍵／虛擬時間為輸入，分別執行兩模式，不在計時視窗同時跑兩台。原版oracle、HD結果與差異圖分開保存；同時記錄圖元／材質命中、未接管數、CPU／RAM／時間、繪圖完成等待與正常GUI穩態速度。原版像素不要求與重繪HD逐像素相同，角色位置、遮擋、圖文同步、原生相容狀態與所有權另核對。比較畫面與速度時保持相同視窗、海報及輸入設定；HD維持核准畫質，不靠關海報或降畫質換速度。原版精確狀態比較關閉017擴大視野，其修改模式另驗。
 
 目前已驗證的Go接管仍限普通NO3圖層；人物、怪物、文字、HUD、效果與其餘3D入口尚未全部接管。§12.14只處理提交成本，不能代替本節模式選單、全繪圖覆蓋或正常1080p交付驗收。後續工作沿Issue #17與素材#13，速度沿#9。
+
+### 12.16 型別化CPU返回與單次時鐘展開
+
+狀態：CONFORMED限通用CPU資料API與ReadRAM等價重構；遊戲繪圖／正式Step仍為DRAFT。READY原文由transport-spec-READY-v1.md保留。來源為4220277ee9c413b91ad85bb2060a719e6fc8f5f2的internal/cpu/cpu.go、machine/machine.go，原檔及SHA先保存於私人direct-go-v1/transport-before-*.go。原遊戲／函式不可變身分沿§12.13，沒有新增原版語意推論；已有六份完整保存態、正常就地比較與008時鐘契約直接承接。
+
+通用CPU CallState只按值傳GPR35格、HI／LO、PC／nextPC、branch／load狀態、COP0、now／cost、乘除與GTE期限及256行cache的tag／valid。SnapshotCallState不讀或修改bus、RAM／BIOS、觀測器或GTE資料。ApplyCallReturn只接受直線無BREAK、無待寫load的入口；返回PC為原ra、nextPC=PC+4、r0=0、無分支／load、COP0／GTE期限未變、正elapsed無溢位、now精確遞增、末cost為1..32且cache.valid只用四位。全部驗過才套值，拒絕CPU完全不變；GTE資料、Tracker／投影觀測器、BREAK與匯流排引用、取指快速路徑保持。這不是任意savestate匯入或CPU執行替代，Machine事件／IRQ／繪圖守門仍依§12.14。machine提供公開型別別名及按值快照，讓apps不依賴internal套件。
+
+ReadRAM輸出保持原定義out[i]=ram[(phys+uint32(i))&(2MiB-1)]，包括32位元起點環繞、多次RAM環繞、零長度與獨立副本；以連續copy代替逐byte迴圈。負長度的make拒絕沿原行為，不建立新資料格式。
+
+限定Go圖層的可丟棄原型改用typed CPU輸入／輸出，重用已證實圖層／儲存／精度資料流；時鐘足跡一次生成成本、cache、now及load期限prefix，不再第二次逐位置展開。足跡仍只服務相容時間，不讀opcode、不算圖像／暫存器，不把ASM逐指令改寫成繪圖。泛用CPU API可先按本節READY實作，遊戲特定位址仍只在相鄰研究工具；不能因API完成就稱正式Go繪圖已接入。
+
+一次集中驗證：CPU／GTE核心全測及新增返回原子拒絕／所有權／快照獨立案例；ReadRAM跨尾、多次環繞、最大uint32起點及副本案例。研究先核對六份既存CPU／PGXP／RAM／scratch保存態及舊成本序列，不重播原函式；正常真BIOS／同卡固定暖身1＋六組原模擬／前版就地Go／typed單次時鐘Go同態比較，包含呼叫成本及兩VBlank像素完成。海報、已定畫質與候選保持，未量完整1080p／GPU／海報FPS。CPU內部自洽、原遊戲保存態、正常同態及正式入口狀態分開記錄。
+
+
+#### 本批已驗範圍 GO-CPU-TRANSPORT-20261026
+
+internal/cpu/call_state.go、machine/call_state.go與ReadRAM區段複製已進正式引擎。CPU／GTE套件全測通過，新增CPU成功／快照獨立／附件保持與13種原子拒絕共14例，RAM一例涵蓋零長度、跨尾、多次環繞、uint32最大起點及獨立副本。不把核心內部測試稱為新硬體oracle。
+
+可丟棄Go圖層以按值CPU資料產生相容結果，一次時鐘掃描同步產生每步成本與load前綴；RAM讀點查表及cache仍沿已證實契約，不讀opcode。六個原保存態的全部CPU含未改GTE、RAM／scratch、完整精度及42321個成本逐項相同，原函式重播0。正常同掛PGXP／無美術HD2／CPU NativePlane，固定暖身1＋平衡三路6組，完整原生Machine、PGXP、HD2及原生像素／CLUT／快取全部相同。
+
+| 本批全部六組標準中位數 | 原模擬 | 前版就地Go | 型別化單次時鐘Go |
+|---|---:|---:|---:|
+| 局部圖層呼叫 | 1.701ms | 4.370ms | 2.836ms |
+| 至兩VBlank像素完成窗口 | 19.369ms | 22.477ms | 22.211ms |
+| 窗口配置次數 | 309.5 | 3217.5 | 943 |
+
+局部中位數改善，但完成窗口改善有限，仍慢於原模擬。共享主機狀態不同，不跨批挑數字；全部固定樣本與自然GC均保留，不加第二輪。新呼叫中CPU JSON為0、時鐘只展開一次，時鐘／CPU部分1.693ms降至0.656ms；新輸入快照0.573ms、裝置試行／提交0.907ms仍有成本。階段中位數不能相加當總數，165.69秒開機／量測耗時不是FPS。
+
+第一次比較器建置因與保留舊adapter重複宣告researchEventScalars而停止，案例／遊戲0。只區分新研究型別名後首次六保存態及首次正常比較通過，完整v1來源／計畫及停止紀錄保留，已通過CPU／GTE／RAM案例不重跑。原型覆蓋特別承接正式ReadRAM區段複製，未用較早機器覆蓋隱藏這項改善；三路在相同新引擎與同一二進位量測。
+
+正式遊戲Step、原版／HD切換與017 BREAK協作仍未接，人物／文字／特效／3D與全HD未完成。海報A／B／C、soft／zoom、設定與v.0.7.12候選manifest SHA保持；沒有正常完整HD4／1080p／硬體GPU／海報穩態速度驗收，新美術／畫面檢視與舊矩陣重播0。來源與接納由相鄰docs/assets-catalog.md#render-control及direct-go-v1/transport-summary-v1.json、transport-frozen-sources-v1.json索引；原資料只在本機。
