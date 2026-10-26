@@ -209,6 +209,8 @@ Go仍須保留遊戲確實依賴的RAM、顯存、快取、狀態、原呼叫返
 
 **後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
+**後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
+
 ### 12.3 純Go前景原型的已驗範圍
 
 相鄰素材專案tools/probe_sotn_direct_scene.go直接讀保存NO3 15號房RAM／原生VRAM及F_NO3，建立材質與圖塊。tools/hd_direct_scene_research.go由Go採樣既有HD材質，直接寫CPU像素或送既有RasterJob給GPU；主路徑沒有Machine、CPU.Step、Shadow、GP0解碼或原routine執行。原MIPS已保存封包僅在比較器使用，沒有重跑原函式。
@@ -253,6 +255,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 
 **後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
 
+**後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
+
 ### 12.6 真實呼叫者與正常機器狀態
 
 狀態：DRAFT限定證據。原始身分為PS1／SLPM-860.23／DRA.BIN SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308，函式KSEG0 0x800ECC10..0x800ED52B及既有40dfd40f完整SHA。IDA 9.4查詢既有DB SHA895cdf47932611fbb9e056503be75544e873e94dafe6081289600634ae60c273的一次性副本；主程式SLPM_860.23 SHA a68adcd6fc8a426bebeee28383d80550037d6199cf3a41a8d4fa743ae3d61166。原檔與來源DB唯讀，未改原名或語意命名。
@@ -268,6 +272,8 @@ tools/probe_sotn_draw_plan.go以Go的圖層、圖塊、來源、位置及排序�
 相鄰素材專案tools/ida_sotn_draw_callers.py及probe_sotn_live_draw_call.go為工具入口，研究沿direct-go-v1/caller-IDA-v1.json、live-caller-inputs-DRAFT-v1.json及live-caller-verification-v1.json，包含全部CPU前後、機器週期／待同步期限、RAM／scratch／原生VRAM與存取。Go資料計畫在此實際入口再次相符，這是新呼叫者證據，不重播舊受控函式或美術矩陣。已證實範圍限本次呼叫，其他中斷與呼叫狀態保持未知。
 
 **後續回填 GO-CALL-CLOCK-20261026：** §12.8已驗五態完整16個CPU欄位，§12.9已驗原生Go入口60次呼叫／60場狀態。正式HD／PGXP、IRQ／跨field與其他場景仍待完成；本段舊收據保持原範圍。
+
+**後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
 
 ### 12.7 Go完整儲存效果與CPU值
 
@@ -318,3 +324,27 @@ tools/probe_sotn_draw_clock.go只描述此版本的相容取指足跡、RAM讀�
 新增正常路線1條、卡片保持、新美術／技術畫面檢視0、舊四個原函式與GPU素材矩陣重播0。46.76秒為蒐證耗時，不作FPS、硬體精確或實體GPU聲明。圖層HD證據沿§12.5，本批無HD影子、PGXP或新GUI。來源、覆蓋、輸入與結果在相鄰素材direct-go-v1/go-entry-inputs-DRAFT-v1.json、go-entry-overlay-v1.json及go-entry-verification-v1.json。tools/accept_sotn_go_entry.py只讀收據與回填，不重播遊戲。
 
 GO-CALL-CLOCK-20261026及call-clock-resolution-v1.json回填較早時間未知。正式引擎與雙擊候選仍不變，下一步接型別化HD工作、原生相容排序及PGXP，再驗正常HD入口。跨IRQ／field、其他場景／人物／文字與完整HD仍未完成，025與本節保持DRAFT。
+
+**後續回填 GO-ORDERED-HD-20261026：** §12.10已驗普通NO3圖層的型別化HD4排序，六次Go呼叫／六場完整原生與HD4相同，另有五負例及三個CPU／軟體GPU案例。這只接納DRAFT研究；PGXP、NativePlane、正常GPU與正式入口仍待接，舊收據保持原範圍。
+
+### 12.10 正常Go圖層直接進HD排序佇列
+
+狀態：DRAFT限定原型已驗，未進正式入口。原始身分沿PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10；原函式SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c及caller 0x800E3C24／返回0x800E3C2C保持。這次不新增逆向命名或執行舊四個原函式案例。
+
+Go圖層從資料直接產生自有X／Y／U／V／CLUT／頁面值。遊戲提供者保留原相容封包，通用研究轉接只依觀測到的DMA字位址、完整三字內容與繪圖環境驗證身分。到原排序位置時，HD佇列先消化先前命令，再直接更新CLUT與呼叫既有drawSprite，後續人物／文字命令沿原順序。接受的圖塊不經HD GP0解析器；原生相容端仍收到完全相同三字，不能宣稱原生相容像素工作消失，也沒有把原生畫面放大當HD輸入。
+
+Shadow只接收自有值，消費端不讀Machine。此批CPU完整HD前綴在實際入口分叉：可變VRAM、來源擁有者、來源快取與暫存獨立複製，只共用已驗不可變TexturePack。事件預覽沿§12.9，允許HD附件而仍拒絕PGXP、NativePlane、活動DMA、MDEC等待及IRQ／field跨越；成功才將唯一HD附件移交後繼Machine，拒絕保持來源機器與附件。分叉只供研究比較，不是正式存檔或GPU裝置複製API。
+
+| 證據 | 接納範圍 |
+|---|---|
+| 一條真BIOS／同卡正常路線到8382 | 不注入遊戲PC／RAM初態或改原程式；原檔及卡片保持 |
+| 8383至8388六場／六次Go呼叫 | 完整Machine.Clone原生值、HD4完整顯存／畫面、素材統計全部相同；支援呼叫CPU.Step／MIPS解碼0，拒絕0 |
+| 型別化工作 | 已送出／消化1550圖塊，略去HD端4650命令字；末310格已產生但尚未送出，不列為已繪 |
+| 五個新負例 | 過期封包及頁面不符沿完整原路徑；無效返回、零成本與超預算不改原生值、不丟失HD附件 |
+| 三個新合成HD4案例 | 重疊、偏移裁切、遮罩，CPU原命令／CPU型別化／軟體GPU型別化完整25165824色字及素材統計相同，兩型別化後端各六工作，GPU實際精靈4／4／2 |
+
+正常原圖為1024×960原始畫布，一次集中技術檢視接受限定的背景／前景與既有人物／HUD混合排序。新美術審查與舊GPU／美術矩陣重播0。程式退出0、1219.15秒含645秒完整7387條素材載入及研究比較，不作FPS、硬體或速度聲明。正常GPU、PGXP、NativePlane、1080p GUI、連續無閃爍、其他場景／特殊圖層／人物／文字接管仍未驗，完整HD未完成。
+
+來源為公開規格4e7e0a5與相鄰私人素材的tools/prepare_sotn_ordered_hd.py、hd_ordered_sprite_research.go、gpu_ordered_sprite_research.go、machine_ordered_sprite_research.go及兩份research_test。正式引擎Go來源保持唯讀，只用研究overlay；舊原生Go與已定案美術收據承接。來源、映射與二進位SHA在direct-go-v1/ordered-HD-sources-v1.json、ordered-HD-overlay-v1.json及ordered-HD-DRAFT-acceptance-v1.json，執行來源副本由ordered-HD-frozen-sources-v1.json索引。accepted結果SHA 76a8c1ddd73b017b0dc5aaf8d5a0713e4a8c368172e242c66a206be59c14b9d9。工具入口為相鄰docs/assets-catalog.md#render-control；accept_sotn_ordered_hd.py只讀收據，不重啟遊戲。
+
+GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、12.6、12.9的普通圖層HD排序研究缺口。017的同地址原圖塊／寬視野資料證據不受影響，000-index更新現況入口。正式雙擊v.0.7.12、其程式／素材／偏好／媒體／卡片保持；下一閘門是PGXP精度與NativePlane所有權，再完成正式Go入口及其他場景。
