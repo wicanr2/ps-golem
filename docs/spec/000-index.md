@@ -29,7 +29,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `022-hd-texture-perspective.md` | CONFORMED（限Linux功能及序章抽樣） | HD選用深度追蹤、透視取樣、保守回退與設定保存 |
 | `023-hd-sprite-runs.md` | READY | 可選精靈繪圖序列、來源驗證、逐字格HD替換與保守回退 |
 | `024-poster-presentation.md` | CONFORMED（限Linux；Windows／macOS已編譯，待真機） | 外部成對海報、工具列切換、外側GPU融合、安全等比放大及設定保存 |
-| `025-hd-primary-native-demand.md` | DRAFT（主繪圖接管）；§9 CONFORMED（原生顯存觀測封裝）；§11 CONFORMED（正式相容平面接線） | HD主輸出、原生像素按需生成的副作用契約；真寬視野沿017 |
+| `025-hd-primary-native-demand.md` | DRAFT（主繪圖接管）；§9 CONFORMED（原生顯存觀測封裝）；§11 CONFORMED（正式相容平面接線） | Go直接場景／精靈／文字繪圖；相容平面沿§11，純Go前景原型沿§12.3，真寬視野沿017 |
 
 狀態定義：
 

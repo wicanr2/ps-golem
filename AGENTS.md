@@ -80,3 +80,9 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 使用者已核准目前美術草稿，後續沿用相同 HD 重繪與精簡素材方式。每批最多一次美術審查與一輪整合測試，必要的資料、CPU／GPU、正常遊玩與顯示檢查集中執行。既有通過證據承接，不逐圖重跑或自動擴大驗證；失敗如實記錄，不反覆重測。美術定案與安裝完成分開記錄，現行狀態仍見素材專案 `docs/hd-assets-evaluation.md` §8。
 
 本專案 `workplace/` 的舊研究大型紀錄已無損壓縮。讀取歷史命令、來源取樣或收據遇到原路徑缺檔時，先查相鄰素材專案 `../castlevinia_x/workplace/workspace-storage-index.json`。還原入口為 `../castlevinia_x/WORKLOG.md` 的「還原研究紀錄」，從素材專案執行 `sh tools/workspace_storage.sh list`，再以 `restore --root engine --path workplace/...` 還原需要的檔案。原路徑、長度與 SHA-256 保留，不能把封存當成遺失，也不因此重新跑遊戲。原始光碟、現行完整版與42張新動作研究未壓縮。
+
+## Go繪圖接管的明示目標（2026-10-26）
+
+- 使用者要求Go直接實作並取代原遊戲繪圖。遊戲資料與routine攔截放apps/sotn，Go型別化場景／精靈／文字直接交render/hd、render/hdgpu；原ASM只作逆向／行為oracle，不逐指令翻寫，不在支援分支執行原繪圖迴圈。
+- 入口與證據停止線見docs/spec/025-hd-primary-native-demand.md §12。RAM、顯存、快取、返回、時間及原版模式契約仍須保留，不自行改成較弱的相容性定義。未知副作用先研究，只有READY切片進正式路徑。
+- 025 §11相容平面及017 §12鄰房補命令屬已驗支援／過渡能力，不等於Go繪圖接管完成。後續列管Issue #17，原資料與原圖仍只留私人素材專案。
