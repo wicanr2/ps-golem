@@ -2247,3 +2247,10 @@ Windows amd64與macOS雙架構編譯及格式核對完成，未做兩平台真�
 
 - 正常新包須區分原型及正式來源，補Widescreen停止後唯讀NeighborFrames與-stats日誌，沒有改場景選格、來源核對、RAM或設定格式。新交付只驗一次新正式寬視野GUI，使用獨立可攜設定明確開啟，原偏好／卡片保持；既有設定重開與美術矩陣不重播。
 - 建置沿005既有七包與Docker工具鏈，原版不進可寫建置樹；新版本與交付結果由相鄰素材neighbor-delivery-v1保存，GUI未完成前不改稱已驗新包。
+
+## 2026-10-26：正式鄰房來源新包交付
+
+- 純程式以fdf8eda乾淨來源建置v.0.7.12-20261026七包，原版未掛入可寫來源。macOS結構、ZIP／SHA、Linux依賴與AppImage實際payload通過；含原版只組入相鄰素材既有local-full例外，不發布tag／Release。
+- 唯一正式封包正常GUI使用逐位元相同可攜副本、唯讀素材／媒體及獨立明確寬視野設定。真BIOS／讀卡／左移8330，退出0，frame／shown2634、final_drawn=true、1920×1080，NeighborFrames1842。原版安裝偏好及卡片保持，既有設定重開、CPU／GPU矩陣與實體GPU證據承接，沒有重播。
+- 一次集中技術檢視接受右側石材／紫色牆／橫邊的實際場景。左黑區、跨房遮擋／實體、動態色盤過場及其他圖層仍未完成；017 §12只限此普通圖塊與路線交付CONFORMED。新美術0，917.42秒屬軟體Mesa整合耗時，不作FPS或速度判定。
+- 交付manifest128ce912、未修改原圖99b4d065及完整版本／來源收據留相鄰素材neighbor-delivery-v1，沿其docs/assets-catalog.md#render-control進入。前版v.0.7.11及全部素材／設定保持，Windows／macOS待真機，完整HD仍未完成。公開repo只有程式與文字；Issue與提交／Docker收尾另由publication-v1.json索引。

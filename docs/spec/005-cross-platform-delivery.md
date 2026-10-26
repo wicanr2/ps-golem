@@ -241,3 +241,11 @@ Linux 以封包啟動檔、其他 cwd、零參數、自動尋找 BIOS／cue 實�
 新候選採021既定CPU預設供雙擊預覽，GPU作明確選用的實驗路徑。
 GPU測試保存獨立的設定快照；切回CPU只用既有-hd-renderer選項並保留其他畫質及手把設定。
 既有GPU候選與使用者存檔不改；此選擇不是新的效能實作或速度驗收通過。
+
+### 9.3 鄰房視野候選交付範圍
+
+v.0.7.12-20261026沿tools/build_local.sh重建七個純程式包至dist-all/v.0.7.12-20261026/patch。版號／SHA／ZIP、macOS四道結構、Linux依賴及實際AppImage payload通過。三平台含媒體組裝仍只在相鄰素材專案local-full例外，不加Git、tag或Release；Windows／macOS待真機。
+
+一次新Linux封包正常BIOS／讀卡／左移至8330，CPU HD4／1920×1080，frame／shown2634且最後已呈現；1842幀由017 §12正式來源接受。驗證程式是封包的逐位元相同可攜副本，僅獨立設定明確開啟擴大視野。已安裝原版偏好、素材、海報、媒體與卡片保持。既有設定重開及GPU證據承接，不重播。完整HD、正常DRE、速度及通關未完成。
+
+本輪工具與收據入口為相鄰素材專案docs/assets-catalog.md#render-control的neighbor-delivery-v1；使用其既有prepare_hd_view_delivery.py --neighbor-scene、install_hd_view_delivery.py及verify_native_delivery_gui.py，不另造交付流程。實際範圍及未完成邊界見017 §12.5。
