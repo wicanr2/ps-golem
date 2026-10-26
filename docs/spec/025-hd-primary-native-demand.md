@@ -428,3 +428,52 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 第一個小型驗證器建置因sha helper未連結停止，接著不存在的binary啟動退出127，完整比較案例均0。保留首次來源，只改用既有hash helper後首次六態全值比較通過。接受工具首次缺少唯讀engine掛載，補掛後接納同一保存結果，沒有重跑遊戲。來源計畫沿用的guard_scope文字仍殘留「no PGXP」；實際driver啟用PGXP，adapter以researchPrecisionOwnerReady保留它，兩輪輸出PGXP=true。本節及衍生台帳勘誤該文字，不改原輸入表或重標舊收據。
 
 私人素材工具入口docs/assets-catalog.md#render-control。準備／量測由prepare_sotn_draw_speed.py、probe_sotn_draw_speed.go、prepare_sotn_draw_small.py、prepare_sotn_draw_triplet.py提供，精度型別更新為pgxp_small_research.go、machine_precision_small_research.go、sotn_precision_small_research.go；accept_sotn_draw_speed.py只接受保存結果。direct-go-v1/draw-speed-summary-v1.json、draw-speed-frozen-sources-v1.json與draw-speed-resolution-v1.json索引原始／衍生數字、精確來源及回填。總共兩條正常開機路線／兩輪速度、六個保存態／三個新守門；沒有第三輪、美術或畫面重審。正式Step、017 BREAK協作、更多上下文、人物／文字、全HD與完整遊玩速度仍未完成。現行v.0.7.12候選不變。
+
+**後續回填 GO-DRAW-COMMIT-20261026：** §12.14已驗不複製Machine／完整Tracker的就地提交研究；局部呼叫3.752ms仍慢於原模擬1.110ms。原§12.13數字與收據保留，速度尚未通過；原版／HD分流目標另沿§12.15。
+
+### 12.14 不複製整機的就地提交研究契約
+
+狀態：DRAFT，2026-10-26使用者再次要求Go接手全部繪圖並重視速度。本節只為移除§12.13已量到的研究複製成本蒐證，不把普通圖層外推全部繪圖。整體目標含場景、人物、怪物、文字、HUD、特效與3D圖元，保留Go型別化位置／UV／材質／色彩／深度及CPU／GPU後端，供後續高解析度與3D HD使用。原ASM只作oracle；原生相容像素依賴仍須逐項處理。
+
+來源基準daab3e221646a06a6c9dd789d4160d1f90761ece，玩家與函式不可變身分沿§12.13。Machine.advance只呼叫GPU.TickVideo、timer、CD.Tick／SPU、MDEC.Tick及SIO.Tick；全部DMA未活動且無CPU指令／I/O時不會自行啟動DMA。原生RAM、BIOS、scratch、VRAM、CLUT及精度標籤不在此裝置時間推進的寫入集合。GPU.endOfLine只有掃描欄位及field通知；試行時暫時移除呈現附件並於結束恢復，若field或readout改變則拒絕。這是目前Go來源的資料流契約，非新增原版硬體精確聲明。
+
+可丟棄原型先驗輸入長度、CPU返回、精度更新邊界／旗標、成本／預算、裝置／所有權。支援範圍承接普通NO3兩層、PGXP及CPU雙平面；ExactTiming、BREAK、活動DMA、MDEC等待、待處理IRQ及未知第二埠裝置拒絕。復原資料僅含CPU、GPU掃描欄位、io／計時、CD深複製及SPU／MDEC／SIO／1P手把／記憶卡值；不複製整台Machine、2MiB RAM、原生VRAM或完整Tracker。只在全部可拒絕條件通過後套精度子集、RAM／scratch及CPU，既有Machine／裝置／Tracker與兩呈現附件位址保持。
+
+驗證一次集中執行：新增案例核對成功保留所有權及範圍外深度、無效CPU／精度輸入不變、晚到IRQ／跨field後全部復原；正常真BIOS／同卡自然入口，以固定暖身1及六組原模擬／前版型別化Go／就地Go平衡輪替，核對完整機器／精度／HD2／原生像素與快取。包含呼叫內所有配置、時間推進與兩VBlank像素完成等待，不量前端／整包HD4／1080p／海報FPS。正常路線與原始資料只留私人本機；海報、畫質、美術與既有候選保持，量測一次後停止。
+
+工具與原始收據由相鄰素材docs/assets-catalog.md#render-control的direct-go-v1索引，前批結果與來源不改。只有本節證據與失敗路徑足夠後才能提升有限通用提交契約；正式Step、017掛鉤協作、其餘圖元及全HD仍待完成。
+
+
+
+#### 本批已驗範圍 GO-DRAW-COMMIT-20261026
+
+本節仍為DRAFT限定研究，正式Step未接。GPU掃描小快照與全部可變裝置復原資料取代整機預覽；精度更新在全部拒絕條件通過後就地套用，不複製完整Tracker。保留Machine、CPU／GPU／全部週邊、Tracker及兩呈現附件原位址；新增IRQ／DMA／CD trace回呼拒絕，避免失敗試行產生外部不可復原觀測。原生RAM／VRAM不在事件推進的寫入集合，Go產生的RAM／scratch仍於成功尾端提交。
+
+六個新增案例一次通過：成功與前版獨立預覽全值相同且保持所有權／範圍外標籤；無效CPU、精度、晚到IRQ、跨field與觀測器拒絕完整復原。原圖塊／精度模型不改，不重跑已過素材矩陣。第一份未執行計畫缺重用helper的GPU依賴，補齊後凍結v2；首次正常量測誤選較早go-entry-support，拒絕GTE projection觀測器，完整三路0、已接管Go0。保留binary／來源／日誌，改用前批已驗precision-oracle-support後乾淨接續，產品算法與六個已過案例不重跑。兩次正常開機嘗試，完成比較路線一條。
+
+| 同二進位六組標準中位數 | 原模擬 | 前版型別化Go | 就地Go |
+|---|---:|---:|---:|
+| 局部圖層呼叫 | 1.110ms | 8.641ms | 3.752ms |
+| 至兩VBlank像素完成 | 15.083ms | 24.534ms | 16.087ms |
+| 窗口配置bytes | 2158840 | 38700544 | 8734576 |
+
+固定暖身1及平衡三路6組全部完整原生Machine、PGXP、HD2與NativeSnapshot像素／CLUT／快取相同。局部呼叫仍慢於原模擬，不能把包含其他原指令的兩VBlank窗口接近原路徑解讀為速度已過。新輸入／CPU序列化約1.32ms、時鐘／CPU返回約1.19ms、裝置試行與提交約0.58ms，剩餘成本明確；階段中位數不相加當總數。73.87秒是正常開機與量測程序耗時，不作FPS。
+
+無美術HD2／PGXP／CPU原生相容平面，沒有正式GUI、海報或完整HD4速度驗收。六張A／B／C海報、soft／zoom、現行候選manifest及設定SHA保持。新美術／畫面重審0，沒有第二輪調參或第三路線重測。工具／完整來源及接受結果由相鄰docs/assets-catalog.md#render-control、direct-go-v1/draw-commit-summary-v1.json及draw-commit-frozen-sources-v1.json索引。原版／HD分流、全部圖元接管與3D HD仍按§12.15接續。
+
+### 12.15 原版／HD雙繪圖路徑與比較
+
+狀態：DRAFT待正式接線。2026-10-26使用者明確指定：切回原版時走原版繪圖，HD時由Go接手全部繪圖，以便在ps-golem直接比較差異。此分支已決定，不再重問。既有HD倍率／後端設定不代表新路徑已實作，原版視野選項也不是原版繪圖選項。
+
+| 模式 | 原遊戲繪圖routine | 呈現來源 | 完成判準 |
+|---|---|---|---|
+| 原版 | 由既有PS1執行路徑正常執行 | 原生GPU輸出，前端保持海報／輸入 | 不進Go遊戲繪圖替代入口；與原版路徑同值 |
+| HD | 支援入口由Go替代，正式完成時涵蓋全部繪圖 | Go型別化場景／精靈／字形／效果／3D圖元，交CPU或GPU HD後端 | 不先畫原版可見畫面再覆蓋HD，不以部分普通圖層稱全部接管 |
+
+正式模式選擇與CPU／GPU後端選擇分開。原版返回原有繪圖方式，HD由Go直接產生高解析度的圖元與材質；原始程式只供行為oracle及尚待取代入口的研究。精靈／背景的圖素重繪與3D高解析度／可靠深度／透視校正分項列管，不因型別名稱就宣稱3D品質或全HD已完成。未知深度仍沿既定保守取樣，不猜相機或改遊戲規則。
+
+切換必須在完整呈現場邊界排空在途工作，再切換該場唯一繪圖來源；清理模式專屬綁定與快取後重新綁定。不得在半場切路徑、把上一模式的工作併入新畫面，或讓同一場先露原版再變HD。兩種模式都保留024海報、手把與存檔；HD素材未就緒或入口未支援的開發期必須如實列出，完整接管交付之前不掛名全部完成。熱切換的正式玩家流程與既有設定相容接線仍待驗，不把此契約當現行功能。
+
+比較以同一BIOS／光碟版本、存檔與按鍵／虛擬時間為輸入，分別執行兩模式，不在計時視窗同時跑兩台。原版oracle、HD結果與差異圖分開保存；同時記錄圖元／材質命中、未接管數、CPU／RAM／時間、繪圖完成等待與正常GUI穩態速度。原版像素不要求與重繪HD逐像素相同，角色位置、遮擋、圖文同步、原生相容狀態與所有權另核對。比較畫面與速度時保持相同視窗、海報及輸入設定；HD維持核准畫質，不靠關海報或降畫質換速度。原版精確狀態比較關閉017擴大視野，其修改模式另驗。
+
+目前已驗證的Go接管仍限普通NO3圖層；人物、怪物、文字、HUD、效果與其餘3D入口尚未全部接管。§12.14只處理提交成本，不能代替本節模式選單、全繪圖覆蓋或正常1080p交付驗收。後續工作沿Issue #17與素材#13，速度沿#9。

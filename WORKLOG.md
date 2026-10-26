@@ -2324,3 +2324,14 @@ GO-ORDERED-HD-20261026回填四個較早段落，同地址017原資料契約不�
 小驗證器首次sha helper建置失敗、後續缺binary啟動127均案例0；保留來源後只改hash helper，首次六態比較通過。接受工具首次少engine唯讀掛載，補掛後只核對保存結果。原計畫guard_scope殘留no-PGXP文字，實際兩輪PGXP=true；規格與台帳勘誤，不修改原輸入。GO-DRAW-SPEED-20261026回填025三段早期蒐證耗時，來源凍結與原始日誌保留。
 
 六張A／B／C海報及A／soft／zoom保存設定SHA保持；前端只在載入解碼及初始化建立圖像。未新增GUI或美術／畫面檢視；後續正常速度接受須保留海報與既定畫質。正式Step、017協作、移除每呼叫整機／Tracker複製、完整HD4／1080p遊玩速度及全HD仍待接。唯一現況表在素材docs/hd-assets-evaluation.md §8，工具與收據入口docs/assets-catalog.md#render-control。本輪commit／push、Issue #9／#17／素材#13與UID／容器收尾由publication-draw-speed-v1.json記錄，不建立tag／Release。
+
+
+## 2026-10-26 Go就地提交及原版／HD分流
+
+使用者再次強調速度、全Go繪圖與3D HD，並明確指定原版沿原繪圖、HD才由Go全部接手，以同存檔／輸入比較差異。025 §12.14先寫有限DRAFT契約再做裝置復原原型，§12.15及兩repo AGENTS保存模式分流目標，沒有把既有視野選項誤稱繪圖模式。正式入口、全部人物／文字／3D仍未接完。
+
+原型不複製Machine／完整Tracker，僅保存裝置時間推進的可變值並暫時移除呈現附件；所有拒絕條件通過後提交精度子集及Go返回，原物件位址保持。新增六個成功／CPU／精度／晚到IRQ／跨場／觀測器案例首次通過。唯一完成的正常量測固定暖身1、三路6組，完整原生、PGXP、HD2、NativeSnapshot像素／快取全部相同；局部呼叫1.110／8.641／3.752ms，兩VBlank完成15.083／24.534／16.087ms，前版Go與就地Go配置38.70／8.73MB。速度未通過，完整1080p／GPU／海報穩態FPS未驗，海報與畫質保持。
+
+準備曾猜錯frontend檔名及不存在的support檔，依實際索引修正；未執行v1計畫補重用helper的GPU依賴後凍結v2。首次正常量測誤選早期go-entry-support，暖身原路徑已執行、Go接管0、完整比較0；保留首次binary／日誌，改用原計畫已固定的precision-oracle-support後乾淨接續，算法不改、已過六個案例不重跑。兩次開機嘗試、完成正常路線一條，不把環境／觀測工具失敗寫成產品缺陷。
+
+新美術／畫面檢視與舊矩陣重播0，不新增候選、tag或Release。GO-DRAW-COMMIT-20261026回填較早複製瓶頸，來源與結果沿direct-go-v1/draw-commit-summary-v1.json、draw-commit-frozen-sources-v1.json。正式Go源未改；下一步為型別化CPU／輸入、共用時鐘展開、正式Step／017及雙模式玩家入口，再接全部繪圖。原始資料只留本機，提交／push、Issue #9／#17／素材#13與UID／容器收尾見publication-draw-commit-v1.json。
