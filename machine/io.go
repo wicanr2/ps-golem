@@ -541,9 +541,11 @@ func (m *Machine) dmaGPU() {
 		for n := 0; n < dmaLinkedListLimit; n++ {
 			hdr := binary.LittleEndian.Uint32(m.ram[addr:])
 			cnt := hdr >> 24
-			for i := uint32(0); i < cnt; i++ {
-				a := (addr + 4 + 4*i) & 0x1FFFFC
-				m.writeGP0(binary.LittleEndian.Uint32(m.ram[a:]), a)
+			if !m.submitSprite16Packet(addr, cnt) {
+				for i := uint32(0); i < cnt; i++ {
+					a := (addr + 4 + 4*i) & 0x1FFFFC
+					m.writeGP0(binary.LittleEndian.Uint32(m.ram[a:]), a)
+				}
 			}
 			if hdr&0x800000 != 0 {
 				break

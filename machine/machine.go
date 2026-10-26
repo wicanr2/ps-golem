@@ -34,11 +34,13 @@ const (
 
 // Machine 是一台 PlayStation。時間以 CPU 週期計。
 type Machine struct {
-	precision *pgxp.Tracker
-	CPU       *cpu.CPU
-	GPU       *gpu.GPU
-	CD        *cdrom.CDROM
-	SIO       *sio.SIO
+	callRegistration *CallRegistration
+	callSprites      *sprite16Bindings
+	precision        *pgxp.Tracker
+	CPU              *cpu.CPU
+	GPU              *gpu.GPU
+	CD               *cdrom.CDROM
+	SIO              *sio.SIO
 	// MDEC 是動畫解碼器（011）。
 	MDEC *mdec.MDEC
 	// SPU 是音效處理器（013）。
@@ -102,6 +104,8 @@ func (m *Machine) InsertDisc(d *disc.Disc) { m.CD.Insert(d) }
 // Clone 深拷貝整台機器（即時存檔的雛形；測試用來共用開機進 shell 的狀態）。
 func (m *Machine) Clone() *Machine {
 	n := *m
+	n.callRegistration = nil
+	n.callSprites = nil
 	n.tty = append([]byte(nil), m.tty...)
 	n.GPU = m.GPU.Clone()
 	c := *m.CPU
@@ -171,6 +175,9 @@ func (m *Machine) Run(n uint64) {
 
 // RunUntilField 執行到經過的 VBlank 次數達到 f，最多 maxCycles 個週期；回傳是否達到。
 func (m *Machine) RunUntilField(f uint64, maxCycles uint64) bool {
+	if m.callRegistration != nil {
+		return m.runUntilFieldCalls(f, maxCycles)
+	}
 	end := m.cycles + maxCycles
 	defer m.sync()
 	for m.field < f {

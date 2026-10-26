@@ -339,6 +339,8 @@ GO-CALL-CLOCK-20261026及call-clock-resolution-v1.json回填較早時間未知�
 
 **後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
 
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
+
 ### 12.10 正常Go圖層直接進HD排序佇列
 
 狀態：DRAFT限定原型已驗，未進正式入口。原始身分沿PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308／KSEG0 0x800ECC10；原函式SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c及caller 0x800E3C24／返回0x800E3C2C保持。這次不新增逆向命名或執行舊四個原函式案例。
@@ -364,6 +366,8 @@ GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、1
 **後續回填 GO-PRECISION-PLANES-20261026：** §12.11已驗六份完整PGXP狀態，及PGXP／HD2／NativePlane同掛的一個正常Go呼叫與六場後續；§12.12另驗穩定物件提交核心契約。這些只接納DRAFT研究，正式Step、整包HD4同掛、正常GPU與017寬視野協作仍待接；原收據不重標。
 
 **後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
+
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
 
 ### 12.11 Go精度相容與PGXP／雙平面同掛
 
@@ -393,6 +397,8 @@ GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、1
 
 **後續回填 GO-DRAW-SPEED-20261026：** §12.13另做固定同態速度量測；型別化Go約快於原Go5.8倍，仍慢於原模擬約7倍。早期蒐證總耗時不作FPS，正式速度未通過，原收據保持。
 
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
+
 ### 12.12 保留前端物件位址的提交研究
 
 狀態：DRAFT核心契約已驗，正常整合仍使用前節的後繼機器變數，沒有驗正常玩家的就地提交或正式Step。研究只接收已成功預覽的後繼值；保留Machine、CPU、GPU、CD、SIO、MDEC、SPU、手把與記憶卡物件位址，搬入完整值後重綁CPU匯流排及SIO 1P引用。GPU接受後繼的唯一HD／NativePlane附件後，清掉暫存GPU的附件，不能留下兩個呈現擁有者。
@@ -402,6 +408,8 @@ GO-ORDERED-HD-20261026及ordered-HD-resolution-v1.json只回填§12.2、12.5、1
 來源為相鄰tools/machine_go_adopt_research.go、gpu_go_adopt_research.go、cpu_go_adopt_research.go與對應核心測試。資料與原版行為無新增猜測，但前端生命週期、正式入口與017的BREAK／擴大掃描協作仍須接續；不在此默默關掉寬視野，也不稱正式繪圖接管完成。
 
 GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段落的PGXP／NativePlane研究缺口。017原寬視野契約不受影響；其既有掛鉤協作仍待正式實作。CPU／RAM原契約不縮減，正式v.0.7.12程式、素材、偏好、媒體與卡片保持，完整HD未完成。
+
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
 
 ### 12.13 Go接管的同態速度量測
 
@@ -430,6 +438,8 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 私人素材工具入口docs/assets-catalog.md#render-control。準備／量測由prepare_sotn_draw_speed.py、probe_sotn_draw_speed.go、prepare_sotn_draw_small.py、prepare_sotn_draw_triplet.py提供，精度型別更新為pgxp_small_research.go、machine_precision_small_research.go、sotn_precision_small_research.go；accept_sotn_draw_speed.py只接受保存結果。direct-go-v1/draw-speed-summary-v1.json、draw-speed-frozen-sources-v1.json與draw-speed-resolution-v1.json索引原始／衍生數字、精確來源及回填。總共兩條正常開機路線／兩輪速度、六個保存態／三個新守門；沒有第三輪、美術或畫面重審。正式Step、017 BREAK協作、更多上下文、人物／文字、全HD與完整遊玩速度仍未完成。現行v.0.7.12候選不變。
 
 **後續回填 GO-DRAW-COMMIT-20261026：** §12.14已驗不複製Machine／完整Tracker的就地提交研究；局部呼叫3.752ms仍慢於原模擬1.110ms。原§12.13數字與收據保留，速度尚未通過；原版／HD分流目標另沿§12.15。
+
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
 
 ### 12.14 不複製整機的就地提交研究契約
 
@@ -463,6 +473,8 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 
 **後續回填 GO-CPU-TRANSPORT-20261026：** §12.16的通用CPU按值API與等價RAM快照已正式實作並驗證；研究圖層已移除CPU JSON與第二遍成本展開。正式遊戲入口與模式切換仍待接，完整速度未通過，原數字／收據保持。
 
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
+
 ### 12.15 原版／HD雙繪圖路徑與比較
 
 狀態：DRAFT待正式接線。2026-10-26使用者明確指定：切回原版時走原版繪圖，HD時由Go接手全部繪圖，以便在ps-golem直接比較差異。此分支已決定，不再重問。既有HD倍率／後端設定不代表新路徑已實作，原版視野選項也不是原版繪圖選項。
@@ -479,6 +491,8 @@ GO-PRECISION-PLANES-20261026及precision-resolution-v1.json回填六個早期段
 比較以同一BIOS／光碟版本、存檔與按鍵／虛擬時間為輸入，分別執行兩模式，不在計時視窗同時跑兩台。原版oracle、HD結果與差異圖分開保存；同時記錄圖元／材質命中、未接管數、CPU／RAM／時間、繪圖完成等待與正常GUI穩態速度。原版像素不要求與重繪HD逐像素相同，角色位置、遮擋、圖文同步、原生相容狀態與所有權另核對。比較畫面與速度時保持相同視窗、海報及輸入設定；HD維持核准畫質，不靠關海報或降畫質換速度。原版精確狀態比較關閉017擴大視野，其修改模式另驗。
 
 目前已驗證的Go接管仍限普通NO3圖層；人物、怪物、文字、HUD、效果與其餘3D入口尚未全部接管。§12.14只處理提交成本，不能代替本節模式選單、全繪圖覆蓋或正常1080p交付驗收。後續工作沿Issue #17與素材#13，速度沿#9。
+
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
 
 ### 12.16 型別化CPU返回與單次時鐘展開
 
@@ -510,3 +524,38 @@ internal/cpu/call_state.go、machine/call_state.go與ReadRAM區段複製已進�
 第一次比較器建置因與保留舊adapter重複宣告researchEventScalars而停止，案例／遊戲0。只區分新研究型別名後首次六保存態及首次正常比較通過，完整v1來源／計畫及停止紀錄保留，已通過CPU／GTE／RAM案例不重跑。原型覆蓋特別承接正式ReadRAM區段複製，未用較早機器覆蓋隱藏這項改善；三路在相同新引擎與同一二進位量測。
 
 正式遊戲Step、原版／HD切換與017 BREAK協作仍未接，人物／文字／特效／3D與全HD未完成。海報A／B／C、soft／zoom、設定與v.0.7.12候選manifest SHA保持；沒有正常完整HD4／1080p／硬體GPU／海報穩態速度驗收，新美術／畫面檢視與舊矩陣重播0。來源與接納由相鄰docs/assets-catalog.md#render-control及direct-go-v1/transport-summary-v1.json、transport-frozen-sources-v1.json索引；原資料只在本機。
+
+**後續回填 GO-FORMAL-ENTRY-20261026：** §12.17已接正式apps及遊玩RunUntilField，60次Go／60場完整狀態與雙平面相同；原Step保留單指令語意。兩場寬視野原路徑控制相同；熱切換、寬視野Go替代、正常整包HD4／GPU／GUI及其他圖元仍待接，舊收據不重標。
+
+### 12.17 正式普通NO3圖層入口
+
+狀態：CONFORMED限正式普通NO3／CPU HD2／PGXP與原生相容平面及兩場寬視野原路徑控制。READY原文由entry-spec-READY-v1.md保留。原版模式不註冊呼叫替代器；HD啟動註冊Go入口，只接已證實普通NO3兩層。原版／HD熱切換、其他場景／人物／文字／效果／3D與整體HD仍DRAFT，不以此切片稱全部Go接管。基準bf444acc051e34f3915def32dd8d19fe70a6c8ca。CPU資料、分段時鐘、完整RAM／scratch／PGXP與排序／雙平面證據承接§12.8–12.16，原版成熟模擬器證據不另重標。
+
+原始身分沿PS1／SLPM-860.23／DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308，KSEG0 0x800ECC10..0x800ED52B，2332 bytes SHA 40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c；caller 0x800E3C24／返回0x800E3C2C。helper 0x80011F18長60及0x800135F0長1464的SHA分別1c2e33c9e0ddfcd56385916112089fab3d7d343336e2514633a70260ef7d4064、bbae27e62769d757261709c0c55190c9d7ea6098ee3efd5cbb8f83c2f1636615。NO3 header沿017，選定靜態配置的SHA 4281dfee0f618f53bf31bfb1a0e30b2b66f57eebb58ce4db0c84b0b4483958fe；欄位偏移與兩緩衝原位址由私人entry-gates-evidence-v1.json列出，六份保存態相同。原始值身分已證實，room-slot語意仍是假說，不靠假說擴大範圍。
+
+通用層新增註冊目標PC的呼叫替代器，只作用於RunUntilField遊玩迴圈；公開Step／RunUntilPC仍執行原指令。未註冊時保留原RunUntilField內迴圈，避免每指令加回呼成本。已註冊時先檢查PC，成功必須在預算內推進週期，失敗原狀沿原Step；兩路都保留回跳後tryRAMCountdown。Clone移除呼叫註冊與型別綁定，機器值、RAM／CPU與原生GPU不減項。註冊token擁有解除權，關閉不得清掉另一個註冊者。
+
+Go入口與所有遊戲位址留apps/sotn。先核原程式／helper／NO3配置、兩緩衝、返回、對齊且在主RAM的stack、零圖元／模式計數、普通flags3／kind1、無倒數／其他活動背景／相機偏移、完整掃描列與精度中性守門。Unknown或被寬視野改寫的版本原狀回退，計數明列。017寬視野Check／BREAK及鄰房功能保持；HD寬視野明確沿其既有路徑，Go入口不移除或取代BREAK handler。本節不宣稱Go與寬視野同時接管已完成。
+
+資料鏈為原RAM圖層／tile／palette → Go型別圖塊與相容儲存／CPU／時鐘 → 機器有界裝置試行 → 原順序的HD Sprite16工作 → 現有CPU或GPU後端。支援呼叫不執行CPU.Step、不解碼opcode、不執行原繪圖迴圈；保留必要的原生相容像素工作。無PGXP時精度更新為nil；有PGXP時保留完整位元與範圍外標籤。ExactTiming、外部trace、非機器持有Tracker、未知第二埠、活動DMA／MDEC等待、待處理IRQ、跨IRQ／field／readout等上下文拒絕。全部可失敗的資料與綁定準備在提交前完成，成功保留Machine／裝置／Tracker／呈現附件位址。
+
+型別化Sprite16只在dmaGPU鏈結模式的一個完整三字封包前使用。io.go的內層迴圈在三字間不推進CPU／裝置或執行外部回呼；先核全部RAM字、GPU環境、無Trace／其他DMA，再送一個HD工作及三個原生相容字，每字仍做精度ReadMemory驗證。範圍／來源／模式不符走原三字路徑，不先送半包再回退。HD工作自有位置／UV／CLUT／page值，包含PS1固定16x16 raw sprite語意，不持有Machine。消費端環境或trace不符時重建同三個原GP0字交既有HD解碼器，保持順序。綁定容量由apps提供，無效批次不改舊綁定。
+
+前端只在hd>0啟用此切片，啟動說明部分接管範圍；收尾在模擬停止後解除註冊並清理其綁定，再沿原寬視野／GPU關閉。原版hd=0不建立Go renderer。海報A／B／C、soft／zoom、畫質、素材、手把與存檔設定保持，不新增存檔格式或改寫原程式。原版／HD選單熱切換依§12.15另接，不把既有視野選項當繪圖選項。
+
+一次集中驗證：CPU／GTE全測、註冊／Clone／預算／原版路徑、原子精度／裝置拒絕、整包綁定失敗及raw Sprite16等價的必要新案例；正式apps／cmd建置。正常真BIOS／同卡與固定按鍵到真實入口，以正式核心與apps做多場原版／Go完整Machine／PGXP／HD2／NativeSnapshot比較，觀測純讀快照不覆蓋正式提交／執行程式；核對實際多次Go接受與HD工作。寬視野保持原功能的控制與原版無註冊控制分開。未驗的正常GUI、整包HD4、硬體GPU、完整1080p／海報FPS及其他平台真機列限制，不重跑舊美術。
+
+
+#### 正式入口驗證 GO-FORMAL-ENTRY-20261026
+
+正式程式已加入apps/sotn的圖層／儲存／時鐘／精度流程、機器註冊與就地提交、整包DMA Sprite16及HD前端啟動／收尾接線。公開Step仍逐指令，未註冊的原版RunUntilField保留原迴圈。原版hd=0不建立Go renderer；HD啟動明列部分接管，沒有新增設定格式或熱切換。程式與框架的判準仍限本節普通NO3身分，不因來源已正式化稱全遊戲接管。
+
+CPU／GTE／PGXP／GPU下層全測分版本通過；15個新的成功／註冊所有權／原子拒絕／整包DMA回退／原版控制案例通過，其中消費端另涵蓋直接與回退兩控制。cmd/psgolem既有設定測試及正式遊玩程式建置通過。首次Renderer錯用Shadow.GP0名稱導致GPU建置停止，GPU與新案例0；保留首次來源，只改正式WriteGP0名稱後接續未完成部分，已過CPU／GTE／PGXP不重跑。初態觀測helper亦曾缺舊名稱別名，遊戲0，僅補觀測別名後首次正常執行通過；兩次均屬組裝問題，不作產品失敗。
+
+真BIOS／同卡及固定正常按鍵到8382，自然Step到0x800ECC10後啟用正式Go註冊，未注入PC／RAM／座標。8383至8442六十場，正式RunUntilField接受60次Go呼叫，回退0；完整Machine.Clone正規化原生值、全部PGXP位元、HD2顯存／畫面與NativeSnapshot含CLUT／貼圖快取逐場相同。觀測覆蓋只有精度讀取／初態複製，正式執行、提交、DMA、apps與HD程式覆蓋0。18,323型別化精靈實際送出，略去HD端54,969命令字，過期／環境拒絕0；最後尚未DMA消費的圖塊不算已繪。
+
+另從相同正常初態做兩場017寬視野控制：兩側都執行原Check／BREAK與鄰房功能；一側保留Go註冊但明確拒絕寬視野替代，嘗試2／接受0，完整原生、精度、HD及相容平面相同。這證明原功能未被停用，不等於Go寬視野接管已完成。原卡／輸入檔及海報／設定／候選manifest保持。
+
+六十個單場完成窗口的中位數，原路徑6.517ms、Go7.423ms，包含HD畫面與原生快照完成；第一個從自然呼叫入口起算，不當成穩態FPS。Go仍慢於原路徑，速度未過。83.87秒為開機／比對耗時，不作速度聲明。本批無美術HD2，沒有重驗舊美術、整包HD4、正常硬體GPU／1080p GUI或Windows／macOS真機；既有後端仍保留。新圖像／美術／畫面檢視0，未組裝新雙擊候選。
+
+限定接納為相鄰direct-go-v1/entry-summary-v1.json，精確正式來源／觀測來源／binary與首次停止由entry-frozen-sources-v1.json索引；不可變位址及八段回填由entry-resolution-v1.json核對。下一步為正式整包HD4／GPU／GUI及新候選、原版／HD熱切換與寬視野Go協作，再接其他圖層、人物／怪物／文字／效果與3D，完整HD保持未完成。

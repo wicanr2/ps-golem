@@ -39,6 +39,9 @@ func (c *CPU) SnapshotCallState() CallState {
 	return s
 }
 
+// PrecisionObserver returns the live attachment without changing it.
+func (c *CPU) PrecisionObserver() PrecisionTracker { return c.precision }
+
 func (c *CPU) CallReturnReady() bool {
 	return c.breakHandler == nil && c.bdbt == 0 && c.ldWhich == ldNone && c.nextPC == c.pc+4
 }

@@ -319,6 +319,29 @@ func main() {
 				closeSession()
 			}
 		}
+
+		if *hdFlag != 0 {
+			scene, entryErr := sotn.AttachHDSceneRenderer(s.Machine, *wideFlag)
+			if entryErr != nil {
+				s.Close()
+				return nil, entryErr
+			}
+			if *wideFlag {
+				fmt.Fprintln(os.Stderr, "psgolem：擴大視野保留既有HD路徑，Go圖層接管待接續")
+			} else {
+				fmt.Fprintln(os.Stderr, "psgolem：HD部分Go圖層接管已啟用，其他繪圖保留既有HD路徑")
+			}
+			closeSession := s.Close
+			s.Close = func() {
+				if *showStats {
+					v := scene.Statistics()
+					submitted, words, stale, rejected := s.Machine.Sprite16Statistics()
+					fmt.Fprintf(os.Stderr, "psgolem：Go圖層嘗試=%d 接受=%d 回退=%d HD精靈=%d 略去字=%d 過期=%d 環境回退=%d\n", v.Attempts, v.Accepted, v.Rejected, submitted, words, stale, rejected)
+				}
+				scene.Close()
+				closeSession()
+			}
+		}
 		st = settings{Resolution: resolution, TexturePerspective: *perspectiveFlag, BIOS: bios, Cue: cue, HD: *hdFlag, HDRenderer: *rendererFlag, Filter: *filterFlag, PGXP: *pgxpFlag, Widescreen: st.Widescreen, Gamepad: &gamepadSettings, Textures: *texturesFlag, Posters: *postersFlag, Poster: &posterSettings}
 		if err := saveSettings(location.path, location.forSave(st)); err != nil {
 			fmt.Fprintln(os.Stderr, "psgolem：設定檔：", err)

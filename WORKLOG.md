@@ -2346,3 +2346,14 @@ GO-ORDERED-HD-20261026回填四個較早段落，同地址017原資料契約不�
 準備讀取曾猜不存在的machine/ram.go與cpu_test.go，改讀已定位實際檔；沒有因此重跑遊戲。首次比較器建置重複宣告新舊researchEventScalars，案例／遊戲0；只區分新型別名，保留v1覆蓋／計畫，舊generator依原固定SHA精確還原。接續首次六保存態與首次正常比較通過，CPU／GTE／RAM已過案例不重跑，不加第二輪速度。研究機器覆蓋明確承接正式ReadRAM改善，原三路均用新引擎。
 
 新美術／畫面檢視與舊矩陣重播0。A／B／C海報、soft／zoom、設定、素材與v.0.7.12候選manifest保持，未打新包、tag或Release。正式Step、原版／HD模式、017協作、人物／文字／效果／3D及全HD仍待接；完整HD4／1080p／硬體GPU／海報穩態速度未驗。GO-CPU-TRANSPORT-20261026回填§12.14，來源、原始結果與接受沿direct-go-v1/transport-summary-v1.json及transport-frozen-sources-v1.json；提交／push、Issue #9／#17／素材#13與UID／容器收尾見publication-transport-v1.json。
+
+
+## 2026-10-26 正式Go普通NO3入口
+
+025 §12.17先READY後移入正式apps/sotn與通用資料層。RunUntilField按目標PC使用Go註冊；原版未註冊保留原迴圈，公開Step／除錯仍逐指令。整個三字DMA封包先核對再送HD Sprite16，來源／環境不符原狀回退；Shadow消費端不符則重建同三字交原解碼器。遊戲位址與1280雙緩衝容量留apps，通用層保留原CPU／RAM／快取／週邊及呈現所有權。HD前端啟動明列部分接管，關閉解除註冊，原版不建立Go renderer；熱切換未加。
+
+CPU／GTE／PGXP先通過，首次HD消費端誤用Shadow.GP0名稱讓GPU建置停止，新案例0；保留首次來源，只改Renderer.WriteGP0後接GPU全測與15個新案例，已過部分不重跑。初態觀測helper另缺舊名稱別名，遊戲0；保留v1來源／計畫後只補觀測別名，正式執行程式不改。cmd設定測試及實際程式建置完成。
+
+唯一正常路線真BIOS／同卡／固定按鍵到8382，再自然到0x800ECC10，未注入PC／RAM／座標。正式Go連續60次、8383至8442六十場完整原生、PGXP、HD2與NativeSnapshot像素／CLUT／快取相同；18,323型別化精靈實送、54,969 HD字免解析，過期／環境拒絕0。觀測覆蓋僅初態複製／完整精度讀取，正式執行／提交／DMA／apps／HD替換0。另兩場寬視野原路徑控制相同，Go接受0／嘗試2，原Check／BREAK與鄰房保留，不稱Go寬視野接管已完成。
+
+單場RunUntilField＋HD畫面／原生快照完成中位數原6.517ms／Go7.423ms，第一個從場中真入口開始，不能當穩態FPS；速度仍未過。83.87秒為蒐證耗時。§12.17只限普通NO3／CPU HD2同掛CONFORMED，GO-FORMAL-ENTRY-20261026回填八段正式入口缺口。新美術／畫面檢視與舊矩陣重跑0；原媒體、卡片、海報／設定及v.0.7.12保持，未打新包／tag／Release。完整素材HD4／GPU／GUI、新候選、原版／HD熱切換、寬視野Go協作及其餘場景／角色／文字／3D仍待接。來源／接納沿entry-frozen-sources-v1.json、entry-summary-v1.json，commit／push／Issue及UID／容器收尾見publication-formal-entry-v1.json。
