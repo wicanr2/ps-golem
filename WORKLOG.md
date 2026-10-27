@@ -2371,3 +2371,23 @@ CPU／GTE／PGXP先通過，首次HD消費端誤用Shadow.GP0名稱讓GPU建置�
 首次觀測準備漏HD附件，EnablePGXP在CPU執行前停止，正常路線與幾何案例0；保留binary／來源／日誌，只補既有HD2 shadow。首次正常12次擷取完成，第一次Go比較11次通過，第12次因槽63的flags3縮放被守門拒絕。根據已查詢0x800EB544的固定8位小數公式補縮放，第二次只用保存12態離線比較，全數通過；沒有重開遊戲或重驗美術。第一版來源／拒絕／日誌保留，不稱首次全過。旋轉及bank15複製仍拒絕。無新畫面、完整HD4／1080p GUI／硬體GPU或速度聲明。先完成全部Go接管，效能後續；CPU／GPU及海報保持。限定來源／收據由私人direct-go-v1/actor-summary-v1.json與actor-frozen-sources-v1.json索引，本節維持DRAFT。
 
 本repo僅更新規格／索引／決策與紀錄，正式程式不改；原型與原資料留相鄰私人素材專案。提交／push及Issue由該專案direct-go-v1/publication-actor-geometry-v1.json記錄。
+
+
+## 2026-10-27 月下與Mednafen純繪圖速度比較
+
+使用者要求先量測目前ps-golem與PS模擬器的render差距，本輪只量測，不調校或重啟遊戲。比較使用既有正常月下命令串流，兩段各120個連續TextureField場；兩側同一邏輯CPU、一次暖身及九組交錯樣本。Mednafen為Debian官方1.29.0+dfsg源碼，原gpu.cpp／polygon／line／sprite程式未改，C++ -O2；Go使用目前正式internal/gpu與render/hd來源，GOMAXPROCS=1，只加獨立初態複製／場奇偶與讀回觀測附件。
+
+| 場景 | Mednafen原生 ms／場 | Go原生 ms／場 | Go／Mednafen耗時比 | Go獨立HD4 ms／場 | 終點顯存不同字 |
+|---|---:|---:|---:|---:|---:|
+| 序章樓梯與背景 | 0.7710 | 1.7630 | 2.29 | 23.2288 | 0 |
+| 王座廳戰鬥 | 0.4478 | 1.3508 | 3.02 | 7.2645 | 0 |
+
+硬體：Intel(R) Core(TM) Ultra 7 165U；固定邏輯CPU 0。倍率越大代表Go耗時越久。純繪圖計時涵蓋命令解析至同步顯存工作完成，排除前綴重播、初態複製、垃圾回收準備、檔案／PNG／雜湊、CPU／GTE／SPU／CD模擬及GUI／海報。CPU耗時、各組實際耗時範圍另存render-speed-summary-v1.json，不以共享主機載入總時長推算FPS。
+
+HD4是獨立CPU四倍繪圖器、原版材質，沒有PGXP／透視／HD素材包、相容平面併行、硬體GPU或GUI。它只補充解析度成本，不與Mednafen一倍混稱相同畫質比較；完整HD／1080p遊玩速度未由本批驗收。終點比較各524288個RGB555／STP顯存字，沒有宣稱逐場像素或完整機器同態。
+
+初次抽取誤用稀疏tag9截圖點，計時樣本0；保留原計畫後改用逐場tag6並驗證各120場。Go觀測main曾保留build-ignore，建置0案例；只在生成覆蓋移除該標記。首次GPU前綴遇到呈現串流沒有CPU讀回事件，Mednafen守門在暖身前拒絕，樣本0；兩側均以原讀取介面完成唯讀傳輸，沒有略過繪圖。其後只完成一次固定六暖身／54樣本批次，不反覆重測或挑選結果。來源與各次準備紀錄保持。
+
+結果由render-speed-summary-v1.json、render-speed-execution-plan-v4.json與render-speed-samples-v2.jsonl索引，入口為素材docs/assets-catalog.md#render-control。既有Go角色／背景進度、美術、設定、海報與雙擊候選不變。本機前綴是量測初態，載入耗時不列入結果；原資料不入Git或公開Issue。commit／push、Issue #9與UID／容器收尾另存publication-render-speed-v1.json。
+
+收尾核對六暖身／54樣本、計時窗口GPU讀回0及兩份完整顯存差異0。整理準備工具，使生成的main／唯讀完成附件與實際v4覆蓋逐字相同；實際執行的舊準備來源先保存，光柵化與樣本不變。刪除三份從未量測的錯誤衍生輸入，共623435784 bytes；正確串流、原壓縮檔、準備停止與雜湊均保留。沒有重跑樣本，完整GPU／1080p效能未驗。

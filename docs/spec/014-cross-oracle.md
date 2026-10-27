@@ -72,3 +72,17 @@ beetle-psx-libretro 的 libretro core 配上自寫的無頭前端，這片光碟
 
 記憶卡：ps-golem 存的卡（`015` §7）以 `-filesys.fname_sav "%f%x"` 放成 mednafen 的 `sav/game0.mcr`，
 mednafen 的檔案選擇列出同一筆存檔，讀取後回到存檔室。
+
+
+## 6. 月下純GPU軟體繪圖速度比較
+
+2026-10-27限定量測，不改本規格的原版畫面oracle與實際時間遊玩範圍。來源／條件與完整樣本見相鄰素材專案docs/assets-catalog.md#render-control及本機direct-go-v1/render-speed-summary-v1.json。Mednafen1.29.0+dfsg的原生CPU GPU與正式ps-golem原生CPU GPU重播同一正常月下串流；兩段各120場，固定同CPU，九組交錯中位數如下。
+
+| 場景 | Mednafen原生 ms／場 | Go原生 ms／場 | Go／Mednafen耗時比 | Go獨立HD4 ms／場 | 終點顯存不同字 |
+|---|---:|---:|---:|---:|---:|
+| 序章樓梯與背景 | 0.7710 | 1.7630 | 2.29 | 23.2288 | 0 |
+| 王座廳戰鬥 | 0.4478 | 1.3508 | 3.02 | 7.2645 | 0 |
+
+計時止於同步顯存工作完成，排除CPU模擬、讀碟、初態重建、檔案輸出與GUI；不是完整遊戲FPS。HD4僅獨立原版材質CPU後端，無PGXP／HD包／相容平面併行／硬體GPU／海報，不作同畫質或完整HD效能聲明。原生終點各比較524288個顯存字，逐場圖像與完整機器同態未在本批重驗。命令串流不含CPU GPU讀回，兩側以原讀回介面完成唯讀傳輸；Mednafen只補充命令執行預算，原光柵化函式不改。
+
+來源：[Debian Mednafen 1.29.0+dfsg](https://deb.debian.org/debian/pool/main/m/mednafen/mednafen_1.29.0+dfsg-1.dsc)，orig.tar.xz SHA-256 `8ea2a95fb108081291906a74a140943cf1a440f338d549ad1ae5148c36cb79ad`，GPL-2.0-or-later。編譯器GCC12.2、Go1.24.13，既有psgolem-go-ebiten:1.24-r1；精確build argv與image身分由本機render-speed-build-contract-v1.json保存，不移植第三方程式到正式引擎。
