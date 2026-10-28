@@ -2450,3 +2450,15 @@ StarPSX可參考core／renderer分層、純CPU framebuffer介面、零RAM／scra
 Rust驗證CLI首次實際啟動，真BIOS到核心入口後輸出CPU／GTE／cache JSON、2MB RAM與1MB原生VRAM，格式與入口核對通過。這是本機開發工具，沒有光碟／遊戲前端；未稱完整觀測API或存檔格式。舊GPU／GTE矩陣與美術重跑0，新圖像／GUI／實體GPU／速度聲明0。原版／HD、CPU／GPU、海報及Go雙擊候選保持，未打包／tag／Release。
 
 §6 CPU架構已由真BIOS／公開程式補驗；§7限M2機器與掃描／§8限SIO／原卡協定CONFORMED。CD／SPU／MDEC與相依DMA、正常月下／聲音／存讀檔、HD／GUI及三平台Rust可玩包仍OPEN，工作沿Issue #19。來源、初始／接線後日誌、舊M2對應與CLI原資料沿既有direct-go-v1/rust-machine-summary-v1.json、rust-machine-execution-v1.json、rust-machine-m2-source-resolve-v1.json及rust-sio-execution-v1.json索引，工具入口docs/assets-catalog.md#render-control。原資料不入公開Git。commit／push、Issues與UID／Docker收尾另存publication-rust-machine-v1.json。
+
+## 2026-10-28 Rust光碟控制器與正常BIOS光碟載入
+
+026 §9先READY後實作。來源為自有Go f00311b的disc／cdrom／commands／audio與DMA3，保留原Beetle cdc.c GPL-2.0-or-later參照，Rust沿GPL-3.0-or-later，不搬StarPSX／CoffeePSX核心。新增只讀CUE／BIN、TOC／SubQ／ISO、命令與雙扇區管線、確定性延遲、FIFO／IRQ／NextEvent、DMA3及XA／CDDA／重取樣音量來源。SPU尚未接，因此機器沿Go Tick(clocks,nil)不消耗CD取樣；沒有假SPU或假音訊輸出。
+
+編譯準備階段修正欄位編輯範圍、子模組方法可見性及測試巨集區塊。未更改硬體規格或測試期望；編譯錯誤不當成產品測試失敗。之後首次集中驗證通過：12656個Go事件比結果／NextEvent／完整控制器及音訊狀態FNV64摘要，18個完整扇區及SubQ、3000-byte ISO檔案與必要工具邊界；CPU端byte寬CD存取、IRQ2／ACK、DMA3 RAM環繞／MADR／BCR／DICR案例通過。
+
+真SCPH5500從reset正常光碟開機，PC 80010DFC、634175911週期、field1112，完整561152-byte執行檔body與光碟相同。新CLI -cue／-stop-pc首次實際啟動到相同入口，未側載或注入PC／RAM，獨立raw ISO工具再核對其RAM body與SHA。光碟／BIOS只讀、未讀寫玩家卡片。因CD取代真I/O，必要兩BIOS／六公開CPU程式整合全部通過，入口週期不變；舊GPU／GTE矩陣、美術重跑0。
+
+限定§9光碟／CD取樣來源與載入鏈CONFORMED，並非正常月下可玩、CD逐週期實機、人工聆聽、SPU／MDEC／HD／GPU／GUI或速度通過。原版／HD、CPU／GPU、海報與現行Go雙擊候選保持，沒有打包／tag／Release。來源、初次日誌與CLI原資料沿既有direct-go-v1/rust-cdrom-summary-v1.json、rust-cdrom-execution-v1.json與rust-cdrom-plan-v1.json索引，工具入口docs/assets-catalog.md#render-control；只讀原資料不加入Git。提交／推送、Issue與UID／Docker收尾另存publication-rust-cdrom-v1.json。
+
+提交前另修正未選合成光碟資料時的DMA3測試閘門，改明列SKIP。只補一次該案例且通過，沒有再跑光碟開機或GPU／GTE矩陣；原已驗測試檔與SHA保留於rust-cdrom-source-resolve-v1.json。

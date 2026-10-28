@@ -1,6 +1,6 @@
 //! Own native minimal machine, 006 / 007 / 008 and 026 §7.
 //! GPL-3.0-or-later. Port of machine/{machine,io,exe}.go at 343afa4.
-//! M2 initialization stubs for CD/SPU/SIO/MDEC; no disc/gameplay API yet.
+//! CD/SIO integrated by 026 sections 8-9; SPU/MDEC remain M2 initialization stubs.
 use crate::{
     cpu::{Bus, Cpu},
     gpu::Gpu,
@@ -45,6 +45,8 @@ pub struct SystemBus {
     gpu_irq: bool,
     sio_irq: bool,
     pub sio: crate::sio::Sio,
+    pub cd: crate::cdrom::Cdrom,
+    cd_irq: bool,
 }
 #[derive(Clone)]
 pub struct Machine {
@@ -80,10 +82,15 @@ impl Machine {
                 gpu_irq: false,
                 sio_irq: false,
                 sio,
+                cd: crate::cdrom::Cdrom::new(),
+                cd_irq: false,
             },
             cycles: 0,
             tty: Vec::new(),
         })
+    }
+    pub fn insert_disc(&mut self, disc: std::sync::Arc<crate::disc::Disc>) {
+        self.bus.cd.insert(Some(disc));
     }
     pub fn cycles(&self) -> u64 {
         self.cycles
@@ -187,6 +194,12 @@ impl SystemBus {
         let dots = self.dot_acc / div;
         self.dot_acc %= div;
         self.i_stat |= self.timers.tick(n, dots, lines as u64);
+        self.cd.tick(n as i64);
+        let cd_irq = self.cd.irq();
+        if cd_irq && !self.cd_irq {
+            self.i_stat |= 1 << 2;
+        }
+        self.cd_irq = cd_irq;
         self.sio.tick(n as i64);
         let serial_irq = self.sio.irq();
         if serial_irq && !self.sio_irq {
@@ -257,7 +270,7 @@ impl SystemBus {
             return self.sio.read(p & 0xe) & width_mask(size);
         }
         if (0x1f801800..0x1f801804).contains(&p) {
-            return if p & 3 == 0 { 0x18 } else { 0 };
+            return self.cd.read(p) as u32;
         }
         if p >= 0x1f801c00 {
             let h = p & !1;
@@ -299,6 +312,7 @@ impl SystemBus {
         }
         v &= width_mask(size);
         if (0x1f801800..0x1f801804).contains(&p) {
+            self.cd.write(p, v as u8);
             return;
         }
         if (0x1f801040..0x1f801050).contains(&p) {
@@ -445,3 +459,6 @@ impl Bus for SystemBus {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod cd_tests;

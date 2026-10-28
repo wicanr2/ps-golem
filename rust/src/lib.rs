@@ -9,3 +9,6 @@ pub mod cpu;
 pub mod machine;
 
 pub mod sio;
+
+pub mod cdrom;
+pub mod disc;

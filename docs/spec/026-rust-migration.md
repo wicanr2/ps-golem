@@ -77,7 +77,7 @@ Rust來源為rust/src/gte.rs，由rust/src/lib.rs公開；自行實作整數計�
 
 GPU新增原Go掃描與Screen契約，11/7整數時鐘、NTSC／PAL與交錯場、VBlank／GPU IRQ及顯示讀出奇偶。softReset不清掃描進度；舊GP0光柵化與命令流benchmark的set_field保持。DMA2 block／linked-list、OTC6、DICR及timer 0–2沿Go實作，CHCR及窄寫入全來源值／合併分類保持。同步先採008 ExactTiming每條指令結束推進，I/O發生在本指令尚未退休時，IRQ在下一指令邊界處理，不採StarPSX固定2 CPI。
 
-本M2初始切片的CD／SPU／SIO／MDEC保留006 §2明示的初始化暫存器契約，SIO現已由§8取代：CD無命令進行狀態，SPU暫存器與SPUSTAT低6位，SIO傳送就緒，MDEC忽略。未移植的DMA通道沿006的完成模型，沒有偽造光碟、聲音、手把／卡片或影片資料。Rust命令只接受BIOS與測試EXE，尚無光碟／遊戲啟動入口。後續完整裝置須各依009／010／011／013補READY切片，這裡不當可玩或M4相容完成。
+本M2初始切片的CD／SPU／SIO／MDEC保留006 §2明示的初始化暫存器契約，SIO現已由§8取代：CD無命令進行狀態，SPU暫存器與SPUSTAT低6位，SIO傳送就緒，MDEC忽略。未移植的DMA通道沿006的完成模型，沒有偽造光碟、聲音、手把／卡片或影片資料。本節初始M2命令只接受BIOS與測試EXE；光碟入口已由§9接入，完整遊玩仍待完成。後續完整裝置須各依009／010／011／013補READY切片，這裡不當可玩或M4相容完成。
 
 集中驗證：必要RAM／scratch／BIU／IRQ／窄寫入及DMA／timer／video與CPU取指整合，先比新GPU掃描輸出與固定Go事件；再真BIOS正常到ShellEntry，執行006列出的cpu/cop、cpu/code-in-io與gte/test-all，沿原100000000週期、原TTY正規化與唯一已知Total tests漂移。缺BIOS／公開語料明列skip；不跑舊GPU／GTE矩陣。通過範圍限Rust M2架構整合，不代替正常月下／HD／GPU前端、速度或三平台交付。
 
@@ -102,11 +102,11 @@ timeout -k 10s 180s docker run --pull never --rm --init \
 
 執行時同樣保留資源／逾時與非root限制，將引擎唯讀掛至/engine、已存在的BIOS目錄唯讀掛至/bios、已存在的輸出目錄可寫掛至/out，entrypoint改為/engine/workplace/rust-target/release/psgolem-machine-probe。此入口只支援本機Linux原生M2驗證，三平台與玩家GUI待後續接線。
 
-命令 -bios <512KB檔> -exe <公開測試EXE> -cycles <週期> -tty <輸出檔> -state <輸出前綴>。程式先真BIOS到80030000，再依006正常側載指定公開測試。未給EXE而用-cycles 0只驗BIOS核心入口。-state是本機除錯輸出RAM、原生VRAM及CPU／GTE／快取JSON，未定義存檔或正式觀測API格式。BIOS與原資料唯讀掛載，原生畫面／RAM／卡片不加入Git。
+命令 -bios <512KB檔> [-exe <公開測試EXE> | -cue <光碟CUE>] -cycles <週期> -tty <輸出檔> -state <輸出前綴>；-stop-pc <十六進位位址>只在真正到達該PC時停止。程式先真BIOS到80030000，再依006正常側載指定公開測試。未給EXE而用-cycles 0只驗BIOS核心入口。-state是本機除錯輸出RAM、原生VRAM及CPU／GTE／快取JSON，未定義存檔或正式觀測API格式。BIOS與原資料唯讀掛載，原生畫面／RAM／卡片不加入Git。
 
 初始M2案例與影像／公開程式均首次通過。SIO取代實際I/O空殼後另做一次必要兩BIOS／六程式整合，全部通過，沒有重跑GPU／GTE舊矩陣。BIOS入口SCPH5500為68939104週期、SCPH-100為68913704週期，皆field120；每份BIOS的cop／code-in-io／gte/test-all分別19／10／5行完全相同。CLI首次正常啟動與JSON／2MB RAM／1MB VRAM輸出另驗，不以它代替月下。
 
-CD-ROM／DMA3、SPU／DMA4與音訊、MDEC／DMA0–1、光碟開機到遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
+CD-ROM／DMA3與正常BIOS載入光碟EXE已由§9補齊；SPU／DMA4與音訊、MDEC／DMA0–1、正常月下遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
 
 ## 8. 自有Rust手把與記憶卡
 
@@ -117,3 +117,22 @@ CD-ROM／DMA3、SPU／DMA4與音訊、MDEC／DMA0–1、光碟開機到遊玩仍
 Machine以真SIO取代§7的SIO0初始化空殼，保留SIO1。I/O寬度及偏移沿原Go：Read/Write(p&0xE)，SIO0在每條CPU退休時Tick，IRQ上升送I_STAT bit7。Machine clone深拷貝pad/card，前端的USB／已配對藍芽設定與卡片檔案持久化尚未接，不將協定通過稱實體手把或遊戲存檔驗收。
 
 集中驗證以固定Go原bit／register事件比較RX、SR、IRQ、時鐘、ACK及卡片摘要，含合法／錯XOR／越界／相同內容重寫及兩埠；Rust單獨執行，不呼叫Go核心。整合後只補新SIO相關的機器驗證與必要BIOS／公開CPU程式回歸，舊GPU／GTE矩陣保持。CD／SPU／MDEC與月下仍未接完，原版／HD及舊Go候選不變。
+
+## 9. 自有Rust光碟控制器
+
+狀態：CONFORMED，限009光碟／控制器／DMA3及013的CD音訊來源。12656個Go事件、18份原始扇區／SubQ、四個新案例、兩次正常BIOS光碟載入及必要六公開程式通過。來源f00311b的internal/disc/disc.go、internal/cdrom/{cdrom,commands,audio}.go與machine/io.go；輸入SHA固定於相鄰素材既有direct-go-v1/rust-cdrom-plan-v1.json。控制器與CD音訊延續Beetle cdc.c e57860d82faa953dc0fc10f201fd583739bc2f7d GPL-2.0-or-later來源註記，Rust沿本repo GPL-3.0-or-later，不搬候選核心。
+
+型別為Disc／Track、Cdrom及Machine。單一BIN的MODE2/2352、MODE1/2352與AUDIO沿現行Go解析；非UTF-8 CUE檔名找不到時，僅有唯一BIN才退回並回報。保留INDEX 00／01、負LBA全零、TOC／SubQ含CRC、SYSTEM.CNF區域辨識與009 §7唯讀ISO工具的路徑／extent／長度界線。檔案以唯讀位置讀取，clone共用不可變光碟，控制器與音訊狀態深拷貝。原檔不更改、不公開。
+
+命令00–1E的已實作集合、參數與結果FIFO溢位／空讀、bank、IRQ／ACK／ready、兩格扇區管線、seek／read／play／pause／reset、2048／2328／2340資料視圖、NextEvent與確定性中點延遲均沿009及目前Go。XA解碼／重取樣、CDDA／音量／靜音保留013 §2原演算法，音訊取樣可由呼叫端讀出；這不代表SPU混音、喇叭輸出或人工聆聽通過。機器仍採ExactTiming每條CPU退休推進，CD IRQ上升沿送I_STAT bit2；SPU整合前Tick不消耗CD音訊，沿Go Tick(clocks,nil)的既有契約，不製造假SPU或假音訊。
+
+DMA3立即搬移的字數、零值、同步模式、RAM鏡像與MADR／BCR／DICR副作用沿現行machine/io.go。驗證CLI新增-cue，與-exe互斥；有光碟時從reset正常執行BIOS，不先跳ShellEntry或側載遊戲。可選-stop-pc只在真正執行到指定PC時停下，僅作載入驗證，不注入PC／記憶體；預設保持有界週期。缺原版資料明列skip。
+
+集中驗證先以合成小光碟／固定Go事件，比暫存器、IRQ／NextEvent、控制器完整純量／緩衝摘要、原始扇區／SubQ、ISO檔案及CD取樣，涵蓋壞參數／命令、FIFO／ACK、讀取大小、尋軌與音訊狀態。再驗CPU匯流排IRQ與DMA3的正常接線／clone，以及實際中文版光碟SYSTEM.CNF／開機EXE雜湊。正常BIOS載入光碟EXE以真實到達其header指定入口為判準，TTY與來源對照分列；成功不稱月下可玩、M4、完整時序或HD完成。只補受此次接線影響的必要整合，不重跑已通過GPU／GTE矩陣，不從診斷耗時推FPS。SPU／MDEC、正常遊戲存讀檔、HD／GUI／海報與完整速度保持OPEN。
+
+§9來源入口為rust/src/disc.rs、cdrom.rs、cdrom/{commands,audio,tests}.rs與machine/cd_tests.rs，公開期望產生器為tools/oracle_rust_cdrom.go。沿§7.1的Docker工具鏈；原資料唯讀、輸出既有direct-go-v1。產生器建立該研究根下的rust-cdrom-fixtures-v1合成光碟子目錄，只驗控制器／工具，不當成月下來源。PSGOLEM_RUST_CD_FIXTURES指定該研究根，PSGOLEM_RUST_REAL_CUE及PSGOLEM_RUST_CD_BIOS另選真實光碟／BIOS；沒有選原版資料就明列SKIP。
+
+
+§9結果：首次兩個光碟／控制器案例通過，12656個Go事件的結果、NextEvent及完整控制器／音訊狀態FNV64摘要相同；18份完整raw sector／SubQ與3000-byte唯讀ISO檔案相同。新匯流排案例確認CPU窄／寬存取仍只取一byte、IRQ2／ACK、DMA3的RAM鏡像／MADR／BCR／DICR；正常真BIOS載入中文版光碟，在PC 80010DFC、634175911週期、field1112停止，完整561152-byte執行檔body與光碟相同。
+
+CLI亦從reset實際到同一入口，未側載／注入PC；另由獨立raw ISO解析核對CLI RAM完整body與SHA。因CD接入真I/O，必要兩份BIOS／六公開CPU程式補驗仍全通過，BIOS核心入口週期不變。來源與首次日誌沿相鄰素材direct-go-v1/rust-cdrom-summary-v1.json。這些是Go移植差分與載入證據，並非CD實機逐週期、月下正常遊玩、人工音訊、HD或速度完成。

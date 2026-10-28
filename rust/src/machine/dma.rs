@@ -97,6 +97,7 @@ impl SystemBus {
     fn dma_run(&mut self, ch: usize) {
         match ch {
             2 => self.dma_gpu(),
+            3 => self.dma_cd(),
             6 => {
                 let mut addr = self.dma.madr[6] & 0x1ffffc;
                 let n = self.dma.bcr[6] & 65535;
@@ -120,6 +121,25 @@ impl SystemBus {
         }
         if self.dma.update_master(before) {
             self.i_stat |= 1 << 3;
+        }
+    }
+    fn dma_cd(&mut self) {
+        let mut words = self.dma.bcr[3] & 65535;
+        if (self.dma.chcr[3] >> 9) & 3 == 1 {
+            words = words.wrapping_mul(self.dma.bcr[3] >> 16);
+        }
+        if words == 0 {
+            words = 65536;
+        }
+        let mut addr = self.dma.madr[3] & 0x1ffffc;
+        for _ in 0..words {
+            let v = self.cd.dma_read();
+            self.set_ram_word(addr, v);
+            addr = addr.wrapping_add(4) & 0x1ffffc;
+        }
+        if (self.dma.chcr[3] >> 9) & 3 == 1 {
+            self.dma.madr[3] = addr;
+            self.dma.bcr[3] &= 65535;
         }
     }
     fn dma_gpu(&mut self) {
