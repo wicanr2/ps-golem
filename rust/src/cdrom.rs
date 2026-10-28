@@ -395,10 +395,32 @@ impl Cdrom {
         }
         v
     }
-    /// Same contract as Go Tick(clocks, nil). SPU-driven sampling is added at its integration gate.
-    pub fn tick(&mut self, mut clocks: i64) {
+    /// Go Tick(clocks, nil), retained for standalone controller tests.
+    pub fn tick(&mut self, clocks: i64) {
+        self.tick_inner(clocks, None);
+    }
+    pub fn tick_with_spu(&mut self, clocks: i64, spu: &mut crate::spu::Spu) {
+        self.tick_inner(clocks, Some(spu));
+    }
+    pub fn spu_counter(&self) -> i64 {
+        self.spu_counter
+    }
+    #[cfg(test)]
+    pub(crate) fn audio_clock_state(&self) -> [u64; 5] {
+        [
+            self.audio.size as u64,
+            self.audio.freq as u64,
+            self.audio.read as u64,
+            self.audio.pos as u64,
+            self.audio.phase as u64,
+        ]
+    }
+    fn tick_inner(&mut self, mut clocks: i64, mut spu: Option<&mut crate::spu::Spu>) {
         while clocks > 0 {
             let mut chunk = clocks;
+            if spu.is_some() && self.spu_counter > 0 {
+                chunk = chunk.min(self.spu_counter);
+            }
             for v in [self.psr, self.pending] {
                 if v > 0 {
                     chunk = chunk.min(v)
@@ -475,6 +497,10 @@ impl Cdrom {
                 } else if self.pending <= 0 {
                     self.run_pending()
                 }
+            }
+            if let Some(s) = spu.as_deref_mut() {
+                let next = s.advance(chunk, Some(self));
+                self.spu_counter = next;
             }
             clocks -= chunk;
         }

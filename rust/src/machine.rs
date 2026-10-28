@@ -1,6 +1,6 @@
 //! Own native minimal machine, 006 / 007 / 008 and 026 §7.
 //! GPL-3.0-or-later. Port of machine/{machine,io,exe}.go at 343afa4.
-//! CD/SIO integrated by 026 sections 8-9; SPU/MDEC remain M2 initialization stubs.
+//! CD/SIO integrated by 026 sections 8-9; SPU integrated by 026 section10; MDEC remains an M2 initialization stub.
 use crate::{
     cpu::{Bus, Cpu},
     gpu::Gpu,
@@ -47,6 +47,8 @@ pub struct SystemBus {
     pub sio: crate::sio::Sio,
     pub cd: crate::cdrom::Cdrom,
     cd_irq: bool,
+    pub spu: crate::spu::Spu,
+    spu_irq: bool,
 }
 #[derive(Clone)]
 pub struct Machine {
@@ -84,6 +86,8 @@ impl Machine {
                 sio,
                 cd: crate::cdrom::Cdrom::new(),
                 cd_irq: false,
+                spu: crate::spu::Spu::new(),
+                spu_irq: false,
             },
             cycles: 0,
             tty: Vec::new(),
@@ -91,6 +95,9 @@ impl Machine {
     }
     pub fn insert_disc(&mut self, disc: std::sync::Arc<crate::disc::Disc>) {
         self.bus.cd.insert(Some(disc));
+    }
+    pub fn take_audio(&mut self) -> Vec<i16> {
+        self.bus.spu.take_samples()
     }
     pub fn cycles(&self) -> u64 {
         self.cycles
@@ -194,7 +201,12 @@ impl SystemBus {
         let dots = self.dot_acc / div;
         self.dot_acc %= div;
         self.i_stat |= self.timers.tick(n, dots, lines as u64);
-        self.cd.tick(n as i64);
+        self.cd.tick_with_spu(n as i64, &mut self.spu);
+        let spu_irq = self.spu.irq();
+        if spu_irq && !self.spu_irq {
+            self.i_stat |= 1 << 9;
+        }
+        self.spu_irq = spu_irq;
         let cd_irq = self.cd.irq();
         if cd_irq && !self.cd_irq {
             self.i_stat |= 1 << 2;
@@ -232,12 +244,8 @@ impl SystemBus {
     fn set_reg16(&mut self, p: u32, v: u16) {
         self.regs[(p - 0x1f801000) as usize..][..2].copy_from_slice(&v.to_le_bytes());
     }
-    fn spu_read(&self, p: u32) -> u16 {
-        if p == 0x1f801dae {
-            self.reg16(0x1f801daa) & 63
-        } else {
-            self.reg16(p)
-        }
+    fn spu_read(&mut self, p: u32) -> u16 {
+        self.spu.read(p)
     }
     fn io_peek(&self, p: u32) -> u32 {
         match p {
@@ -299,10 +307,10 @@ impl SystemBus {
         }
         if p >= 0x1f801c00 {
             if size == 4 {
-                self.set_reg16(p, v as u16);
-                self.set_reg16(p + 2, (v >> 16) as u16);
+                self.spu.write(p, v as u16);
+                self.spu.write(p + 2, (v >> 16) as u16);
             } else if p & 1 == 0 {
-                self.set_reg16(p, v as u16);
+                self.spu.write(p, v as u16);
             }
             return;
         }
@@ -462,3 +470,6 @@ mod tests;
 
 #[cfg(test)]
 mod cd_tests;
+
+#[cfg(test)]
+mod spu_tests;

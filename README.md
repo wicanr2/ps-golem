@@ -12,7 +12,7 @@
 素材替換及可選 CPU／GPU 後端。完整遊戲 HD 美術、速度與通關仍待驗收；
 3D 貼圖透視校正可選用 `-hd 2 -pgxp -texture-perspective`，範圍見 [022](docs/spec/022-hd-texture-perspective.md) 與 [Issue #12](https://github.com/wicanr2/ps-golem/issues/12)。
 
-Rust改寫位於[`rust/`](rust/)，已有CPU、GTE、原生GPU、BIOS測試機器及SIO／記憶卡協定。Rust提供機器驗證工具，已能從BIOS載入月下光碟執行檔；SPU音訊、影片解碼與可玩HD前端仍在開發。來源、Docker執行入口與已驗範圍見[026](docs/spec/026-rust-migration.md#71-驗證入口與現行能力)。目前的雙擊遊玩版本仍使用Go。
+Rust改寫位於[`rust/`](rust/)，已有CPU、GTE、原生GPU、BIOS測試機器及SIO／記憶卡協定。Rust提供機器驗證工具，已能從BIOS載入月下光碟執行檔；SPU／DMA與CD混音已有驗證，可輸出WAV；影片解碼、音訊裝置播放與可玩HD前端仍在開發。來源、Docker執行入口與已驗範圍見[026](docs/spec/026-rust-migration.md#71-驗證入口與現行能力)。目前的雙擊遊玩版本仍使用Go。
 
 ## 執行
 

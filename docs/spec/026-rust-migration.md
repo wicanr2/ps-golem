@@ -102,11 +102,11 @@ timeout -k 10s 180s docker run --pull never --rm --init \
 
 執行時同樣保留資源／逾時與非root限制，將引擎唯讀掛至/engine、已存在的BIOS目錄唯讀掛至/bios、已存在的輸出目錄可寫掛至/out，entrypoint改為/engine/workplace/rust-target/release/psgolem-machine-probe。此入口只支援本機Linux原生M2驗證，三平台與玩家GUI待後續接線。
 
-命令 -bios <512KB檔> [-exe <公開測試EXE> | -cue <光碟CUE>] -cycles <週期> -tty <輸出檔> -state <輸出前綴>；-stop-pc <十六進位位址>只在真正到達該PC時停止。程式先真BIOS到80030000，再依006正常側載指定公開測試。未給EXE而用-cycles 0只驗BIOS核心入口。-state是本機除錯輸出RAM、原生VRAM及CPU／GTE／快取JSON，未定義存檔或正式觀測API格式。BIOS與原資料唯讀掛載，原生畫面／RAM／卡片不加入Git。
+命令 -bios <512KB檔> [-exe <公開測試EXE> | -cue <光碟CUE>] -cycles <週期> -tty <輸出檔> -state <輸出前綴> [-wav <輸出檔>]；-stop-pc <十六進位位址>只在真正到達該PC時停止。程式先真BIOS到80030000，再依006正常側載指定公開測試。未給EXE而用-cycles 0只驗BIOS核心入口。-state是本機除錯輸出RAM、原生VRAM及CPU／GTE／快取JSON，未定義存檔或正式觀測API格式。BIOS與原資料唯讀掛載，原生畫面／RAM／卡片不加入Git。
 
 初始M2案例與影像／公開程式均首次通過。SIO取代實際I/O空殼後另做一次必要兩BIOS／六程式整合，全部通過，沒有重跑GPU／GTE舊矩陣。BIOS入口SCPH5500為68939104週期、SCPH-100為68913704週期，皆field120；每份BIOS的cop／code-in-io／gte/test-all分別19／10／5行完全相同。CLI首次正常啟動與JSON／2MB RAM／1MB VRAM輸出另驗，不以它代替月下。
 
-CD-ROM／DMA3與正常BIOS載入光碟EXE已由§9補齊；SPU／DMA4與音訊、MDEC／DMA0–1、正常月下遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
+CD-ROM／DMA3與正常BIOS載入光碟EXE已由§9補齊；SPU／DMA4及WAV已由§10接入；MDEC／DMA0–1、實體聲音輸出與正常月下遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
 
 ## 8. 自有Rust手把與記憶卡
 
@@ -136,3 +136,22 @@ DMA3立即搬移的字數、零值、同步模式、RAM鏡像與MADR／BCR／DIC
 §9結果：首次兩個光碟／控制器案例通過，12656個Go事件的結果、NextEvent及完整控制器／音訊狀態FNV64摘要相同；18份完整raw sector／SubQ與3000-byte唯讀ISO檔案相同。新匯流排案例確認CPU窄／寬存取仍只取一byte、IRQ2／ACK、DMA3的RAM鏡像／MADR／BCR／DICR；正常真BIOS載入中文版光碟，在PC 80010DFC、634175911週期、field1112停止，完整561152-byte執行檔body與光碟相同。
 
 CLI亦從reset實際到同一入口，未側載／注入PC；另由獨立raw ISO解析核對CLI RAM完整body與SHA。因CD接入真I/O，必要兩份BIOS／六公開CPU程式補驗仍全通過，BIOS核心入口週期不變。來源與首次日誌沿相鄰素材direct-go-v1/rust-cdrom-summary-v1.json。這些是Go移植差分與載入證據，並非CD實機逐週期、月下正常遊玩、人工音訊、HD或速度完成。
+
+## 10. 自有Rust聲音處理器
+
+狀態：CONFORMED，限本節Go算術／取樣、DMA4與正常BIOS／公開程式接線。2311個SPU事件／7530組取樣、150個CD事件／19143組取樣、8份完整RAM及三個公開程式通過；原硬體DMA時序仍有既有差異。來源a60af2b的internal/spu/{spu,firtable}.go、internal/cdrom/cdrom.go與machine/{io,machine}.go，SHA固定於相鄰素材既有direct-go-v1/rust-spu-plan-v1.json。SPU與FIR表沿Beetle mednafen/psx/spu.c／spu.h e57860d82faa953dc0fc10f201fd583739bc2f7d GPL-2.0-or-later來源，Rust沿本repo GPL-3.0-or-later，不搬其他核心。推論等級為已證實的Go移植契約，不外推實機逐週期或人工聆聽。
+
+Rust來源為rust/src/spu.rs及spu/{voice,reverb,fir,tests}.rs。型別Spu持有24個Voice、ADPCM解碼與FIR、ADSR／音量掃描、FM／noise、混響／工作RAM、IRQ／暫存器、每768週期一組的時鐘及最多4096組交錯立體聲緩衝。整數溢位、飽和、保留shift、key on／off延遲、block end／loop、RAM環繞與IRQ副作用沿目前Go。clone深拷貝所有可變狀態；TakeAudio取走緩衝不改虛擬時間，滿了仍丟棄新的，不無界累積。
+
+CD的無SPU tick保持§9契約，新增tick_with_spu依實際Go Tick的SPUCounter切chunk；每段先處理CD事件、再Advance SPU並由CD提供取樣。013 §3早期「先SPU再CD事件」散文與目前已驗Go來源順序不符，以本節列出的實際來源為移植契約，並保留此勘誤。不能用來源註記替代實機證據。機器仍ExactTiming逐指令退休，SPU IRQ上升送I_STAT bit9；暫存器16位元、8位元偶址整半字寫／奇址忽略、32位元拆兩次，DMA4的字數、零值、方向與MADR／BCR／DICR沿Go。
+
+驗收以固定Go合成聲部／CD資料的暫存器與Advance／DMA事件，比完整聲部／包絡／混響純量狀態摘要、實際全部輸出取樣及RAM檢查點，涵蓋24聲部、包絡／音量掃描、noise／FM、ADPCM filter與保留shift、混響工作區及飽和、IRQ與資料FIFO。另比CD tick整合的取樣邊界／消耗結果與分段推進。新匯流排／DMA4／IRQ及clone／緩衝容量案例獨立驗；需要原資料則唯讀、缺檔SKIP。只補受SPU接線影響的公開程式及正常BIOS光碟入口，不重跑舊GPU／GTE或美術。
+
+CLI的-wav輸出44.1kHz、16-bit、雙聲道RIFF，按虛擬場定期取走音訊，保留原-cue與-exe／-stop-pc；WAV測試驗長度／取樣／非靜音與可解碼，不稱喇叭或人工聆聽通過。正常光碟啟動仍從reset，禁止側載月下或注入遊戲狀態。MDEC／DMA0–1、完整正常月下遊玩／存讀檔、HD／GPU／GUI／海報及三平台包保持後續目標，診斷時間不換算FPS。本批不做全面效能調校。
+
+§10工具入口為tools/oracle_rust_spu.go；-programs <輸出根> <BIOS> <tests.zip>模式沿既有研究根建立rust-spu-public-v1，固定spu/memory-transfer、stereo、test的Go逐指令TTY／PCM／完整SPU RAM。Rust相應整合限此固定週期，原硬體TTY只承接既有DMA時序差異，不稱全部實機精確。PSGOLEM_RUST_SPU_FIXTURES指定研究根，PSGOLEM_RUST_SPU_BIOS選真BIOS；沒有選BIOS即明列SKIP。
+
+
+§10首次集中結果：三個SPU／CD時鐘與容量／clone案例、兩個機器案例通過。2311事件的完整聲部／包絡／混響純量摘要、7530組實際取樣及8份完整512KiB RAM相同；150個CD時鐘事件的19143組取樣完全相同，1250個非零取樣。三個公開SPU程式各正常BIOS初始化後執行100000000週期，TTY／完整輸出PCM與SPU RAM逐位元組同Go；memory-transfer沿013 §7仍差原硬體紀錄8行，含4項DMA時序失敗，沒有修成假通過。
+
+CLI從reset正常啟動原片至80010DFC，634175912週期、field1112，561152-byte body的SHA沿§9獨立raw ISO證據一致。SPU接入後這個入口比前批多1週期，未稱整機同態或速度差距。WAV為44100Hz／16bit／雙聲道，825749組，長度等於CPU週期整除768，非零取樣1387964、峰值22239，檔案可完整解碼；未做人工聆聽／喇叭驗收。必要兩份BIOS與六公開CPU程式仍全過，未重跑舊GPU／GTE矩陣。完整結果／SHA沿相鄰素材direct-go-v1/rust-spu-summary-v1.json。MDEC、正常遊玩／存讀檔、HD／GPU／GUI／海報接線與三平台包仍未完成。

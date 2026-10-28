@@ -12,3 +12,5 @@ pub mod sio;
 
 pub mod cdrom;
 pub mod disc;
+
+pub mod spu;

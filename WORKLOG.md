@@ -2462,3 +2462,13 @@ Rust驗證CLI首次實際啟動，真BIOS到核心入口後輸出CPU／GTE／cac
 限定§9光碟／CD取樣來源與載入鏈CONFORMED，並非正常月下可玩、CD逐週期實機、人工聆聽、SPU／MDEC／HD／GPU／GUI或速度通過。原版／HD、CPU／GPU、海報與現行Go雙擊候選保持，沒有打包／tag／Release。來源、初次日誌與CLI原資料沿既有direct-go-v1/rust-cdrom-summary-v1.json、rust-cdrom-execution-v1.json與rust-cdrom-plan-v1.json索引，工具入口docs/assets-catalog.md#render-control；只讀原資料不加入Git。提交／推送、Issue與UID／Docker收尾另存publication-rust-cdrom-v1.json。
 
 提交前另修正未選合成光碟資料時的DMA3測試閘門，改明列SKIP。只補一次該案例且通過，沒有再跑光碟開機或GPU／GTE矩陣；原已驗測試檔與SHA保留於rust-cdrom-source-resolve-v1.json。
+
+## 2026-10-28 Rust聲音處理器、DMA4與CD混音
+
+026 §10先READY後移植自有Go a60af2b的SPU／FIR／CD時鐘與DMA4，沿Beetle spu.c／spu.h GPL-2.0-or-later來源。Rust安全整數處理24聲部、ADPCM／FIR、ADSR／音量掃描、FM／noise、混響與RAM／IRQ、768週期取樣及4096組上限，clone深拷貝；Go正式程式不改。CD依原Go實際順序切SPUCounter，先CD事件、後SPU Advance，013 §3早期散文勘誤另追加§8，沒有拿Go差分冒充實機時序。
+
+首次三個SPU／CD／時鐘容量案例通過：2311事件、7530組完整取樣與8份SPU RAM相同；CD 150事件、19143組取樣相同，其中1250個非零。兩個機器案例通過：8／16／32-bit存取、DMA4雙向／MADR／BCR、IRQ9及取走音訊；三個公開SPU程式真BIOS初始化後100M週期的TTY／PCM／完整RAM均同Go。原硬體memory-transfer仍差8行，含4項DMA時序失敗，保持既有已知限制。
+
+CLI新增-wav，以場邊界取走音訊、不丟長片段；真BIOS從reset正常載入月下EXE到80010DFC，634175912週期／field1112，完整561152-byte body SHA沿前批獨立raw ISO證據一致。WAV共825749組、18.724467秒、雙聲道44100Hz／16bit，長度等於虛擬週期整除768，可完整解碼且非靜音；人工聆聽／喇叭未驗，不稱月下可玩。入口較無SPU前批多1週期，不用來推速度。必要兩BIOS／六公開CPU程式全部通過；舊GPU／GTE矩陣與美術重跑0。
+
+來源與首次結果保存在既有direct-go-v1/rust-spu-plan-v1.json、rust-spu-execution-v1.json、rust-spu-public-inputs-v1.json及rust-spu-summary-v1.json，公開工具沿docs/assets-catalog.md#render-control；合成固定事件在增加公開-programs入口前已產生，Go核心與事件建構不變，收據保留時序說明。原光碟／BIOS／音訊與測試產物不入Git，未讀寫玩家卡片。§10限定CONFORMED；MDEC／正常月下遊玩／存讀檔／HD／GPU／GUI／海報及三平台Rust包仍OPEN。Go雙擊候選不改，未做速度量測、tag或Release。提交／推送、Issue及容器／UID收尾另存publication-rust-spu-v1.json。
