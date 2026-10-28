@@ -2391,3 +2391,36 @@ HD4是獨立CPU四倍繪圖器、原版材質，沒有PGXP／透視／HD素材�
 結果由render-speed-summary-v1.json、render-speed-execution-plan-v4.json與render-speed-samples-v2.jsonl索引，入口為素材docs/assets-catalog.md#render-control。既有Go角色／背景進度、美術、設定、海報與雙擊候選不變。本機前綴是量測初態，載入耗時不列入結果；原資料不入Git或公開Issue。commit／push、Issue #9與UID／容器收尾另存publication-render-speed-v1.json。
 
 收尾核對六暖身／54樣本、計時窗口GPU讀回0及兩份完整顯存差異0。整理準備工具，使生成的main／唯讀完成附件與實際v4覆蓋逐字相同；實際執行的舊準備來源先保存，光柵化與樣本不變。刪除三份從未量測的錯誤衍生輸入，共623435784 bytes；正確串流、原壓縮檔、準備停止與雜湊均保留。沒有重跑樣本，完整GPU／1080p效能未驗。
+
+
+## 2026-10-28 Rust原生繪圖與現成核心評估
+
+使用者指定ps-golem改用Rust並量測，之後補充可沿用現成Rust PS1模擬器。已先記026 §2 READY，再建立rust/psgolem-core原生GPU命令renderer。Go可玩版與其原版／HD分流保持。Rust自行執行精靈／線／折線／平面及Gouraud三角與四邊形、texture window／CLUT／cache、混色／遮罩／抖色、VRAM傳輸與重疊複製；繪圖庫禁止unsafe，不呼叫Go或C++繪圖。只有Linux量測外殼使用libc clock記CPU時間，不把它當成renderer FFI。
+
+沿用既有mobox-fw:rust，rustc1.99.1，Docker非root、離線、無額外crate相依。首次六項必要無素材案例全過，包含4096組混色、512組圖元自身TPage及傳輸／遮罩／重疊／CLUT／部分封包。未為補日誌重跑。原版月下串流沿同一兩段各120場，Rust／Go／Mednafen六個暖身端點的完整524288顯存字先確認差異0，才執行唯一固定54個計時樣本。未重啟遊戲或重驗美術。
+
+| 場景 | Mednafen ms／場 | Go ms／場 | Rust ms／場 | Go／Rust耗時比 | Rust／Mednafen耗時比 |
+|---|---:|---:|---:|---:|---:|
+| 序章樓梯與背景 | 0.5787 | 1.2556 | 0.8558 | 1.47 | 1.48 |
+| 王座廳戰鬥 | 0.3002 | 0.7724 | 0.4379 | 1.76 | 1.46 |
+
+同一Intel(R) Core(TM) Ultra 7 165U邏輯CPU0，九組交錯中位數。Go這輪1.2556／0.7724ms，不與昨日不同主機負載的數字直接混算。Rust快約1.47至1.76倍，仍耗Mednafen約1.46至1.48倍時間。這是原生單CPU繪圖器，完整機器、HD素材、PGXP、實體GPU與GUI／遊玩FPS未量，不宣稱全Rust月下已能玩。HD型別命令、素材快取與CPU／GTE／週邊尚未全部遷移，現行雙擊候選未換。
+
+按使用者新指示固定CoffeePSX／StarPSX／Trapezoid來源。CoffeePSX的官方HEAD在Codeberg，初次誤用GitHub格式的commit API返回404；改用Forgejo branches／git/commits介面後查證成功，沒有以歸檔鏡像代稱目前canonical。CoffeePSX優先列可撤回月下試跑候選，公開API需要wgpu device／queue，GPLv3版次及完整決定性待核，尚未搬程式；StarPSX上游月下卡Konami，Trapezoid為MIT但GPU依賴Vulkan，均不把README能力視為本片可玩／速度通過。完整表與來源在026 §4，現成核心整合仍DRAFT。
+
+來源、第一次六案例、完整端點與54樣本由本機direct-go-v1/rust-render-first-build-tool-result-v1.json、rust-render-parity-v1.json、rust-render-execution-v1.json、rust-render-samples-v1.jsonl及rust-render-summary-v1.json索引；候選原始檔由rust-candidate-survey-v1.json與rust-coffee-canonical-v1.json索引。原資料不入Git，工具入口docs/assets-catalog.md#render-control。提交／push、遷移Issue、#9／#17及UID／Docker收尾另存publication-rust-render-v1.json，沒有新tag／Release或封包。
+
+
+## 2026-10-28 CoffeePSX隔離試跑
+
+依026 §4固定官方Codeberg ed7c266bf43cf9ffd4211be6d8cf15c8424033f2，來源hash與三份先前canonical證據相同；核心release建置完成。獨立公開API外殼不修改上游核心，原光碟／BIOS／卡片唯讀，正常固定按鍵，不注入PC／RAM。沿既有Rust與ps-golem Go容器，SIMD軟體繪圖、Mesa llvmpipe GLES呈現，不是實體GPU或HD試跑。
+
+第一次外殼使用不存在的InstanceDescriptor Default而建置停止，遊戲0；保留來源／日誌，只改鎖版API的new_without_display_handle，離線建置通過。CUE兩次在emulator建構前停止：Big5非UTF-8，以及上游只認TRACK／INDEX固定兩／四格縮排。依001 §6生成一次性UTF-8與正確FILE引用，再依固定解析器規則正規化空白；兩軌模式、INDEX時間及光碟bytes保持。既有雙擊包CUE亦是Big5，未改包或原CUE。
+
+唯一真正正常開機記錄完成500幀後，讀取Track1第16扇區因EDC停止，退出1，9000幀／月下遊玩未完成。獨立逐位元CRC以鎖版CRC_32_CD_ROM_EDC參數核對，原MODE2 Form1扇區所存3165503166、計算379105012，與候選錯誤一致；不關閉檢查、不修原光碟、不反覆重開遊戲。500幀的3.1275秒只作診斷，沒有同狀態Go比較，不宣稱完整遊戲速度。音訊資料含非零樣本，未人工聆聽。
+
+上游memory.rs用未固定種子的rand::random填RAM／scratch，公開builder沒有種子選項。接入前需建立中文版光碟EDC相容契約、固定初始化、觀測API與授權版次證據；目前DRAFT，未採用候選為正式基底。第一批自有Rust原生繪圖與兩份完整端點／54速度樣本保持，不重跑。Rust遷移Issue #19保持OPEN，#17與#9承接；原版／HD、CPU／GPU、海報及現行Go雙擊候選保持。
+
+本機來源、初次工具錯誤、各版CUE／計畫與唯一正常日誌保留在既有direct-go-v1/rust-coffee檔，結果由rust-coffee-trial-summary-v1.json及rust-coffee-disc-checksum-v1.json索引；工具入口為素材docs/assets-catalog.md#render-control。原資料與候選來源不入公開引擎。提交／push及容器收尾沿publication-rust-render-v1.json，不建立tag／Release。
+
+收據工具的頁面更新曾因既有HTML沒有明示body標籤而停止；兩個定位嘗試均未改頁。原執行來源已保存，依實際style結束點只接續頁面插入與來源索引，沒有重跑EDC、遊戲或已驗案例。

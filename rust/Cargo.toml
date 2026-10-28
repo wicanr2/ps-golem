@@ -1,0 +1,17 @@
+[package]
+name = "psgolem-core"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "psgolem-render-bench"
+path = "src/bin/render_bench.rs"
+
+[profile.release]
+overflow-checks = false
+debug = 1

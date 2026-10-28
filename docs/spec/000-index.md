@@ -30,6 +30,7 @@ SDD：量測／反組譯 → 規格 → 才寫程式。只有標 `READY` 的規�
 | `023-hd-sprite-runs.md` | READY | 可選精靈繪圖序列、來源驗證、逐字格HD替換與保守回退 |
 | `024-poster-presentation.md` | CONFORMED（限Linux；Windows／macOS已編譯，待真機） | 外部成對海報、工具列切換、外側GPU融合、安全等比放大及設定保存 |
 | `025-hd-primary-native-demand.md` | DRAFT（主繪圖接管）；§9 CONFORMED（原生顯存觀測封裝）；§11 CONFORMED（正式相容平面接線） | Go直接場景／精靈／文字繪圖；相容平面沿§11，純Go圖層／時鐘、HD4排序與PGXP／雙平面研究沿§12；就地提交與原版／HD分流沿§12.14–12.15；§12.16通用CPU資料及§12.17普通NO3正式CPU-HD2入口CONFORMED，§12.18物件幾何12次相同但SDK／完整副作用未接，仍DRAFT；先全Go後調速，熱切換／其餘圖元未完成，真寬視野沿017 |
+| `026-rust-migration.md` | DRAFT整體；§2原生軟體繪圖READY，已實作／有限驗證 | Rust原生六案例與月下兩端點相同，快Go1.47至1.76倍；§4現成核心候選DRAFT，全機／HD／GUI待接 |
 
 狀態定義：
 
