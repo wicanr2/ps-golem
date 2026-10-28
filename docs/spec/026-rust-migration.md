@@ -106,7 +106,7 @@ timeout -k 10s 180s docker run --pull never --rm --init \
 
 初始M2案例與影像／公開程式均首次通過。SIO取代實際I/O空殼後另做一次必要兩BIOS／六程式整合，全部通過，沒有重跑GPU／GTE舊矩陣。BIOS入口SCPH5500為68939104週期、SCPH-100為68913704週期，皆field120；每份BIOS的cop／code-in-io／gte/test-all分別19／10／5行完全相同。CLI首次正常啟動與JSON／2MB RAM／1MB VRAM輸出另驗，不以它代替月下。
 
-CD-ROM／DMA3與正常BIOS載入光碟EXE已由§9補齊；SPU／DMA4及WAV已由§10接入；MDEC／DMA0–1、實體聲音輸出與正常月下遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
+CD-ROM／DMA3與正常BIOS載入光碟EXE已由§9補齊；SPU／DMA4及WAV已由§10接入；MDEC／DMA0–1與正常開機到標題已由§11接入；實體聲音輸出與正常月下遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
 
 ## 8. 自有Rust手把與記憶卡
 
@@ -157,3 +157,27 @@ CLI的-wav輸出44.1kHz、16-bit、雙聲道RIFF，按虛擬場定期取走音�
 CLI從reset正常啟動原片至80010DFC，634175912週期、field1112，561152-byte body的SHA沿§9獨立raw ISO證據一致。SPU接入後這個入口比前批多1週期，未稱整機同態或速度差距。WAV為44100Hz／16bit／雙聲道，825749組，長度等於CPU週期整除768，非零取樣1387964、峰值22239，檔案可完整解碼；未做人工聆聽／喇叭驗收。必要兩份BIOS與六公開CPU程式仍全過，未重跑舊GPU／GTE矩陣。完整結果／SHA沿相鄰素材direct-go-v1/rust-spu-summary-v1.json。MDEC、正常遊玩／存讀檔、HD／GPU／GUI／海報接線與三平台包仍未完成。
 
 HD過場影片新增明示方向沿027-hd-movie-replacement.md。Rust原生MDEC／DMA0–1仍沿011接續；外部HD影片只替換呈現，不由離線原型推論原生副作用可以省略。
+
+
+## 11. 自有Rust MDEC與DMA0／1
+
+狀態：CONFORMED，限011既有Go解碼／時序契約的Rust移植、原生機器接線及正常開機到標題。來源b7f80d4的internal/mdec/mdec.go及machine/{io,machine}.go；輸入SHA固定於私人素材direct-go-v1/rust-mdec-plan-v1.json。解碼來源承接Beetle mednafen/psx/mdec.c e57860d82faa953dc0fc10f201fd583739bc2f7d GPL-2.0-or-later，Rust維持本repo GPL-3.0-or-later。這是已證實的Go移植契約，011 §7的實機算術／狀態／時序差異保留，不稱硬體逐週期完成。
+
+Rust Mdec持有32-word輸入／輸出FIFO、量化／IDCT表、RLE／係數／色塊、格式與DMA重排、待輸出像素及時鐘；clone深拷貝。4／8／24／15位元、有號／mask位元、表轉置、整數溢位／符號擴充／截斷／飽和全部沿原Go；reset只清來源指定欄位並保留表。每區塊512週期、命令1週期、預存上限128，輸入／時鐘／輸出背壓均保留。Go檔頭較早「不模擬時間」與現行Tick程式及011 §4不符，以現行來源與本節時序為準。
+
+Machine替換1F801820／824空殼，CPU讀寫後pump；資料peek不消耗輸出，狀態peek使用狀態。DMA0／1保持CHCR啟動至可搬整個區塊，遵守DPCR、MADR24-bit／RAM鏡像、方向、遞增／遞減、BCR區塊數環繞、完成DICR／IRQ3。Go現行active／dmaMaybeStart只對OTC要求bit28，011 §3較早模式0另需bit28的描述與現行來源不符；此移植沿現行Go，不暗中改原版行為。MDEC WaitingClock或DMA活動時，CPU退休後先Tick／pump再推其他裝置；否則沿ExactTiming的裝置同步點推進，保持SPU／CD／SIO相對順序。
+
+驗證入口tools/oracle_rust_mdec.go以固定事件產生完整純量／陣列狀態摘要與回傳值，涵蓋表載入、四輸出格式、有號／mask、DMA offset、FIFO背壓、clock邊界、reset與非法命令。Machine案例驗CPU窄／寬存取、DPCR等待、DMA兩方向／負step／RAM鏡像、MADR／BCR／DICR／IRQ及clone。公開九個mdec程式沿011來源zip與真BIOS正常初始化、側載公開EXE後固定200000000週期，與ExactTiming Go比較TTY／完整原生VRAM／RAM及MDEC狀態。公開測試側載不當作月下正常玩家路徑；011既有硬體差異台帳不重寫。
+
+工具鏈沿§7.1既有Rust1.99.1、Go1.24.13有界Docker；私人素材tools/prepare_rust_mdec.py固定本節及來源，入口docs/assets-catalog.md#render-control。PSGOLEM_RUST_MDEC_FIXTURES指定direct-go-v1，PSGOLEM_RUST_MDEC_BIOS選真BIOS；缺資料明列SKIP，不用代用品。原資料與完整輸出本機保存，公開Git只放通用程式／合成事件產生器。
+
+正常月下另從reset與原CUE開機，至少觀察24-bit影片實際完整顯示及音訊；命令列可增有界-field停止，不注入PC／RAM。音訊仍取原SPU／XA並輸出WAV，不疊播HD MP4；本批不稱實體聲音裝置、GUI、整段HD／AI影片或三平台完成。後續可玩路徑／原卡持久化／HD接管／海報與速度仍列原目標，不由MDEC局部驗證推論達成。
+
+§11正常光碟驗證工具為私人素材tools/probe_rust_mdec_normal.rs，直接連結自有Rust library；Go參考入口tools/oracle_rust_mdec_normal.go。兩者從reset／唯讀原CUE開始，無側載或輸入注入，最多4000000000週期、指定不超過5000場。逐場記錄GPU狀態與24-bit畫面雜湊，至少11個相異影像並正常退出24-bit才通過；每場取出原SPU取樣保存WAV，最終RAM／VRAM／TTY及音畫事件同Go分開比較。這是原生影片／回到遊戲的觀測，不代表手把可玩、HD、GUI或喇叭驗收。
+
+
+§11首次結果：70632個MDEC事件／31330次回讀全部狀態與完整純量／陣列摘要同Go；1344個CPU匯流排／DMA／時鐘事件的完整RAM與裝置狀態相同。九公開mdec程式各在真BIOS正常初始化後執行200000000週期，TTY／完整2MiB RAM／1MiB VRAM及MDEC狀態同ExactTiming Go。011 §7的硬體差異台帳SHA未變，不把Go差分稱實機精確。必要兩BIOS／六公開CPU程式仍全通過，沒有重跑舊GPU／GTE矩陣。
+
+正常中文版光碟從reset開始，Go與Rust均到field2600、1483757071週期、PC80015494；24-bit模式由1717觀測到2333，92個相異逐場畫面，已退出影片回到標題PRESS START BUTTON。逐場事件113815 bytes、完整RAM／VRAM／TTY及WAV全部逐位元組相同。WAV為44100Hz／16-bit雙聲道、1931975組、2701701個非零左右聲道取樣、峰值24574；原音取樣數等於CPU週期整除768。一次目視核對field1920的KONAMI與field2600標題。這是正常開機／原生影片／回到標題證據，不是移動／戰鬥／存檔或GUI／喇叭驗收；92是相異逐場畫面，不冒稱完整影片格數，亦不覆寫027較早156個顯示事件。
+
+來源與首次結果沿私人direct-go-v1/rust-mdec-plan-v1.json、rust-mdec-execution-v1.json、rust-mdec-normal-execution-v1.json及rust-mdec-summary-v1.json。record_rust_mdec.py只核對既有結果並按已觀測場邊界取原生影片期間WAV，未猜配到舊H.264。編譯後只更正lib.rs首行過期能力註解，執行版本已保存rust-mdec-executed-lib-v1.rs並以source-resolution記錄；CPU／GTE／GPU源碼未改。第一次Go工具編譯的Write8／16參數型別修正後才生成首次參考，沒有重新跑失敗媒體或美術。

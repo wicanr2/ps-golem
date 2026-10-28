@@ -2504,3 +2504,13 @@ OPN 3秒樣片以Lanczos做1440×1080、15fps／45格H.264，2368721 bytes，完
 本輪一次集中轉檔／驗證通過，只限有聲獨立預覽與原音保存；沒有改Rust核心、重跑舊矩陣或核准美術，沒有遊戲／實體裝置／人耳／GPU音訊驗收。MDEC與正常遊戲接線後續承接026；正式同步沿027 §3。原音／FLAC／MP4只留私人direct-go-v1。工具入口素材docs/assets-catalog.md#render-control，固定來源與執行結果hd-movie-audio-plan-v1.json／hd-movie-audio-v1-summary.json，接納hd-movie-audio-acceptance-v1.json；commit／push／Issue與Docker／UID收尾另存publication-hd-movie-audio-v1.json。
 
 接納腳本首次把美術提示詞中的muted burgundy當成影片靜音屬性，屬驗證腳本誤判；改為只查video標籤後沿同一結果接納，未重做轉檔或媒體測試。
+
+## 2026-10-28 Rust原生MDEC與正常光碟影片
+
+沿026 §11先READY，固定b7f80d4的Go MDEC／DMA／時序、BIOS與公開zip SHA；既有測試執行檔另存rust-movie-player-accepted-tests-v1，保留舊收據可追溯性。直接實作Rust Mdec、CPU I/O及DMA0／1，保留FIFO背壓、量化／RLE／兩段IDCT、4／8／24／15-bit、有號／mask、reset、時鐘及DMA位址重排。Go檔頭「不模擬時間」與011模式0需bit28的舊描述，均與現行程式不符；規格明列以原Go為移植契約，未暗改相容性。
+
+首次70632事件／31330回讀完整狀態、1344匯流排／DMA／時鐘事件及全RAM同Go；九公開MDEC程式各真BIOS初始化後200000000週期，TTY／完整RAM／VRAM／MDEC狀態相同。011硬體差異台帳SHA不變。必要兩BIOS／六公開CPU程式仍全過，沒有重跑舊GPU／GTE矩陣。Go期望工具首次Write8／16傳入型別編譯不符，按Bus uint32介面修正後才生成首次參考；產品與媒體測試沒有失敗重跑。
+
+Go／Rust各一次真BIOS／原CUE正常啟動，沒有側載或注入狀態。均到field2600、1483757071週期、PC80015494；1717至2333觀測24-bit影片，92個相異逐場畫面，正常退出至標題PRESS START BUTTON。一次目視核對KONAMI與標題。逐場事件、完整RAM／VRAM／TTY及7727944-byte WAV逐位元組相同。原音44100Hz／16-bit雙聲道1931975組、2701701個非零取樣、峰值24574。只按既有場事件另取影片期間原音，不猜貼到舊H.264。網頁新增原生影片／標題截圖及原音；沒有把靜態圖稱同步HD影片，也沒有GUI／喇叭／人工聆聽驗收。
+
+來源與首次結果沿direct-go-v1/rust-mdec-*；素材工具入口docs/assets-catalog.md#render-control，公開oracle在引擎tools/，正式Rust在rust/src/mdec.rs。編譯後只更新lib.rs過期首行註解，保留執行版本及source-resolution，不改歷史雜湊。原片／BIOS／圖片／WAV與全部輸出只留本機；沒有改現行Go雙擊候選。MDEC限定CONFORMED，正常移動／戰鬥／存讀檔、實體音訊、HD接管／GPU／海報／GUI與三平台Rust雙擊包仍待接，沒有新速度數據。提交／推送／Issue與UID／容器收尾另存publication-rust-mdec-v1.json。

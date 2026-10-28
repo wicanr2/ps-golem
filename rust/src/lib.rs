@@ -1,4 +1,4 @@
-//! Rust migration, 026 §2. GPU command renderer only; no playable machine yet.
+//! Own native Rust machine and devices, 026. Player/HD frontend still pending.
 #![forbid(unsafe_code)]
 pub mod gpu;
 
@@ -16,3 +16,5 @@ pub mod disc;
 pub mod spu;
 
 pub mod movie;
+
+pub mod mdec;

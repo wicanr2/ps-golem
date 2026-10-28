@@ -22,6 +22,12 @@ impl Default for Dma {
     }
 }
 impl Dma {
+    fn active(&self, ch: usize) -> bool {
+        self.chcr[ch] & (1 << 24) != 0 && self.dpcr & (1 << (3 + 4 * ch)) != 0
+    }
+    pub(super) fn mdec_active(&self) -> bool {
+        self.active(0) || self.active(1)
+    }
     pub(super) fn read(&self, p: u32) -> u32 {
         let off = p - 0x1f801080;
         if off >= 0x70 {
@@ -53,7 +59,10 @@ impl SystemBus {
         let off = p - 0x1f801080;
         if off >= 0x70 {
             match off {
-                0x70 => self.dma.dpcr = v,
+                0x70 => {
+                    self.dma.dpcr = v;
+                    self.mdec_pump();
+                }
                 0x74 => {
                     let before = self.dma.dicr;
                     self.dma.dicr =
@@ -96,6 +105,10 @@ impl SystemBus {
     }
     fn dma_run(&mut self, ch: usize) {
         match ch {
+            0 | 1 => {
+                self.mdec_pump();
+                return;
+            }
             2 => self.dma_gpu(),
             3 => self.dma_cd(),
             4 => self.dma_spu(),
@@ -114,7 +127,10 @@ impl SystemBus {
                 }
             }
             _ => {}
-        } // 006 M2: unimplemented device channels complete without payload.
+        }
+        self.dma_finish(ch);
+    }
+    fn dma_finish(&mut self, ch: usize) {
         self.dma.chcr[ch] &= !(1 << 24 | 1 << 28);
         let before = self.dma.dicr;
         if self.dma.dicr & (1 << (16 + ch)) != 0 && self.dma.dicr & (1 << 23) != 0 {
@@ -122,6 +138,50 @@ impl SystemBus {
         }
         if self.dma.update_master(before) {
             self.i_stat |= 1 << 3;
+        }
+    }
+    // 011 / 026 section11; original machine/io.go at b7f80d4.
+    pub(super) fn mdec_pump(&mut self) {
+        loop {
+            let mut progress = false;
+            if self.dma.active(0) && self.mdec.dma_can_write() {
+                self.dma_mdec_block(0);
+                progress = true;
+            }
+            if self.dma.active(1) && self.mdec.dma_can_read() {
+                self.dma_mdec_block(1);
+                progress = true;
+            }
+            if !progress {
+                break;
+            }
+        }
+    }
+    fn dma_mdec_block(&mut self, ch: usize) {
+        let control = self.dma.chcr[ch];
+        let words = self.dma.bcr[ch] & 65535;
+        let words = if words == 0 { 65536 } else { words };
+        let mut address = self.dma.madr[ch] & 0xffffff;
+        for _ in 0..words {
+            if ch == 0 && control & 1 != 0 {
+                self.mdec.dma_write(self.ram_word(address));
+            } else if ch == 0 {
+                self.set_ram_word(address, 0);
+            } else if control & 1 == 0 {
+                let (v, offset) = self.mdec.dma_read();
+                self.set_ram_word(address.wrapping_add(offset.wrapping_shl(2)), v);
+            }
+            address = address.wrapping_add(if control & 2 != 0 { !3 } else { 4 }) & 0xffffff;
+        }
+        self.dma.madr[ch] = address;
+        let mut done = true;
+        if (control >> 9) & 3 == 1 {
+            let blocks = (self.dma.bcr[ch] >> 16).wrapping_sub(1) & 65535;
+            self.dma.bcr[ch] = (self.dma.bcr[ch] & 65535) | (blocks << 16);
+            done = blocks == 0;
+        }
+        if done {
+            self.dma_finish(ch);
         }
     }
     fn dma_spu(&mut self) {

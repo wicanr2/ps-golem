@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "-state" => state = args.next(),
             "-cycles" => cycles = args.next().ok_or("Missing cycle count")?.parse()?,
             "-h" | "--help" => {
-                println!("Rust validation: -bios file [-exe public-test.exe | -cue disc.cue] [-stop-pc hex] [-cycles N] [-tty file] [-state prefix] [-wav output.wav]\nCD loading supported; PCM/WAV output supported; no MDEC or player/HD frontend.");
+                println!("Rust validation: -bios file [-exe public-test.exe | -cue disc.cue] [-stop-pc hex] [-cycles N] [-tty file] [-state prefix] [-wav output.wav]\nCD loading supported; PCM/WAV output supported; native MDEC/DMA0-1 supported; no player/HD frontend.");
                 return Ok(());
             }
             _ => return Err(format!("Unknown option {arg}").into()),

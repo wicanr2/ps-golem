@@ -83,3 +83,5 @@ func (d *MDEC) DMARead() (v uint32, offs uint32)
 沒有 `MDEC_in_sync timeout`。
 
 HD模式的外部AI／H.264影片替換方向見027-hd-movie-replacement.md；本011繼續定義原版MDEC與必要狀態／時序，外部影片不是本規格已完成的證據。
+
+Rust移植與限定驗證見026-rust-migration.md §11；原生MDEC／DMA0–1、九公開程式及正常月下開機到標題已驗。Go台帳與本節硬體差異保持，不由Rust差分推論已解決。

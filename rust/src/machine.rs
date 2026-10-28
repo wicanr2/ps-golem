@@ -1,6 +1,6 @@
 //! Own native minimal machine, 006 / 007 / 008 and 026 §7.
 //! GPL-3.0-or-later. Port of machine/{machine,io,exe}.go at 343afa4.
-//! CD/SIO integrated by 026 sections 8-9; SPU integrated by 026 section10; MDEC remains an M2 initialization stub.
+//! CD/SIO integrated by 026 sections 8-9; SPU integrated by 026 section10; MDEC integrated by 026 section11.
 use crate::{
     cpu::{Bus, Cpu},
     gpu::Gpu,
@@ -49,6 +49,7 @@ pub struct SystemBus {
     cd_irq: bool,
     pub spu: crate::spu::Spu,
     spu_irq: bool,
+    pub mdec: crate::mdec::Mdec,
 }
 #[derive(Clone)]
 pub struct Machine {
@@ -88,6 +89,7 @@ impl Machine {
                 cd_irq: false,
                 spu: crate::spu::Spu::new(),
                 spu_irq: false,
+                mdec: crate::mdec::Mdec::new(),
             },
             cycles: 0,
             tty: Vec::new(),
@@ -188,6 +190,11 @@ impl SystemBus {
         self.i_stat & self.i_mask != 0
     }
     fn advance(&mut self, n: u64) {
+        let early_mdec = self.mdec.waiting_clock() || self.dma.mdec_active();
+        if early_mdec {
+            self.mdec.tick(n as i32);
+            self.mdec_pump();
+        }
         self.video_acc += n * 11;
         let video = self.video_acc / 7;
         self.video_acc %= 7;
@@ -212,6 +219,10 @@ impl SystemBus {
             self.i_stat |= 1 << 2;
         }
         self.cd_irq = cd_irq;
+        if !early_mdec {
+            self.mdec.tick(n as i32);
+        }
+        self.mdec_pump();
         self.sio.tick(n as i64);
         let serial_irq = self.sio.irq();
         if serial_irq && !self.sio_irq {
@@ -253,7 +264,8 @@ impl SystemBus {
             0x1f801074 => self.i_mask,
             0x1f801080..=0x1f8010fc => self.dma.read(p),
             0x1f801100..=0x1f80112c => self.timers.peek(p),
-            0x1f801820 | 0x1f801824 => 0,
+            0x1f801820 => 0,
+            0x1f801824 => self.mdec.status(),
             _ => self.reg32(p),
         }
     }
@@ -266,7 +278,11 @@ impl SystemBus {
             0x1f801100..=0x1f80112c => self.timers.read(p),
             0x1f801810 => self.gpu.read_data(),
             0x1f801814 => self.gpu.status(),
-            0x1f801820 | 0x1f801824 => 0,
+            0x1f801820 | 0x1f801824 => {
+                let v = self.mdec.read(p);
+                self.mdec_pump();
+                v
+            }
             _ => self.reg32(p),
         }
     }
@@ -343,7 +359,10 @@ impl SystemBus {
             0x1f801100..=0x1f80112c => self.timers.write(p, v),
             0x1f801810 => self.gpu.gp0(v),
             0x1f801814 => self.gpu.gp1(v),
-            0x1f801820 | 0x1f801824 => {}
+            0x1f801820 | 0x1f801824 => {
+                self.mdec.write(p, v);
+                self.mdec_pump();
+            }
             _ => self.set_reg32(p, v),
         }
     }
