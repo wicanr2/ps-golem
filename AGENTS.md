@@ -99,4 +99,4 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 
 ## Rust改寫（2026-10-28）
 
-使用者已明示將ps-golem用Rust改寫並量測速度。此決定取代較早「全部Go」的語言限制，遊戲繪圖接管、原版／HD分流、CPU／GPU、海報、素材／存檔與跨平台目標保持。正式遷移入口為ps-golem的docs/spec/026-rust-migration.md；Rust來源在該repo的rust/。先完成可獨立比較的原生繪圖器，CPU／GTE、完整機器、HD與GUI尚未遷移，不把局部benchmark稱為可玩的Rust版。
+使用者已明示將ps-golem用Rust改寫並量測速度。此決定取代較早「全部Go」的語言限制，遊戲繪圖接管、原版／HD分流、CPU／GPU、海報、素材／存檔與跨平台目標保持。正式遷移入口為ps-golem的docs/spec/026-rust-migration.md；Rust來源在該repo的rust/。原生繪圖器已有有限驗證；自有Rust GTE的1150筆實機紀錄通過，CPU已有364組／5824單步Go差分。完整機器與004公開程式、HD及GUI尚未接完，不把局部通過稱為可玩的Rust版。StarPSX僅作參考，本機試跑重現Konami停止；使用者已明示以ps-golem突破並開發自己的可玩Rust版。

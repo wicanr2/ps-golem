@@ -2424,3 +2424,16 @@ HD4是獨立CPU四倍繪圖器、原版材質，沒有PGXP／透視／HD素材�
 本機來源、初次工具錯誤、各版CUE／計畫與唯一正常日誌保留在既有direct-go-v1/rust-coffee檔，結果由rust-coffee-trial-summary-v1.json及rust-coffee-disc-checksum-v1.json索引；工具入口為素材docs/assets-catalog.md#render-control。原資料與候選來源不入公開引擎。提交／push及容器收尾沿publication-rust-render-v1.json，不建立tag／Release。
 
 收據工具的頁面更新曾因既有HTML沒有明示body標籤而停止；兩個定位嘗試均未改頁。原執行來源已保存，依實際style結束點只接續頁面插入與來源索引，沒有重跑EDC、遊戲或已驗案例。
+
+
+## 2026-10-28 StarPSX參考與自有Rust CPU／GTE
+
+使用者指定StarPSX參考，再明示以ps-golem突破並開發自己的可玩Rust版。固定官方main e8551eed，與前次調查同版，沒有把舊相容表直接當本機結論。core與公開API外殼首次release建置通過，未改上游核心；一次真BIOS／同卡／固定正常按鍵試跑，原光碟與卡片唯讀，沿已驗等價UTF-8 CUE，沒有PC／RAM注入。完成9000次run_frame，GPU計數8225；一次集中技術檢視顯示4500至9000的四張完整RGBA相同且停Konami。未到遊玩，33.816秒為診斷耗時，不與Go混算速度，不重跑／修補候選。
+
+StarPSX可參考core／renderer分層、純CPU framebuffer介面、零RAM／scratch初態及const generic圖元模式；固定2 CPI與20指令批次不沿用為ps-golem時鐘，GPLv3來源未搬入正式引擎。現有Go可玩版與HD／CPU／GPU／海報保持，語言目標依使用者改Rust。
+
+026 §5先READY，再將自有Go GTE移入rust/src/gte.rs；首次1150筆實機語料的73600個讀回完全相同，另兩項IR0／旗標及FIFO／延遲邊界通過，本節原生架構CONFORMED。原硬體語料SHA及003推論限制保持。026 §6先READY，再加入自有Rust CPU，保留MIPS I、load／branch delay、例外／COP0／COP2、乘除與GTE等待、快取／隔離及原008週期。沒有呼叫Go／C++或外部模擬器核心來執行Rust CPU。
+
+新Go基準從固定0xc0ffee產生364組各16步，Rust首次5824個完整CPU／GTE讀回／快取／時間直接相同，RAM與完整來源寫值／實際讀取以FNV64摘要比較。這是Go移植差分，不是原版硬體CPU程式或月下可玩驗收。已過GPU及GTE案例不重跑，沒有新美術、GUI／HD／硬體GPU、速度或雙擊包。完整Machine／週邊、004公開CPU程式、正常月下、音訊／存檔／輸入與HD仍OPEN。
+
+來源及結果由既有direct-go-v1/rust-cpu-gte-summary-v1.json、rust-gte-plan-v1.json／rust-gte-test-v1.log、rust-cpu-plan-v1.json／rust-cpu-oracle-v1.bin／rust-cpu-test-v1.log、rust-starpsx-source-v1.json／rust-starpsx-normal-v1.jsonl索引，工具入口素材docs/assets-catalog.md#render-control。兩份Rust契約與各首次結果分列，不把局部進度稱完整版。原資料與候選來源不入公開Git；commit／push、Issue #19／#17／素材#13與UID／Docker收尾沿publication-rust-cpu-gte-v1.json。沒有tag／Release。
