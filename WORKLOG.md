@@ -2472,3 +2472,13 @@ Rust驗證CLI首次實際啟動，真BIOS到核心入口後輸出CPU／GTE／cac
 CLI新增-wav，以場邊界取走音訊、不丟長片段；真BIOS從reset正常載入月下EXE到80010DFC，634175912週期／field1112，完整561152-byte body SHA沿前批獨立raw ISO證據一致。WAV共825749組、18.724467秒、雙聲道44100Hz／16bit，長度等於虛擬週期整除768，可完整解碼且非靜音；人工聆聽／喇叭未驗，不稱月下可玩。入口較無SPU前批多1週期，不用來推速度。必要兩BIOS／六公開CPU程式全部通過；舊GPU／GTE矩陣與美術重跑0。
 
 來源與首次結果保存在既有direct-go-v1/rust-spu-plan-v1.json、rust-spu-execution-v1.json、rust-spu-public-inputs-v1.json及rust-spu-summary-v1.json，公開工具沿docs/assets-catalog.md#render-control；合成固定事件在增加公開-programs入口前已產生，Go核心與事件建構不變，收據保留時序說明。原光碟／BIOS／音訊與測試產物不入Git，未讀寫玩家卡片。§10限定CONFORMED；MDEC／正常月下遊玩／存讀檔／HD／GPU／GUI／海報及三平台Rust包仍OPEN。Go雙擊候選不改，未做速度量測、tag或Release。提交／推送、Issue及容器／UID收尾另存publication-rust-spu-v1.json。
+
+## 2026-10-28 高畫質影片替換方向與離線原型
+
+使用者在Rust MDEC接續前改問imagegen／H.264，隨後明示「改播放器，用AI提升畫質並以高畫質影片取代」。已依共同決策技能承接此明示方向，不重問同一決定；原版／HD、虛擬時序／原生必要狀態、原音訊與海報保持。新增027 DRAFT並掛入000索引，011／026連回；本輪未新增Rust MDEC，原版相容移植仍待接。
+
+沿既有extract_assets.py與已抽STR raw定位四段320×240／15fps影片及37800Hz雙聲道XA。現有kol-package固定映像含FFmpeg5.1.9／psxstr／mdec／adpcm_xa／libx264，不建立新映像。一次完整計數OPN922、TYK555、END743格；LOGO有ac-tex damaged且無完整格數，未當通過或宣稱原片損壞，不重跑遊戲。
+
+OPN 3秒樣片以Lanczos做1440×1080、15fps／45格H.264，2368721 bytes，完整解碼無錯；明列只有傳輸測試、沒有AI美化或遊戲接入。另以TYK第45格使用內建image_gen做一次哥德城堡重繪，1448×1086，保存原圖／AI圖／完整提示詞與本機HTML對照。單格不能稱連續影片，時間一致性、開始／跳過／結束映射、CPU／GPU播放器及聲畫同步仍DRAFT。原資料／影片與AI圖不入Git；完整母稿留本機，未輸出大量逐格PNG。
+
+來源／命令／SHA沿既有direct-go-v1/hd-movie-inventory-v1.json、hd-movie-transport-v1.json與hd-movie-summary-v1.json；本機入口hd-movie-preview-v1.html，工具由素材docs/assets-catalog.md#render-control索引。沿已核准畫風及最多兩輪審查上限，未重開舊美術。正式影片替換未完成，Go雙擊候選、Rust已驗SPU、原片及玩家卡片保持。Issue／提交／推送與容器／UID收尾另存publication-hd-movie-v1.json，沒有tag／Release。

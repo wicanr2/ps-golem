@@ -100,3 +100,7 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## Rust改寫（2026-10-28）
 
 使用者已明示將ps-golem用Rust改寫並量測速度。此決定取代較早「全部Go」的語言限制，遊戲繪圖接管、原版／HD分流、CPU／GPU、海報、素材／存檔與跨平台目標保持。正式遷移入口為ps-golem的docs/spec/026-rust-migration.md；Rust來源在該repo的rust/。原生繪圖器已有有限驗證；自有Rust GTE的1150筆實機紀錄通過，CPU已有364組／5824單步Go差分。Rust最小機器已通過兩份真BIOS及004的六個程式配對，SIO／原卡協定與IRQ已接。光碟／DMA3及CD取樣已接，正常BIOS載入光碟EXE通過；SPU／DMA4與CD混音／WAV已驗；MDEC影片、實體聲音輸出、正常月下遊玩、HD及GUI尚未接完，不把局部通過稱為可玩的Rust版。StarPSX僅作參考，本機試跑重現Konami停止；使用者已明示以ps-golem突破並開發自己的可玩Rust版。
+
+## HD影片替換（2026-10-28）
+
+使用者已明確要求改播放器，以離線AI提升畫質的高畫質H.264影片取代HD模式中的原片呈現；原版模式承接原生MDEC。入口為ps-golem docs/spec/027-hd-movie-replacement.md，目前DRAFT。1080p離線傳輸與單格imagegen參考不代表連續AI影片或遊戲播放器已接。開始／跳過／結束、虛擬時間、原生必要狀態、音訊與海報契約保持；來源映射與正式接線未驗前不刪原MDEC／DMA。原影片與衍生HD影片只留本機。

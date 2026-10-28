@@ -81,3 +81,5 @@ func (d *MDEC) DMARead() (v uint32, offs uint32)
 
 《月下》：KONAMI 標誌動畫（24 位元）以 `psexe -shots` 截圖目視正確；開場動畫連續 143 格每格 20 個切片完整讀出，
 沒有 `MDEC_in_sync timeout`。
+
+HD模式的外部AI／H.264影片替換方向見027-hd-movie-replacement.md；本011繼續定義原版MDEC與必要狀態／時序，外部影片不是本規格已完成的證據。
