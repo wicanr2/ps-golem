@@ -181,3 +181,29 @@ Machine替換1F801820／824空殼，CPU讀寫後pump；資料peek不消耗輸出
 正常中文版光碟從reset開始，Go與Rust均到field2600、1483757071週期、PC80015494；24-bit模式由1717觀測到2333，92個相異逐場畫面，已退出影片回到標題PRESS START BUTTON。逐場事件113815 bytes、完整RAM／VRAM／TTY及WAV全部逐位元組相同。WAV為44100Hz／16-bit雙聲道、1931975組、2701701個非零左右聲道取樣、峰值24574；原音取樣數等於CPU週期整除768。一次目視核對field1920的KONAMI與field2600標題。這是正常開機／原生影片／回到標題證據，不是移動／戰鬥／存檔或GUI／喇叭驗收；92是相異逐場畫面，不冒稱完整影片格數，亦不覆寫027較早156個顯示事件。
 
 來源與首次結果沿私人direct-go-v1/rust-mdec-plan-v1.json、rust-mdec-execution-v1.json、rust-mdec-normal-execution-v1.json及rust-mdec-summary-v1.json。record_rust_mdec.py只核對既有結果並按已觀測場邊界取原生影片期間WAV，未猜配到舊H.264。編譯後只更正lib.rs首行過期能力註解，執行版本已保存rust-mdec-executed-lib-v1.rs並以source-resolution記錄；CPU／GTE／GPU源碼未改。第一次Go工具編譯的Write8／16參數型別修正後才生成首次參考，沒有重新跑失敗媒體或美術。
+
+
+## 12. Rust按鍵腳本、原卡檔案與命令列玩家路徑
+
+狀態：CONFORMED，限010既有輸入格式／原卡與012的有界命令列重播；本節不選定或更換GUI工具鏈。來源417fbcb的internal/padscript/padscript.go、internal/sio/sio.go、010／012與已驗apps/sotn/testdata/m4-first-save.press；逐檔SHA沿私人direct-go-v1/rust-player-plan-v1.json。Go移植沿本repo GPL-3.0-or-later；原卡硬體沿§8，必要狀態與原音沿§11。推論等級為已證實的現行Go契約，不外推實機時序。
+
+Rust input::Press保持FIELD:BTN[+BTN][:DUR]、預設5場、穩定依起場排序及重疊按鍵聯集。BTN名稱、大小寫、空／減號、空白與錯誤解析沿原Go；舊來源忽略第三個冒號以後內容、At加Dur以u64環繞，均明列保留，不藉移植改格式。Parse／format／at以固定Go案例及完整M4腳本差分，含零長度、邊界、非法數字與未知位元。來源input不改SIO協定。
+
+命令列psgolem-machine-probe新增-press <文字>／-press-file <既有格式檔>、-fields <絕對VBlank數>、-card <128KiB原卡檔>，兩種press輸入互斥。腳本在每個field開始前更新1P Buttons，第一次含field0；CPU／MDEC／CD／SPU仍逐指令推進，不跳時間。-fields與-stop-pc互斥，原-cycles可明確作預算；只給-fields時預算為fields×1000000週期，checked overflow回錯，未抵達終點明列失敗。未指定fields保持原預設週期；原狀態JSON／RAM／VRAM與WAV格式保持，輸入由解析資料決定，不注入遊戲RAM／PC。
+
+cardfile層與原卡硬體分離，僅當指定-card才讀寫磁碟。存在時長度必須131072，讀失敗／錯長回報且不覆寫；缺檔沿原格式空白卡。不dirty不寫；正常停止且dirty時，以同目錄create_new暫存檔、完整寫入／sync_all、rename更新原檔，成功後才清dirty。臨時檔名稱含程序號及單調序號，失敗只清自己建立的暫存檔、原檔與dirty保持。格式、玩家既有檔與現行Go設定不改。本CLI只在正常結束保存；GUI的60場安靜後自動存卡／視窗關閉等012能力仍待前端接線，不藉本CLI稱GUI完成。
+
+WAV以場邊界取原SPU取樣，保持44100Hz／16-bit雙聲道；沒有HD音軌疊播或實體聲音裝置驗收。驗證先固定Go parser期望，涵蓋M4全部腳本及場邊界；再驗卡檔長度／無dirty不寫／合法覆寫／失敗保留與暫存回收。只用本批新建測試卡或只讀載入既有資料，不碰玩家卡片。
+
+正常玩家切片使用同一M4腳本，由真BIOS／原CUE／空白新卡從reset開始至field12000，與Go同場套鍵及完整RAM／VRAM／TTY／原卡／原音比對；一次目視確認序章實際畫面。按鍵只來自腳本，禁止PC／RAM或物品注入。卡片frame63初始化寫入只能稱原卡檔案鏈通過，第一存檔室／真正進度保存及重新開機讀取仍另驗，不能把檔案存在當遊戲存檔完成。
+
+工具鏈沿§7.1既有Rust／Go有界Docker；輸出沿私人direct-go-v1，公開原始碼input.rs、cardfile.rs、bin/machine_probe.rs與tools/oracle_rust_input.go。PSGOLEM_RUST_INPUT_ORACLE指定固定案例，PSGOLEM_RUST_CARD_TEST_DIR指定本批卡片輸出根，沒有選資料就明列SKIP。圖像／音訊／記憶卡／完整原資料不入公開Git。本節不改CPU／GTE／GPU／MDEC演算法，不重跑其已驗矩陣，不由重播耗時推測FPS。
+
+
+§12首次結果：51個Go parser案例、1680個場邊界及1024個format mask相同，包含M4全部腳本；原卡新建／無dirty不寫／合法覆寫／錯長度／失敗保留／暫存回收通過，五個CLI互斥／格式／預算錯誤界線通過。沒有更動CPU／GTE／GPU／MDEC或其時序、沒有重跑舊矩陣。
+
+真BIOS／原CUE／新卡從reset重播既有M4腳本至field12000，Go與Rust均6853150729週期、PC8001548C。完整2MiB RAM、1MiB VRAM、TTY、原卡131072 bytes、原音WAV與實際RGBA逐位元組相同。WAV為44100Hz／16-bit雙聲道8923373組；卡片有1次原協定寫入，Rust正常結束原子保存並可由原格式讀回。一次目視第12000場，確認里希特已走進序章城內。這是原卡檔案鏈，不稱第一存檔室或真正進度存讀檔完成。
+
+命令列入口例：依§7.1在有界Docker中建置psgolem-machine-probe，從既有輸入唯讀掛載執行-bios /bios/SCPH5500.BIN -cue /disc/sotn.cue -press-file /engine/apps/sotn/testdata/m4-first-save.press -fields 12000 -card /output/new-card.mcd -wav /output/replay.wav -state /output/replay。新卡／輸出根須可寫且不能指向玩家原檔作測試。-press／-fields是一般輸入與真時鐘，沒有RAM／PC注入；-state仍是診斷輸出，不是正式存檔格式。
+
+固定來源與首次結果沿私人direct-go-v1/rust-player-plan-v1.json、rust-player-execution-v1.json、rust-player-normal-execution-v1.json及rust-player-summary-v1.json。素材工具record_rust_player.py只核對已保存結果與取最後3秒原音，入口docs/assets-catalog.md#render-control。正式玩家GUI／實體聲音與USB／已配對藍芽設定、第一存檔室存讀、完整HD接管／GPU／海報與三平台Rust雙擊包仍待接。整段AI影片與HD自動替換沿027仍未完成，不能把原生序章或1080p放大樣片稱HD完成。

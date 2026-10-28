@@ -2514,3 +2514,13 @@ OPN 3秒樣片以Lanczos做1440×1080、15fps／45格H.264，2368721 bytes，完
 Go／Rust各一次真BIOS／原CUE正常啟動，沒有側載或注入狀態。均到field2600、1483757071週期、PC80015494；1717至2333觀測24-bit影片，92個相異逐場畫面，正常退出至標題PRESS START BUTTON。一次目視核對KONAMI與標題。逐場事件、完整RAM／VRAM／TTY及7727944-byte WAV逐位元組相同。原音44100Hz／16-bit雙聲道1931975組、2701701個非零取樣、峰值24574。只按既有場事件另取影片期間原音，不猜貼到舊H.264。網頁新增原生影片／標題截圖及原音；沒有把靜態圖稱同步HD影片，也沒有GUI／喇叭／人工聆聽驗收。
 
 來源與首次結果沿direct-go-v1/rust-mdec-*；素材工具入口docs/assets-catalog.md#render-control，公開oracle在引擎tools/，正式Rust在rust/src/mdec.rs。編譯後只更新lib.rs過期首行註解，保留執行版本及source-resolution，不改歷史雜湊。原片／BIOS／圖片／WAV與全部輸出只留本機；沒有改現行Go雙擊候選。MDEC限定CONFORMED，正常移動／戰鬥／存讀檔、實體音訊、HD接管／GPU／海報／GUI與三平台Rust雙擊包仍待接，沒有新速度數據。提交／推送／Issue與UID／容器收尾另存publication-rust-mdec-v1.json。
+
+## 2026-10-28 Rust腳本輸入、原卡檔案與正常序章
+
+使用者追問影片HD現況，明確回答整段AI影片／正式替換尚未完成，現有1080p樣片只是原片放大加原音，城堡只做單格參考；這項問題沒有取消Rust接線。沿026 §12先READY，保留010既有格式、原卡硬體與012場輸入契約，不另選GUI工具鏈。
+
+新增input.rs、cardfile.rs與CLI -press／-press-file／-fields／-card；腳本在真場邊界套用，原卡只在正常停止且dirty時同目錄create_new暫存、完整寫入／sync／rename，失敗保持原檔／dirty並清自己暫存。51個Go案例、1680場邊界、1024個mask及原卡檔案／失敗保護、五個CLI拒絕界線首次通過，沒有改原格式或碰玩家卡。
+
+兩側真BIOS／原CUE／新空卡，原M4腳本由reset跑到field12000，均6853150729週期、PC8001548C。完整RAM／VRAM／TTY／WAV／原卡與RGBA逐位元組相同，音訊44100Hz／16-bit雙聲道8923373組；Rust正常保存原協定寫入1次的新卡。卡片初始化檔案鏈不等於第一存檔室真正存讀檔。原音最後3秒與畫面另留本機預覽，沒有把靜態圖稱同步HD影片。
+
+026 §12限定CONFORMED；CPU／GTE／GPU／Machine／MDEC／DMA源碼雜湊保持，沒有重跑舊矩陣、沒有新速度聲明。正式GUI／實體聲音／手把、第一存檔室存讀、HD／GPU／海報、整段AI影片及三平台Rust雙擊仍未完成。原資料、卡片、音訊與畫面只留本機；工具入口素材docs/assets-catalog.md#render-control，來源與首次結果rust-player-*。提交／推送／Issue與UID／Docker收尾另存publication-rust-player-v1.json。

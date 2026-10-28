@@ -18,3 +18,6 @@ pub mod spu;
 pub mod movie;
 
 pub mod mdec;
+
+pub mod input;
+pub mod cardfile;
