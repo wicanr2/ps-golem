@@ -2492,3 +2492,15 @@ OPN 3秒樣片以Lanczos做1440×1080、15fps／45格H.264，2368721 bytes，完
 027 §5先READY再實作Rust movie.rs程式化CPU拉取播放器。明確工具路徑、probe H.264／metadata界限、RGB單格快取、首格預讀、單調present(index)、pause／重取、stop／Drop kill+wait。依156個真實顯示事件，全部RGB幀與獨立FFmpeg CRC相同；45格樣片前進跳讀／提前停止、缺檔／越界／倒退／重複stop通過。兩個必要案例首次全過，未重跑舊CPU／GPU／GTE矩陣，未做新速度量測。
 
 本輪通過僅限原生來源／CPU播放器與離線事件鏈，沒有自動接正式遊戲／GUI／音訊／海報、GPU解碼、整段AI影片或三平台包；原生Rust CPU／GTE／GPU／Machine源碼與前批相同，MDEC仍待接。既有城堡AI參考不重畫；原版／HD與所有核准目標保持。更新027／000與唯一現況，工具入口素材docs/assets-catalog.md#render-control；原資料／影片只留既有direct-go-v1，提交／推送／Issue及UID／容器收尾另存publication-hd-movie-player-v1.json。收據腳本原先把RUST_MOVIE_SKIP標記誤認為缺檔SKIP，改查行首SKIP:後接納原日誌，沒有重跑測試。GitHub auth與一個唯讀容器的自動核准各逾時一次，依允許重試後成功，沒有改審查設定或在主機執行工作負載。
+
+## 2026-10-28 原音保存與有聲影片預覽
+
+使用者回報沒有聲音並要求影片補聲音。確認原OPN45格H.264只有影像，網頁另帶muted；Rust影片模組只取RGB，SPU取樣通過不等於實體聲音輸出已接。沿027 §6先固定READY契約，補確切同源剪輯的有聲預覽；正式遊戲保留原SPU／XA單一音源，不疊播MP4。
+
+四段XA唯讀來源subheader／扇區／coding核對，音訊扇區193／1155／684／879，取樣組數均等於扇區數×2016，全部非靜音。FFmpeg5.1 raw讀至尾端有EIO而退出0；查同版psxstr不足2352-byte讀取契約，完整扇區／取樣數核對後分類為demuxer檔尾限制，保留stderr，不當原片損毀。四原音另存37800Hz雙聲道16-bit FLAC，完整PCM往返逐位元相同。
+
+既有OPN第2至5秒45格H.264不重編影像，加入同段44100Hz雙聲道AAC192k，2441893 bytes。影像packet SHA相同，聲畫起點0秒、長度3秒，完整解碼無錯；音訊非靜音，原STR參考零偏移相關度0.9996519843530091、SNR31.5392dB。AAC820組末包padding與有效3秒分列。網頁移除muted／loop，新增四原音控制項；原生KONAMI156格與原檔168格尚無映射，無聲參考移入明確標示區，未猜配音訊。
+
+本輪一次集中轉檔／驗證通過，只限有聲獨立預覽與原音保存；沒有改Rust核心、重跑舊矩陣或核准美術，沒有遊戲／實體裝置／人耳／GPU音訊驗收。MDEC與正常遊戲接線後續承接026；正式同步沿027 §3。原音／FLAC／MP4只留私人direct-go-v1。工具入口素材docs/assets-catalog.md#render-control，固定來源與執行結果hd-movie-audio-plan-v1.json／hd-movie-audio-v1-summary.json，接納hd-movie-audio-acceptance-v1.json；commit／push／Issue與Docker／UID收尾另存publication-hd-movie-audio-v1.json。
+
+接納腳本首次把美術提示詞中的muted burgundy當成影片靜音屬性，屬驗證腳本誤判；改為只查video標籤後沿同一結果接納，未重做轉檔或媒體測試。

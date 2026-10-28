@@ -59,3 +59,23 @@ H.264時基跟隨遊戲虛擬時鐘或已驗影片格事件，不能以主機wal
 首次兩案例通過：156個來源顯示事件逐完整RGB幀同獨立解碼CRC32；每格重取／pause不前進，45格樣片前進跳讀到20格及提前stop、缺檔／越界／倒退和重複stop均通過。只快取一格RGB，沒有不受控影片格佇列。原生KONAMI傳輸版1440×1080、15fps、156格、740355 bytes，不是AI美化版。GPU硬體解碼／正式前端／遊戲內跳過／暫停／自動影片識別及素材包仍未驗；第二段播放只觀測到field9500，不能稱自然結束已驗。
 
 IDA9.4在原DB的一次性副本查得936函式、StSetStream的原始指令及資料引用；沒有由名稱宣稱遊戲控制語意，STR映射與讀寫端仍未知。來源與首次結果沿私人hd-movie-event-replay-v1.json、hd-movie-player-execution-v1.json及hd-movie-player-summary-v1.json；Rust CPU／GTE／GPU／Machine原始碼與SPU批次相同，未重跑舊矩陣。正式接線回到§3補證據，本節不代替正常玩家／GUI驗收。
+
+
+## 6. 原音保存與有聲預覽
+
+狀態：CONFORMED，限原音保存與有聲獨立預覽。使用者2026-10-28回報沒有聲音並要求影片補聲音。已證實現有OPN第2至5秒H.264沒有音軌，頁面另帶muted；Rust §5只解影像，實體聲音輸出及正式遊戲接線未完成。正式遊戲承接§3原SPU／XA單一路徑，禁止同時疊播MP4音軌。離線預覽須帶原音，預設不靜音，由使用者按播放。
+
+原始四段STR及SHA沿§2與私人hd-movie-inventory-v1.json。FFmpeg5.1.9容器沿§2，原始扇區唯讀。先核對2352-byte同步／Mode2及雙份subheader，音訊檔號／通道1／1、coding01，4-bit／37800Hz雙聲道，每扇區18組×28取樣×4雙聲道單位等於2016組取樣。首次唯讀探測LOGO193、OPN1155、TYK684、END879個音訊扇區，解碼組數均等於扇區數×2016，均非靜音。來源尾端FFmpeg回報Input/output error而退出碼0，不能只憑退出碼通過。[FFmpeg5.1 psxstr原始碼](https://www.ffmpeg.org/doxygen/5.1/psxstr_8c_source.html)在不足2352-byte讀取回EIO；只在完整扇區與取樣數核對後將單一完全相符的檔尾訊息分類為demuxer EOF限制，保留原stderr，其餘訊息失敗即停止。
+
+工具為私人素材tools/prepare_hd_movie_audio.py，入口docs/assets-catalog.md#render-control。四音源存本機FLAC，維持37800Hz／雙聲道／16-bit，完整解碼後與原XA PCM逐位元相同，不調音量、不改詞。獨立OPN樣片沿原剪輯2至5秒，複製45格H.264而不重編影像；同段原音轉44100Hz雙聲道AAC192k封入MP4，供網頁播放。3秒有聲預覽的聲畫起點與長度誤差不超過一個44100Hz取樣，影像packet雜湊不變。完整音畫解碼無錯、PCM非靜音；與原STR同段重取樣參考做零偏移相關度至少0.98及SNR至少15dB，僅作有損轉碼驗證，不稱硬體音訊parity。AAC末包padding另列，播放以MP4 duration／priming為準。
+
+KONAMI原生156格與LOGO原檔168格尚無逐格映射證據，不能把10.293秒原音猜貼到10.4秒原生影片；先保存其完整音源，原生影像參考標明無聲／待同步。這項限制不阻塞已有確切同源剪輯的OPN有聲預覽。正式同步仍需正常遊戲開始／跳過／暫停／結束與回遊戲事件；本批不宣稱Rust聲音裝置、完整AI影片或GPU播放器完成。
+
+一次集中驗證包含四段完整PCM數量／非靜音／FLAC無損往返、有聲樣片的格數／聲道／PTS／完整解碼／音訊相關度，之後記錄結果，不重跑已通過美術或舊核心矩陣。原音、FLAC、MP4及收據只留既有私人direct-go-v1，不加入公開Git或一般發行包。
+
+
+§6結果：四原音完整解碼並保存FLAC，LOGO389088、OPN2328480、TYK1378944、END1772064組雙聲道取樣，均37800Hz／16-bit，全部FLAC往返PCM逐位元相同且非靜音。FFmpeg5.1檔尾EIO訊息原樣保存，完整扇區與取樣數相符；未隱藏錯誤或當作原片損壞。
+
+有聲OPN預覽hd-movie-h264-with-audio-v1.mp4共2441893 bytes，1440×1080／15fps／45格，加44100Hz雙聲道AAC。音畫起點0、片長3秒，影像packet SHA不變；完整解碼無錯，原STR同段零偏移相關度0.9996519843530091、SNR31.5392dB，3秒264600個左右聲道取樣中264571個非零。解碼器暴露820組尾端AAC padding，與MP4標示3秒有效範圍分列，不延長正式播放。頁面移除muted與loop，新增四段原音控制項，無聲原生影像移入明確標示的參考區。
+
+限定結果沿私人hd-movie-audio-plan-v1.json／hd-movie-audio-v1-summary.json／hd-movie-audio-acceptance-v1.json，工具prepare_hd_movie_audio.py及record_hd_movie_audio.py由素材索引連入。正式遊戲聲音裝置與時序、KONAMI逐格映射、整段AI影片未完成；本批無人耳／硬體音訊驗收，無Rust核心變更或舊測試重跑。
