@@ -2482,3 +2482,13 @@ CLI新增-wav，以場邊界取走音訊、不丟長片段；真BIOS從reset正�
 OPN 3秒樣片以Lanczos做1440×1080、15fps／45格H.264，2368721 bytes，完整解碼無錯；明列只有傳輸測試、沒有AI美化或遊戲接入。另以TYK第45格使用內建image_gen做一次哥德城堡重繪，1448×1086，保存原圖／AI圖／完整提示詞與本機HTML對照。單格不能稱連續影片，時間一致性、開始／跳過／結束映射、CPU／GPU播放器及聲畫同步仍DRAFT。原資料／影片與AI圖不入Git；完整母稿留本機，未輸出大量逐格PNG。
 
 來源／命令／SHA沿既有direct-go-v1/hd-movie-inventory-v1.json、hd-movie-transport-v1.json與hd-movie-summary-v1.json；本機入口hd-movie-preview-v1.html，工具由素材docs/assets-catalog.md#render-control索引。沿已核准畫風及最多兩輪審查上限，未重開舊美術。正式影片替換未完成，Go雙擊候選、Rust已驗SPU、原片及玩家卡片保持。Issue／提交／推送與容器／UID收尾另存publication-hd-movie-v1.json，沒有tag／Release。
+
+## 2026-10-28 原生影片顯示事件與Rust CPU播放器
+
+承接027，先查既有IDA DB與工具契約；py312既有映像／UID1000最小輸出核對通過，原始DB／SLPM／DRA SHA不變，在一次性副本匯出936函式中的SDK StSetStream原始指令與資料引用。字串／直接caller線索不足，保留控制語意／STR映射未知，未深挖無關函式或憑名字改規則。技能symlink跨容器掛載無法解析，改沿真實IDA專案唯讀掛載，沒有當成技能遺失。
+
+找到先前正常M4玩家commands.u64le.gz，SHA d78b7256678a566e349abc97139006ce6bc0dd412733d21dc69ff9e0b93606a2，直接重播到field9500，不重啟遊戲。只用Go overlay觀測GPU，正式Go源碼不改。51471448記錄、17360個24×240切片上傳，每20片完整且切換顯示緩衝才取格；第一段1716進24-bit、1720首格、2333退出，共156個完整格，目視為KONAMI。原生RGB直接管線編成1080p／15fps H.264，740355 bytes，沒有大量逐格PNG。第二段6691開始，僅觀測709格，未到自然結束；影片精確STR／遊戲控制欄位仍未知。011早期143格是當時抽樣，不覆寫歷史。
+
+027 §5先READY再實作Rust movie.rs程式化CPU拉取播放器。明確工具路徑、probe H.264／metadata界限、RGB單格快取、首格預讀、單調present(index)、pause／重取、stop／Drop kill+wait。依156個真實顯示事件，全部RGB幀與獨立FFmpeg CRC相同；45格樣片前進跳讀／提前停止、缺檔／越界／倒退／重複stop通過。兩個必要案例首次全過，未重跑舊CPU／GPU／GTE矩陣，未做新速度量測。
+
+本輪通過僅限原生來源／CPU播放器與離線事件鏈，沒有自動接正式遊戲／GUI／音訊／海報、GPU解碼、整段AI影片或三平台包；原生Rust CPU／GTE／GPU／Machine源碼與前批相同，MDEC仍待接。既有城堡AI參考不重畫；原版／HD與所有核准目標保持。更新027／000與唯一現況，工具入口素材docs/assets-catalog.md#render-control；原資料／影片只留既有direct-go-v1，提交／推送／Issue及UID／容器收尾另存publication-hd-movie-player-v1.json。收據腳本原先把RUST_MOVIE_SKIP標記誤認為缺檔SKIP，改查行首SKIP:後接納原日誌，沒有重跑測試。GitHub auth與一個唯讀容器的自動核准各逾時一次，依允許重試後成功，沒有改審查設定或在主機執行工作負載。
