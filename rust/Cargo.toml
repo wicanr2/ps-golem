@@ -15,3 +15,7 @@ path = "src/bin/render_bench.rs"
 [profile.release]
 overflow-checks = false
 debug = 1
+
+[[bin]]
+name = "psgolem-machine-probe"
+path = "src/bin/machine_probe.rs"

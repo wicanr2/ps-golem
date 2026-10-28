@@ -5,6 +5,8 @@
 //! Project license: GPL-3.0-or-later. Video scheduler and HD are separate.
 mod polygon;
 mod primitives;
+mod video;
+pub use video::Frame;
 mod raster;
 #[cfg(test)]
 mod tests;
@@ -90,6 +92,7 @@ pub struct Gpu {
     irq: bool,
     read_buffer: u32,
     field_readout: bool,
+    video: video::VideoTiming,
 }
 
 fn sx11(v: u32) -> i32 {
@@ -164,6 +167,7 @@ impl Gpu {
             irq: false,
             read_buffer: 0,
             field_readout: false,
+            video: video::VideoTiming::default(),
         };
         let table = [
             [-4, 0, -3, 1],
@@ -294,7 +298,11 @@ impl Gpu {
     }
     pub fn status(&self) -> u32 {
         let mut r = (((self.display_mode << 1) & 0x7f) | ((self.display_mode >> 6) & 1)) << 16;
-        r |= (self.display_mode & 128) << 7 | self.dma << 29 | 1 << 13;
+        r |= (self.display_mode & 128) << 7 | self.dma << 29;
+        r |= (self.video.read_line & 1) << 31;
+        if !self.video.field {
+            r |= 1 << 13;
+        }
         if self.dma & 2 != 0 {
             r |= 1 << 25;
         }

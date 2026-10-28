@@ -5,3 +5,7 @@ pub mod gpu;
 pub mod gte;
 
 pub mod cpu;
+
+pub mod machine;
+
+pub mod sio;

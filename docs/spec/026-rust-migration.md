@@ -42,6 +42,14 @@ Rust正確性通過後才量測。沿014 §6的原命令與場奇偶、同邏輯
 
 已證實：memory.rs初始化以未固定種子的rand::random填RAM／scratch，公開builder未提供種子。中文版EDC相容策略、可重播初始化與觀測能力仍DRAFT，未定案採用或修改候選。第一個可玩的完整Rust版、HD與GPU／GUI仍待完成。工作列管[Issue #19](https://github.com/wicanr2/ps-golem/issues/19)，既有繪圖／速度沿#17／#9。
 
+### 4.2 StarPSX指定參考與本機結果
+
+使用者明確指定https://github.com/kaezrr/starpsx。2026-10-28核對main仍為e8551eedac6d15a4ed7b7fb123c70f97217d1ed4，與前次固定版相同；本機release編譯及一次正常BIOS／同卡／等價CUE／固定按鍵試跑完成9000次run_frame，GPU計數8225。一次集中技術檢視確認4500／7000／8382／9000的完整RGBA相同且為Konami標誌，重現上游相容表，未到月下遊玩。原始碼與原資料未修改，未補錯誤容忍、時間特例或注入遊戲狀態。
+
+參考重點為core／renderer／frontend分層、GPU裝置獨立的CPU framebuffer介面與以const generic分化圖元模式。RAM／scratch零初態可供對照，尚不是本案完整決定性驗收。System::run_frame每20指令固定增加40週期，step_instruction固定2週期；不能沿用作本案008時鐘，也不能用33.816秒的診斷執行時間推導相對Go的速度。renderer是軟體光柵化，不等於本案硬體GPU／HD已接好。
+
+來源為固定commit的core/src/lib.rs、core/src/mem.rs、renderer/src/lib.rs與Compatibility.md；GPLv3 LICENSE及來源SHA由私人rust-starpsx-source-v1.json保存。沒有將上游實作複製進正式引擎；自有CPU與GTE沿本repo4951d1e的相容授權來源。CPU差分只證明Go移植相符，RAM／存取用摘要，完整架構／GTE／快取／時間直接比較。接下來須接匯流排、DMA、IRQ／timer、CD-ROM、SPU、SIO／卡片、MDEC與GPU掃描時序，重跑004／006原語料及正常月下後才稱Rust可玩。
+
 ## 5. 自有Rust幾何引擎
 
 狀態：CONFORMED，限本節原生整數架構，1150筆實機紀錄及兩項邊界通過。使用者明示以ps-golem突破並開發自己的可玩Rust版。StarPSX仍作分層／繪圖參考，不因它未通過月下而降低本引擎的原有硬體契約。此切片只移植本repo的internal/gte/gte.go，來源4951d1e；既有003的64暫存器副作用、22命令、FLAG／飽和／FIFO、44-bit溢位、UNR除法與返回週期照原契約。零初態與順序Read／Write／Execute，不依賴BIOS、遊戲或外部Rust核心。
@@ -54,16 +62,58 @@ Rust來源為rust/src/gte.rs，由rust/src/lib.rs公開；自行實作整數計�
 
 ## 6. 自有Rust CPU
 
-狀態：READY，已實作並通過364組／5824單步Go差分，限架構與單步契約；完整機器的004公開語料未驗。來源為本repo 4951d1e的internal/cpu/cpu.go與004／008，Rust來源rust/src/cpu.rs。Bus以可變借用傳入step，型別化讀8／16／32、寫入完整來源值、IsolatedWrite、InstructionBusError、ReadCost與BIU保持Go契約；CPU自有GPR35、HI／LO、PC／nextPC、branch／load delay、COP0、乘除／GTE期限及256行時間cache，GTE沿§5。reset／IRQ／普通BREAK例外、所有MIPS I／COP0／COP1／COP3不可用與COP2資料轉移及命令、未對齊、LWL／LWR／SWL／SWR、overflow及隔離寫入都照原Go，不搬StarPSX固定2 CPI。
+狀態：CONFORMED，限架構／單步契約。364組／5824單步Go差分，以及§7–8的兩份真BIOS／六個004公開CPU程式通過；008完整時序台帳與M4裝置／HD仍另驗。來源為本repo 4951d1e的internal/cpu/cpu.go與004／008，Rust來源rust/src/cpu.rs。Bus以可變借用傳入step，型別化讀8／16／32、寫入完整來源值、IsolatedWrite、InstructionBusError、ReadCost與BIU保持Go契約；CPU自有GPR35、HI／LO、PC／nextPC、branch／load delay、COP0、乘除／GTE期限及256行時間cache，GTE沿§5。reset／IRQ／普通BREAK例外、所有MIPS I／COP0／COP1／COP3不可用與COP2資料轉移及命令、未對齊、LWL／LWR／SWL／SWR、overflow及隔離寫入都照原Go，不搬StarPSX固定2 CPI。
 
 先以無原版資料的固定種子Go差分語料，逐單步比完整架構狀態、GTE64個讀回、cache、時間、記憶體與寫入來源值。公開語料生成器為tools/oracle_rust_cpu.go，以既有tools/go.sh的Docker入口執行；來源／雜湊保存在相鄰素材的既有direct-go-v1，Rust只讀固定二進位記錄，不呼叫Go CPU。這項比較證明Go移植相符，不等於實機exact；004的公開CPU測試須在後續完整Machine接線後全部重跑，才滿足可玩版底層閘門。
 
 首次先保留逐指令路徑；可選FetchMemory快速擷取、008 §7倒數折疊、025 typed-call及PGXP／BREAK呈現掛點另接，不以它們缺少而更動正常CPU語意，現有Go版不改。此READY不包含週邊匯流排、正式觀測API格式、GUI／HD、遊戲繪圖接管或正常月下可玩驗收。所有完整機器／HD目標仍OPEN。
 
-### 4.2 StarPSX指定參考與本機結果
 
-使用者明確指定https://github.com/kaezrr/starpsx。2026-10-28核對main仍為e8551eedac6d15a4ed7b7fb123c70f97217d1ed4，與前次固定版相同；本機release編譯及一次正常BIOS／同卡／等價CUE／固定按鍵試跑完成9000次run_frame，GPU計數8225。一次集中技術檢視確認4500／7000／8382／9000的完整RGBA相同且為Konami標誌，重現上游相容表，未到月下遊玩。原始碼與原資料未修改，未補錯誤容忍、時間特例或注入遊戲狀態。
+## 7. 自有Rust最小機器
 
-參考重點為core／renderer／frontend分層、GPU裝置獨立的CPU framebuffer介面與以const generic分化圖元模式。RAM／scratch零初態可供對照，尚不是本案完整決定性驗收。System::run_frame每20指令固定增加40週期，step_instruction固定2週期；不能沿用作本案008時鐘，也不能用33.816秒的診斷執行時間推導相對Go的速度。renderer是軟體光柵化，不等於本案硬體GPU／HD已接好。
+狀態：CONFORMED，限006的M2＋007的GPU／DMA2／OTC及008所移植週期。1024個Go掃描事件、64份完整輸出摘要、四個機器案例、兩份真BIOS及六個公開CPU程式通過；未含完整M4裝置。來源343afa4的machine/machine.go、io.go、exe.go、internal/gpu/gpu.go及screen.go；各輸入／BIOS／公開語料SHA由相鄰素材既有direct-go-v1/rust-machine-plan-v1.json保存。CPU與GTE承接§5–6，不改其指令語意。Rust Machine分持Cpu與SystemBus，直接執行自有Rust，無Go或其他核心FFI。
 
-來源為固定commit的core/src/lib.rs、core/src/mem.rs、renderer/src/lib.rs與Compatibility.md；GPLv3 LICENSE及來源SHA由私人rust-starpsx-source-v1.json保存。沒有將上游實作複製進正式引擎；自有CPU與GTE沿本repo4951d1e的相容授權來源。CPU差分只證明Go移植相符，RAM／存取用摘要，完整架構／GTE／快取／時間直接比較。接下來須接匯流排、DMA、IRQ／timer、CD-ROM、SPU、SIO／卡片、MDEC與GPU掃描時序，重跑004／006原語料及正常月下後才稱Rust可玩。
+記憶體、區段／鏡像、scratch例外／隔離、BIU與ReadCost沿006／008；TTY攔A(3C)及B(3D)，BIOS從BFC00000正常到ShellEntry 80030000後才側載公開測試。PS-EXE解析驗證範圍、載入／BSS與GP／SP／argc依006及既有exe.go，不注入遊戲狀態。普通ROM開機與側載硬體測試分列。
+
+GPU新增原Go掃描與Screen契約，11/7整數時鐘、NTSC／PAL與交錯場、VBlank／GPU IRQ及顯示讀出奇偶。softReset不清掃描進度；舊GP0光柵化與命令流benchmark的set_field保持。DMA2 block／linked-list、OTC6、DICR及timer 0–2沿Go實作，CHCR及窄寫入全來源值／合併分類保持。同步先採008 ExactTiming每條指令結束推進，I/O發生在本指令尚未退休時，IRQ在下一指令邊界處理，不採StarPSX固定2 CPI。
+
+本M2初始切片的CD／SPU／SIO／MDEC保留006 §2明示的初始化暫存器契約，SIO現已由§8取代：CD無命令進行狀態，SPU暫存器與SPUSTAT低6位，SIO傳送就緒，MDEC忽略。未移植的DMA通道沿006的完成模型，沒有偽造光碟、聲音、手把／卡片或影片資料。Rust命令只接受BIOS與測試EXE，尚無光碟／遊戲啟動入口。後續完整裝置須各依009／010／011／013補READY切片，這裡不當可玩或M4相容完成。
+
+集中驗證：必要RAM／scratch／BIU／IRQ／窄寫入及DMA／timer／video與CPU取指整合，先比新GPU掃描輸出與固定Go事件；再真BIOS正常到ShellEntry，執行006列出的cpu/cop、cpu/code-in-io與gte/test-all，沿原100000000週期、原TTY正規化與唯一已知Total tests漂移。缺BIOS／公開語料明列skip；不跑舊GPU／GTE矩陣。通過範圍限Rust M2架構整合，不代替正常月下／HD／GPU前端、速度或三平台交付。
+
+### 7.1 驗證入口與現行能力
+
+正式來源為rust/src/machine.rs、machine/dma.rs、machine/timers.rs與gpu/video.rs；公開期望資料產生器為tools/oracle_rust_video.go及tools/oracle_rust_sio.go，不含原遊戲。Rust命令列為rust/src/bin/machine_probe.rs，Cargo binary名psgolem-machine-probe。現有Docker工具映像dosgolem-rust-sc:1.99.1-r1提供rustc/cargo 1.99.1；在有界、UID/GID對應、網路關閉的容器中於rust/執行cargo build --release --offline --locked --bin psgolem-machine-probe，CARGO_TARGET_DIR放明確可寫輸出根。這是本機既有工具鏈，不隨程式散布，未稱三平台Rust包已完成。
+
+在ps-golem根目錄，先確認既有映像與來源，再用Docker建置。輸出留在既有workplace研究根，不建立交付包：
+
+```sh
+set -eu
+test -f rust/Cargo.toml
+docker image inspect dosgolem-rust-sc:1.99.1-r1
+timeout -k 10s 180s docker run --pull never --rm --init \
+  --user "$(id -u):$(id -g)" --memory 2g --cpus 2 --pids-limit 128 \
+  --network none --log-opt max-size=10m --log-opt max-file=3 \
+  -v "$PWD":/engine:rw -w /engine/rust \
+  -e CARGO_TARGET_DIR=/engine/workplace/rust-target \
+  --entrypoint cargo dosgolem-rust-sc:1.99.1-r1 \
+  build --release --offline --locked --bin psgolem-machine-probe
+```
+
+執行時同樣保留資源／逾時與非root限制，將引擎唯讀掛至/engine、已存在的BIOS目錄唯讀掛至/bios、已存在的輸出目錄可寫掛至/out，entrypoint改為/engine/workplace/rust-target/release/psgolem-machine-probe。此入口只支援本機Linux原生M2驗證，三平台與玩家GUI待後續接線。
+
+命令 -bios <512KB檔> -exe <公開測試EXE> -cycles <週期> -tty <輸出檔> -state <輸出前綴>。程式先真BIOS到80030000，再依006正常側載指定公開測試。未給EXE而用-cycles 0只驗BIOS核心入口。-state是本機除錯輸出RAM、原生VRAM及CPU／GTE／快取JSON，未定義存檔或正式觀測API格式。BIOS與原資料唯讀掛載，原生畫面／RAM／卡片不加入Git。
+
+初始M2案例與影像／公開程式均首次通過。SIO取代實際I/O空殼後另做一次必要兩BIOS／六程式整合，全部通過，沒有重跑GPU／GTE舊矩陣。BIOS入口SCPH5500為68939104週期、SCPH-100為68913704週期，皆field120；每份BIOS的cop／code-in-io／gte/test-all分別19／10／5行完全相同。CLI首次正常啟動與JSON／2MB RAM／1MB VRAM輸出另驗，不以它代替月下。
+
+CD-ROM／DMA3、SPU／DMA4與音訊、MDEC／DMA0–1、光碟開機到遊玩仍待接。手把與卡片目前只有原硬體協定／機器接線，USB／藍芽前端設定、原卡持久化與正常遊戲存讀檔未驗。HD、海報、GUI與完整速度目標保持，Rust可玩版未交付。詳細首輪與來源沿相鄰素材direct-go-v1/rust-machine-summary-v1.json及原始日誌，Issue #19保持OPEN。
+
+## 8. 自有Rust手把與記憶卡
+
+狀態：CONFORMED，限010的數位手把／SIO0及128KB原卡協定。22580個Go事件、兩張完整131072-byte測試卡、三個新案例及接線後兩BIOS／六公開程式通過；未含實體手把或遊戲存檔驗收。來源343afa4的internal/sio/sio.go與memcard.go，延續Beetle frontio.c e57860d82faa953dc0fc10f201fd583739bc2f7d GPL-2.0-or-later參照，本repo Rust實作維持GPL-3.0-or-later。Rust來源rust/src/sio.rs與sio/card.rs；不搬StarPSX裝置實作。
+
+保留兩埠的pad／card有線AND、DTR、bit時鐘、收發暫存器、mode／control／baud遮罩、ACK延遲與32週期脈衝、IRQ／NextEvent、重置及取消選擇。Gamepad按下位元輸入為1、協定回送active-low，ID 5A41。原卡Format／Load長度、旗標／XOR／位址邊界、成功Writes及內容變更Dirty分開，寫入協定不得直接改原檔。
+
+Machine以真SIO取代§7的SIO0初始化空殼，保留SIO1。I/O寬度及偏移沿原Go：Read/Write(p&0xE)，SIO0在每條CPU退休時Tick，IRQ上升送I_STAT bit7。Machine clone深拷貝pad/card，前端的USB／已配對藍芽設定與卡片檔案持久化尚未接，不將協定通過稱實體手把或遊戲存檔驗收。
+
+集中驗證以固定Go原bit／register事件比較RX、SR、IRQ、時鐘、ACK及卡片摘要，含合法／錯XOR／越界／相同內容重寫及兩埠；Rust單獨執行，不呼叫Go核心。整合後只補新SIO相關的機器驗證與必要BIOS／公開CPU程式回歸，舊GPU／GTE矩陣保持。CD／SPU／MDEC與月下仍未接完，原版／HD及舊Go候選不變。

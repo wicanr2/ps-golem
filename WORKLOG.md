@@ -2437,3 +2437,16 @@ StarPSX可參考core／renderer分層、純CPU framebuffer介面、零RAM／scra
 新Go基準從固定0xc0ffee產生364組各16步，Rust首次5824個完整CPU／GTE讀回／快取／時間直接相同，RAM與完整來源寫值／實際讀取以FNV64摘要比較。這是Go移植差分，不是原版硬體CPU程式或月下可玩驗收。已過GPU及GTE案例不重跑，沒有新美術、GUI／HD／硬體GPU、速度或雙擊包。完整Machine／週邊、004公開CPU程式、正常月下、音訊／存檔／輸入與HD仍OPEN。
 
 來源及結果由既有direct-go-v1/rust-cpu-gte-summary-v1.json、rust-gte-plan-v1.json／rust-gte-test-v1.log、rust-cpu-plan-v1.json／rust-cpu-oracle-v1.bin／rust-cpu-test-v1.log、rust-starpsx-source-v1.json／rust-starpsx-normal-v1.jsonl索引，工具入口素材docs/assets-catalog.md#render-control。兩份Rust契約與各首次結果分列，不把局部進度稱完整版。原資料與候選來源不入公開Git；commit／push、Issue #19／#17／素材#13與UID／Docker收尾沿publication-rust-cpu-gte-v1.json。沒有tag／Release。
+
+
+## 2026-10-28 Rust最小機器、BIOS及SIO／原卡
+
+026 §7先READY後實作，Rust CPU／GTE接自有SystemBus、RAM／scratch／BIU與存取成本、IRQ、timer、GPU掃描、Screen及DMA2／OTC。沿008原11/7時鐘與每條指令退休後同步，不用固定2 CPI，窄寫入保留完整來源值。初始CD／SPU／SIO／MDEC保留006已定義的M2初始化契約，沒有偽造光碟或聲音；CPU與GTE原核心不改。
+
+首次Go掃描1024事件及64份完整顯示摘要相同，涵蓋PAL／交錯／顯示模式／重置／IRQ與15／24-bit輸出；四個新記憶體／取指、DMA／DICR／整包鏈、timer／IRQ／分段時鐘、PS-EXE案例通過。兩份真BIOS正常從BFC00000到80030000，SCPH5500／SCPH-100分別68939104／68913704週期、field120；cpu/cop、cpu/code-in-io、gte/test-all各19／10／5行，六個配對與硬體psx.log完全相同。只沿006已列的Total tests: 1150漂移；公開測試側載不冒充正常月下。
+
+接續026 §8先READY後移植自有SIO與記憶卡。兩埠有線AND、DTR／bit／ACK時鐘、IRQ7、digital pad與固定128KB原卡、XOR／位址／Dirty／Writes及深拷貝接線完成。首次22580個Go事件及兩張完整測試卡逐位元組相同；三個新載入／所有權、IRQ接線與協定案例通過。原卡只用新建測試資料，不讀寫既有玩家存檔。因SIO取代實際I/O空殼，對新接線補一次必要的兩BIOS／六公開程式，仍全部相同；初始M2來源與程式保留，不改舊收據。
+
+Rust驗證CLI首次實際啟動，真BIOS到核心入口後輸出CPU／GTE／cache JSON、2MB RAM與1MB原生VRAM，格式與入口核對通過。這是本機開發工具，沒有光碟／遊戲前端；未稱完整觀測API或存檔格式。舊GPU／GTE矩陣與美術重跑0，新圖像／GUI／實體GPU／速度聲明0。原版／HD、CPU／GPU、海報及Go雙擊候選保持，未打包／tag／Release。
+
+§6 CPU架構已由真BIOS／公開程式補驗；§7限M2機器與掃描／§8限SIO／原卡協定CONFORMED。CD／SPU／MDEC與相依DMA、正常月下／聲音／存讀檔、HD／GUI及三平台Rust可玩包仍OPEN，工作沿Issue #19。來源、初始／接線後日誌、舊M2對應與CLI原資料沿既有direct-go-v1/rust-machine-summary-v1.json、rust-machine-execution-v1.json、rust-machine-m2-source-resolve-v1.json及rust-sio-execution-v1.json索引，工具入口docs/assets-catalog.md#render-control。原資料不入公開Git。commit／push、Issues與UID／Docker收尾另存publication-rust-machine-v1.json。
