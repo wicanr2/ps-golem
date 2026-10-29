@@ -2631,3 +2631,18 @@ LOGO與OPN的HD影片已接入Rust玩家視窗。唯一正常原M4前綴12000場
 五個前端小型案例首次通過，包含兩個新來源／校驗邊界與三個受影響既有案例；核心舊矩陣重跑0。新標準Adler32與v6初值0的差異在GUI驗證前固定代數正規化公式，保留舊收據與兩側圖片；兩張GUI另以獨立FFmpeg完整RGB逐位元組相同。診斷capture-fields只等待正常場呈現，不注入RAM／PC；正式無此gate。原腳本START6800仍由原生判斷，未強制跳片。一次集中技術目視兩張正常視窗，不重審既有美術。
 
 建置沿既有Rust GUI工具a5b26f4，執行沿既有含SDL2／FFmpeg／Xvfb的kol-package 0b933af，沒有新建映像或掛主機runtime。固定來源、命令、build log、兩張原圖與驗收沿rust-hd-window-v1，私人工具verify_rust_hd_window.py由素材docs/assets-catalog.md#render-control索引；accept只核對保存結果。原圖只依既有授權加入私人README，公開引擎沒有媒體；Go雙擊包、設定與素材保持。收尾／提交／推送與Issue收據見同根publication.json。
+
+
+## 2026-10-29 Rust海報、工具列與偏好保存
+
+先依024既有Go來源及SDK核對契約，再補§6 READY。Rust新增poster.rs／preferences.rs，前端一次驗證與載入三案六PNG，沿16:9畫布、4:3比例、外側九點鏡射融合及黑邊守門16/15放大。F1恢復工具列，暫停移至F2／按鈕；新設定只合併posters／poster已知欄位，同目錄暫存／sync／rename，保存失敗不套用。Movie Session、worker與核心演算法保持，沒有新素材格式或重繪。
+
+Rust視窗已接入定案A／B／C海報、關閉、外側九點柔和融合、安全16/15等比放大及偏好保存。F1／滑鼠上緣顯示工具列，F2或工具列按鈕暫停；切換海報不新增PS按鍵或改機器狀態。正常原版讀檔9000場與HD LOGO至2600場的完整RAM／VRAM／原音及已驗原像素／卡片保持，原版與HD各一次正常路線；同一暫停場切換全部選項、保存失敗不套用及706場獨立重開通過。中央在相同縮放下切換款式／柔和逐像素保持，HD中央完整RGB同來源。其他HD、手把及未知JSON欄位保持。
+
+完整手把設定、實體設備、GPU模糊／影片解碼、其他影片與三平台Rust雙擊包仍待完成，速度未過關。Go與SDL縮放／融合不宣稱逐位元相同；幾何與來源RGBA相同，外側非邊界誤差維持三階，四張原版比較的2283個超出三階位置均落在精確最近點取樣邊界，全部吻合相鄰選樣模型；原始最大差24保留，產品與圖片未改。
+
+八個前端小型案例首次通過。唯一原版讀檔與HD前綴分別254.897／59.532秒，含互動暫停與截圖；音訊補零7339560／654304個i16，不作速度比較或實體音訊聲明。各425／319次暫停檢查保持場／週期／音訊消費，全部切換同一凍結場，恢復後完整端點／原音符合舊基準。單次短重開706場記住B、soft=false、zoom=true及路徑；原設定、手把及額外未知欄位保持。原版／HD各一次、短重開一次，無RAM／PC注入，原卡用副本。
+
+Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK後於執行前修正TestMain，初稿與SHA差異保留，不當成產品失敗。初次像素接納把所有側邊一律要求三階，native-a-soft最大24而停止。只分析既有資料及平台規格，精確有理數定位邊界與四種相鄰選樣覆蓋四張比較全部2283個位置，模型殘差最大2.175；非邊界仍三階，沒有提高門檻、改產品、改圖片或重跑遊戲。原始Go全畫面差異與其本身nearest縮放差異保留，不稱跨後端逐位元相同。接納修正腳本的引號準備問題在執行前更正，亦保留紀錄。
+
+一次集中技術目視工具列與HD影片海報，定案美術審查0。私人工具verify_rust_posters.py、audit_rust_poster_sampling.py、record_rust_posters.py由素材docs/assets-catalog.md#render-control進入，rust-poster-v1保存plan／execution、source PNG、Go shader參考、sampling-audit、首次失敗與acceptance-resolution／acceptance；本機index.html只切換真實已驗截圖。來源／原資料唯讀，唯一/output可寫，所有寫入UID1000。公開引擎無圖片或原資料，授權畫面只存私人README。Go雙擊包、原偏好與定案素材保持；提交／推送、Issue及Docker清理收據見同根publication.json。

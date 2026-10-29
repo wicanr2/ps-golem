@@ -134,3 +134,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## Rust HD影片視窗接續（2026-10-29）
 
 027 §15限定CONFORMED，正式綁定在ps-golem rust/player/src/apps/sotn.rs。-native保留原版，-sotn-hd-movies DIR只接已驗LOGO／OPN並互斥；來源完整扇區及素材SHA須符合，首格在完整場發布前準備再Session.begin，不中途升HD。正常12000場4258場HD、OPN3641場序號／RGB、完整端點／原音同既有基準；實際F1凍結續播、活動影片WM關窗回收、錯SHA／缺檔回原生已驗。本前端只開2次decoder，不為交錯讀碟候選重複預讀。海報／完整設定、實體聲音／手把、TYK／END事件、GPU解碼與Rust雙擊包仍待接，速度未過。私人工具verify_rust_hd_window.py與rust-hd-window-v1收據由素材docs/assets-catalog.md#render-control進入。既有Go包、四段素材與已定案美術保持。
+
+
+## Rust海報與工具列接續（2026-10-29）
+
+024 §6限定CONFORMED，入口rust/player/src/poster.rs、preferences.rs。外部A／B／C／關閉、九點外側融合、黑邊安全16/15放大、同schema偏好保存與706場重開已驗；原版9000及HD LOGO2600端點／原音保持，中央相同縮放切換逐像素保持。F1恢復工具列顯示，手動暫停為F2或按鈕；完整手把面板另接。Go／SDL取樣邊界差異保留，不稱GPU逐位元相同；CPU計算融合帶再交SDL，沒有GPU模糊／影片解碼聲明。私人工具verify_rust_posters.py、audit_rust_poster_sampling.py及record_rust_posters.py由素材docs/assets-catalog.md#render-control進入rust-poster-v1，原版／HD各一次正常路線，核心／美術不重跑。速度、實體設備、其他影片與三平台Rust包仍待；Go包、原設定及定案素材保持。

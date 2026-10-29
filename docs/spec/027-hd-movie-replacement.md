@@ -289,3 +289,6 @@ HD RGB24按原通道轉RGBA供SDL整張呈現，以Arc保存一張不可變目�
 五個前端小型案例首次通過，含兩個新來源／校驗邊界及三個既有受影響前端案例，舊核心／美術矩陣未重跑。新GUI逐場標準Adler32與v6初值0經本節已固定公式比對，兩張實際視窗另與獨立解碼完整RGB相同。關窗測試由真WM_DELETE_WINDOW在活動LOGO中觸發，Session.end／worker join／原卡保存成功，容器內ffmpeg／ffprobe殘留0。錯SHA與缺OPN只用核准影片的私有測試副本，不動原片／定案素材；正常1場回原生，來源綁定0、decoder0，兩項原因如實回報。
 
 私人工具verify_rust_hd_window.py由素材docs/assets-catalog.md#render-control進入；prepare、run、accept依序執行，accept只讀已保存結果。固定來源、建置、實際命令、逐場資料、兩張視窗原圖與驗收沿direct-go-v1/rust-hd-window-v1/{plan,execution,acceptance}.json，工具與輸入唯讀，唯一/output可寫。這不是實體GPU／音訊、成功跳過OPN、全片人工聆聽、全部影片或正式Rust雙擊包驗收。
+
+
+§15海報接續：024 §6已將同一外部海報接入Rust原版及HD影片，LOGO正常617場與原端點保持。F1現在顯示工具列，F2／工具列按鈕沿原有Session凍結；舊§15完整OPN時間線證據直接承接，不重播。較早「海報尚未遷移」以024 §6為準，GPU解碼／其餘影片與正式包保持待辦。

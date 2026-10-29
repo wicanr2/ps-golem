@@ -3,6 +3,8 @@
 mod apps;
 mod display;
 mod input;
+mod poster;
+mod preferences;
 mod worker;
 use psgolem_core::{cardfile, disc::Disc, machine::Machine};
 use sdl2::{
@@ -36,6 +38,11 @@ struct Options {
     ffmpeg: PathBuf,
     ffprobe: PathBuf,
     captures: Vec<u64>,
+    settings: Option<PathBuf>,
+    posters: Option<String>,
+    poster: Option<String>,
+    poster_soft: Option<bool>,
+    poster_zoom: Option<bool>,
 }
 fn options() -> Result<Option<Options>> {
     let mut o = Options {
@@ -47,15 +54,21 @@ fn options() -> Result<Option<Options>> {
     let mut args = env::args().skip(1);
     while let Some(a) = args.next() {
         if a == "-h" || a == "--help" {
-            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；海報與完整設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 暫停／續播；Esc 關窗保存原卡。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
+            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
             return Ok(None);
         }
         if a == "-version" {
-            println!("psgolem-player Rust original preview / spec026 section14");
+            println!("psgolem-player Rust preview / specs024,026,027");
             return Ok(None);
         }
         match a.as_str() {
             "-native" => o.native = true,
+            a if a.starts_with("-poster-soft=") => {
+                o.poster_soft = Some(a[13..].parse().map_err(|_| "poster-soft須為true或false")?)
+            }
+            a if a.starts_with("-poster-zoom=") => {
+                o.poster_zoom = Some(a[13..].parse().map_err(|_| "poster-zoom須為true或false")?)
+            }
             "-mute" => o.mute = true,
             "-unpaced" => o.unpaced = true,
             _ => {
@@ -78,6 +91,15 @@ fn options() -> Result<Option<Options>> {
                     "-report" => o.report = Some(v.into()),
                     "-screenshot" => o.screenshot = Some(v.into()),
                     "-present" => o.present = v,
+                    "-settings" => o.settings = Some(v.into()),
+                    "-posters" => o.posters = Some(v),
+                    "-poster" => o.poster = Some(v),
+                    "-poster-soft" => {
+                        o.poster_soft = Some(v.parse().map_err(|_| "poster-soft須為true或false")?)
+                    }
+                    "-poster-zoom" => {
+                        o.poster_zoom = Some(v.parse().map_err(|_| "poster-zoom須為true或false")?)
+                    }
                     "-sotn-hd-movies" => o.movies = Some(v.into()),
                     "-ffmpeg" => o.ffmpeg = v.into(),
                     "-ffprobe" => o.ffprobe = v.into(),
@@ -192,6 +214,7 @@ fn entry() -> Result<()> {
         .as_ref()
         .map(|s| psgolem_core::input::parse(s))
         .transpose()?;
+    let (mut prefs, pack, mut poster_error) = poster_setup(&o)?;
     let sdl = sdl2::init()?;
     let video = sdl.video()?;
     let controllers = sdl.game_controller()?;
@@ -223,6 +246,9 @@ fn entry() -> Result<()> {
     let font = display::Font::load()?;
     let tc = canvas.texture_creator();
     let font_texture = font.texture(&tc)?;
+    let mut posters = pack
+        .map(|pack| poster::Renderer::new(&tc, pack))
+        .transpose()?;
     let audio = Arc::new(worker::Audio::default());
     let audio_system = if o.mute {
         None
@@ -273,6 +299,11 @@ fn entry() -> Result<()> {
     let mut freeze = None::<(u64, u64, u64)>;
     let mut freeze_checks = 0u64;
     let mut captures = std::collections::BTreeMap::<u64, serde_json::Value>::new();
+    let mut pinned = false;
+    let mut poster_events = Vec::<serde_json::Value>::new();
+    let mut pause_sources = Vec::<serde_json::Value>::new();
+    let mut poster_layout = None::<poster::Layout>;
+    let mut observed_ui = None::<serde_json::Value>;
     // Always reach cleanup after the worker has started, including renderer errors.
     let gui_result = (|| -> Result<()> {
         'ui: loop {
@@ -289,9 +320,55 @@ fn entry() -> Result<()> {
                         repeat: false,
                         ..
                     } => {
+                        pinned = !pinned;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::F2),
+                        repeat: false,
+                        ..
+                    } => {
                         let mut s = shared.state.lock().unwrap();
                         s.pause = !s.pause;
                         shared.wake.notify_all();
+                    }
+                    Event::MouseButtonDown {
+                        mouse_btn: sdl2::mouse::MouseButton::Left,
+                        x,
+                        y,
+                        ..
+                    } => {
+                        let width = canvas.output_size()?.0;
+                        if toolbar_visible(pinned, x, y, width) && (2..30).contains(&y) {
+                            if (116..222).contains(&x) {
+                                let mut st = shared.state.lock().unwrap();
+                                st.pause = !st.pause;
+                                shared.wake.notify_all();
+                            } else if let Some(renderer) = posters.as_ref() {
+                                let mut next = prefs.choice.clone();
+                                let mut change = true;
+                                if (230..324).contains(&x) {
+                                    next.id = renderer.next(&next.id);
+                                } else if (332..402).contains(&x) {
+                                    next.soft = !next.soft;
+                                } else if (410..480).contains(&x) {
+                                    next.zoom = !next.zoom;
+                                } else {
+                                    change = false;
+                                }
+                                if change {
+                                    let result = prefs.save(&next);
+                                    if let Err(e) = &result {
+                                        poster_error = format!("儲存失敗：{e}");
+                                    } else {
+                                        prefs.choice = next;
+                                        poster_error.clear();
+                                    }
+                                    let st = shared.state.lock().unwrap();
+                                    poster_events.push(json!({"field":st.field,"cycles":st.cycles,"ok":result.is_ok(),
+                                        "id":prefs.choice.id,"soft":prefs.choice.soft,"zoom":prefs.choice.zoom,"error":poster_error}));
+                                }
+                            }
+                        }
                     }
                     Event::ControllerDeviceAdded { .. } | Event::ControllerDeviceRemoved { .. } => {
                         rescan = true
@@ -345,6 +422,12 @@ fn entry() -> Result<()> {
                 if paused {
                     freeze = Some((field, cycles, audio.consumed.load(Ordering::Relaxed)));
                     eprintln!("暫停確認 field={field} cycles={cycles}");
+                    if let (Some(prefix), Some(f)) = (&o.report, &latest) {
+                        let path = prefix
+                            .with_extension(format!("pause{}-source.png", pause_sources.len() + 1));
+                        display::png(&path, f.w, f.h, &f.rgba)?;
+                        pause_sources.push(json!({"path":path,"field":field,"cycles":cycles,"width":f.w,"height":f.h,"rgba_sha256":worker::hash(&f.rgba)}));
+                    }
                 } else {
                     freeze = None;
                     eprintln!("續播 field={field} cycles={cycles}");
@@ -366,31 +449,67 @@ fn entry() -> Result<()> {
                     .map_err(|e| e.to_string())?;
                 t.update(None, &f.rgba, f.w as usize * 4)
                     .map_err(|e| e.to_string())?;
-                canvas.copy(&t, None, display::fit(size_w, size_h))?;
+                poster_layout = if let Some(renderer) = posters.as_mut() {
+                    renderer.draw(&mut canvas, f, &t, &prefs.choice)?
+                } else {
+                    None
+                };
+                if poster_layout.is_none() {
+                    canvas.copy(&t, None, display::fit(size_w, size_h))?;
+                }
                 shown = f.field;
             }
-            if pause {
-                canvas.set_draw_color(Color::RGBA(20, 20, 30, 235));
-                canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
-                canvas.fill_rect(sdl2::rect::Rect::new(12, 12, (size_w - 24).min(900), 92))?;
-                font.draw(
+            let mouse = events.mouse_state();
+            if toolbar_visible(pinned, mouse.x(), mouse.y(), size_w) {
+                canvas.set_draw_color(Color::RGB(37, 42, 53));
+                canvas.fill_rect(sdl2::rect::Rect::new(0, 0, size_w, 32))?;
+                font.draw(&mut canvas, &font_texture, "ps-golem", 14, 4)?;
+                toolbar_button(
                     &mut canvas,
+                    &font,
                     &font_texture,
-                    if paused {
-                        "暫停  F1 繼續  Esc 離開"
+                    116,
+                    106,
+                    if pause { "繼續" } else { "暫停" },
+                    pause,
+                )?;
+                if let Some(renderer) = posters.as_ref() {
+                    let label = if renderer.selected(&prefs.choice.id) {
+                        format!("海報 {}", prefs.choice.id)
                     } else {
-                        "等待場邊界暫停"
-                    },
-                    26,
-                    24,
-                )?;
-                font.draw(
-                    &mut canvas,
-                    &font_texture,
-                    &format!("field {field}  cycles {cycles}  input {mask:04X}"),
-                    26,
-                    55,
-                )?;
+                        "海報 關閉".into()
+                    };
+                    toolbar_button(
+                        &mut canvas,
+                        &font,
+                        &font_texture,
+                        230,
+                        94,
+                        &label,
+                        renderer.selected(&prefs.choice.id),
+                    )?;
+                    toolbar_button(
+                        &mut canvas,
+                        &font,
+                        &font_texture,
+                        332,
+                        70,
+                        "柔和",
+                        prefs.choice.soft,
+                    )?;
+                    toolbar_button(
+                        &mut canvas,
+                        &font,
+                        &font_texture,
+                        410,
+                        70,
+                        "放大",
+                        prefs.choice.zoom,
+                    )?;
+                }
+                if !poster_error.is_empty() {
+                    font.draw(&mut canvas, &font_texture, &poster_error, 14, 36)?;
+                }
             }
             if o.screenshot.is_some() && (done || pause) {
                 screenshot = Some(canvas.read_pixels(None, PixelFormatEnum::RGBA32)?);
@@ -420,11 +539,34 @@ fn entry() -> Result<()> {
                 s.presented_field = shown;
                 shared.wake.notify_all();
             }
+            if let Some(prefix) = &o.report {
+                let layout=poster_layout.map(|l|json!({"canvas":[l.canvas.x(),l.canvas.y(),l.canvas.width(),l.canvas.height()],"game":[l.game.x(),l.game.y(),l.game.width(),l.game.height()],"zoomed":l.zoomed}));
+                let mouse = events.mouse_state();
+                let key = json!({"id":prefs.choice.id,"soft":prefs.choice.soft,"zoom":prefs.choice.zoom,"error":poster_error,
+                    "pinned":pinned,"visible":toolbar_visible(pinned,mouse.x(),mouse.y(),size_w),"paused":paused,"pause_requested":pause,
+                    "width":size_w,"height":size_h,"layout":layout});
+                if observed_ui.as_ref() != Some(&key) {
+                    let mut state = key.clone();
+                    state["field"] = json!(field);
+                    state["cycles"] = json!(cycles);
+                    let temporary = prefix.with_extension("ui.tmp");
+                    let target = prefix.with_extension("ui.json");
+                    fs::write(
+                        &temporary,
+                        serde_json::to_vec(&state).map_err(|e| e.to_string())?,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    fs::rename(temporary, target).map_err(|e| e.to_string())?;
+                    observed_ui = Some(key);
+                }
+            }
             draws += 1;
             if last_title.elapsed() > Duration::from_millis(500) {
                 canvas
                     .window_mut()
-                    .set_title(&format!("ps-golem Rust {mode} | field {field} | F1 暫停"))
+                    .set_title(&format!(
+                        "ps-golem Rust {mode} | field {field} | F1 工具列 | F2 暫停"
+                    ))
                     .map_err(|e| e.to_string())?;
                 last_title = Instant::now();
             }
@@ -459,6 +601,17 @@ fn entry() -> Result<()> {
     report["audio_queue_high_water_i16"] = json!(audio.high_water.load(Ordering::Relaxed));
     report["pause_frozen_gui_checks"] = json!(freeze_checks);
     report["captures"] = json!(captures);
+    report["poster"] = json!({"id":prefs.choice.id,"soft":prefs.choice.soft,"zoom":prefs.choice.zoom,
+        "path":prefs.pack,"settings":prefs.path,"pack_loaded":posters.is_some(),"error":poster_error,
+        "name":posters.as_ref().map(|p|p.name(&prefs.choice.id))});
+    report["poster_events"] = json!(poster_events);
+    report["pause_sources"] = json!(pause_sources);
+    report["poster_layout"] = poster_layout
+        .map(|l| {
+            json!({"canvas":[l.canvas.x(),l.canvas.y(),l.canvas.width(),l.canvas.height()],
+        "game":[l.game.x(),l.game.y(),l.game.width(),l.game.height()],"zoomed":l.zoomed})
+        })
+        .unwrap_or(json!(null));
     report["worker_error"] = json!(state.error);
     report["gui_error"] = json!(gui_result.as_ref().err());
     if let Some(p) = &o.report {
@@ -482,4 +635,65 @@ fn entry() -> Result<()> {
         return Err(e);
     }
     Ok(())
+}
+
+fn toolbar_visible(pinned: bool, x: i32, y: i32, w: u32) -> bool {
+    pinned || (x >= 0 && (x as u32) < w && (0..32).contains(&y))
+}
+fn toolbar_button(
+    c: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    font: &display::Font,
+    t: &sdl2::render::Texture<'_>,
+    x: i32,
+    w: u32,
+    label: &str,
+    active: bool,
+) -> Result<()> {
+    c.set_draw_color(if active {
+        Color::RGB(71, 123, 187)
+    } else {
+        Color::RGB(52, 65, 85)
+    });
+    c.fill_rect(sdl2::rect::Rect::new(x, 2, w, 28))?;
+    font.draw(c, t, label, x + 8, 4)
+}
+fn poster_setup(o: &Options) -> Result<(preferences::Preferences, Option<poster::Pack>, String)> {
+    let saved = preferences::Preferences::load(o.settings.clone())?;
+    let mut next = saved.clone();
+    if let Some(p) = &o.posters {
+        next.set_pack(p.clone())?;
+    }
+    if let Some(id) = &o.poster {
+        next.choice.id = id.clone();
+    }
+    if let Some(v) = o.poster_soft {
+        next.choice.soft = v;
+    }
+    if let Some(v) = o.poster_zoom {
+        next.choice.zoom = v;
+    }
+    next.choice.validate()?;
+    let mut error = String::new();
+    let pack = match next.pack_path().map(|p| poster::Pack::load(&p)).transpose() {
+        Ok(p) => p,
+        Err(e) => {
+            error = format!("海報載入失敗：{e}");
+            eprintln!("{error}");
+            return Ok((saved, None, error));
+        }
+    };
+    if o.posters.is_some()
+        || o.poster.is_some()
+        || o.poster_soft.is_some()
+        || o.poster_zoom.is_some()
+    {
+        if let Err(e) = next.save(&next.choice) {
+            error = format!("儲存失敗：{e}");
+            eprintln!("{error}");
+            drop(pack);
+            let pack = saved.pack_path().and_then(|p| poster::Pack::load(&p).ok());
+            return Ok((saved, pack, error));
+        }
+    }
+    Ok((next, pack, error))
 }
