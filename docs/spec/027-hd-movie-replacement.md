@@ -97,3 +97,29 @@ KONAMI原生156格與LOGO原檔168格尚無逐格映射證據，不能把10.293�
 有聲H.264研究版1177341 bytes，同段原片放大對照1065875 bytes；兩者皆30格、起點0／片長2秒，完整音畫解碼無錯，44100Hz雙聲道AAC。AI版原音與同段來源零偏移相關度0.9995662291、SNR30.5737dB。技術封裝通過，建築幾何閘門未通過，§7維持DRAFT，禁止自動批次處理整片或安裝遊戲。下一窄問題是為剛性建築加幾何約束，母稿保持，不再重開美術。這是一次研究檢查，沒有為用滿審查次數重跑。
 
 輪檔SHA／Python ABI與來源沿私人hd-flow-runtime-v1.json，光流／逐格／編碼原始結果hd-flow-plan-v1.json、hd-flow-propagation-v1.json、hd-flow-encoded-v1.json，完整限定紀錄hd-flow-summary-v1.json。工具prepare_hd_movie_flow.py、propagate_hd_movie_flow.py、encode_hd_movie_flow.py、record_hd_movie_flow.py由素材docs/assets-catalog.md#render-control索引。只有私人預覽提供同段對照及原音；原片、母稿、輪檔、逐格資料與MP4均未公開，沒有正式HD影片或播放器接入完成聲明。
+
+
+## 8. 完整離線候選與硬質物體幾何
+
+狀態：DRAFT，離線製作候選，未接正式播放器。使用者2026-10-29更新優先順序：先完成影片HD，再集中確認合理性，並回報兩秒片段右下角岩石晃動。本條取代§7的先逐次短片審查再批次停止線，允許先產出完整候選；既有失敗保留，沒有把未驗畫質改成通過，也不重畫已核准母稿。
+
+來源仍為§2四段STR及§6完整原音，時間戳基準是FFmpeg解出的原片PTS，非CPU位址。OPN 922格／61.466667秒、TYK555格／37秒、END743格／49.533333秒，音軌分別61.6／36.48／46.88秒，起點均0。保留各軌原長度，不以shortest刪音、伸縮配音或新增背景音樂。LOGO外部解碼失敗與原生156格的來源映射仍未知，保持明列，禁止猜貼音訊當正式完成。
+
+完整三段候選採官方Real-ESRGAN v0.2.5.0發行內realesr-animevideov3-x4神經超解析模型，原320×240先重建1280×960，再輸出1440×1080、15fps H.264及原音AAC。這是神經超解析候選，不能稱每格都經imagegen重繪。已核准城堡母稿另用在同一廣角鏡頭的城堡／岩層；以原片點對應估計單一相似變換，整塊建築與岩石共用同一平滑相機軌跡，不以逐像素光流扭曲岩石。雲、水等動態來源沿神經超解析，切鏡不用上一鏡的母稿。幾何與全片藝術合理性待完整產物一次集中檢查，不能由相似矩陣或數值推定肉眼已通過。
+
+上游工具參考來源為Real-ESRGAN-ncnn-vulkan在發行日期前的固定commit 37026f49824c5cf84062e7c6a5dd71445dcf610f，MIT；Real-ESRGAN模型專案BSD-3-Clause。官方預編譯發行未明列其精確建置commit，不能由參考來源日期推定二者完全相同；固定官方發行及實際二進位／模型SHA。官方預編譯zip SHA256 e5aa6eb131234b87c0c51f82b89390f5e3e642b7b70f2b9bbe95b6a285a40c96，來源／授權全文／模型逐檔SHA保存私人hd-movie-ncnn-source-v2.json與後續製作收據。本專案只呼叫工具，沒有移植其程式；發行包相依另驗。
+
+[官方影片模型與固定發行](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0)、[NCNN工具與MIT](https://github.com/xinntao/Real-ESRGAN-ncnn-vulkan/tree/37026f49824c5cf84062e7c6a5dd71445dcf610f)、[OpenCV 4.11相似變換估計](https://docs.opencv.org/4.11.0/d9/d0c/group__calib3d.html)、[仿射取樣](https://docs.opencv.org/4.11.0/da/d54/group__imgproc__transform.html)。光流僅估計點對應，不作硬質物體的逐像素變形。
+
+工具入口私人素材docs/assets-catalog.md#render-control的prepare_hd_movie_full.py及tools/Dockerfile.hd-movie-vulkan。既有bookworm Mesa無法枚舉本機Intel 0x7d45；沿用既有Ubuntu runtime，只補固定版Mesa／OpenMP，保存原映像與套件版本，不修改其他專案映像。Ada連線逾時不當成Ada驗收；本機GPU離線推論也不等於遊戲GPU解碼或FPS。
+
+原始輸入唯讀、有界Docker、私人direct-go-v1可寫。一次集中技術檢查為完整格數／尺寸／15fps／各軌PTS與原長度、完整解碼、全段原音非靜音及轉碼相關度、輸出SHA／容量；合理性依使用者順序留待全片完成，不預先宣稱美術通過。候選只放本機研究預覽，非發行包，不修改019素材manifest、存檔、原版模式或正式玩家路徑。
+
+
+§8離線製作結果：完整離線HD候選已產出：開場922格、城堡555格、結尾743格，另有正常播放封存的KONAMI候選，其617場畫面摘要全部對回156格來源及初始畫面。皆1440×1080並含原音，合計52.70MiB。前段城堡／岩層共85格改用同一平滑相似變換，取消逐像素扭曲；其餘畫面為官方影片模型AI超解析。這不等於每格imagegen重繪。依使用者順序，完整候選的藝術／運動合理性稍後集中確認，尚未宣稱岩石肉眼驗收通過。KONAMI依已保存VBlank時間線作可變格率候選，保留同段原音，原STR168格映射仍未知。正式遊戲HD自動換片／GPU播放器／Rust GUI仍未接入。
+
+四段完整解碼／尺寸／格數／各軌原長度與起點檢查通過，三段原STR保留15fps；原音完整AAC轉碼相關度均大於0.98、SNR大於15dB。這是本次一次集中技術驗證，不含新藝術審查、實際硬體音訊、遊戲開始／跳過／結束或GPU解碼驗收。逐片雜湊、音訊值與容量沿私人hd-movie-full-summary-v2.json；母稿及全部媒體只留本機，沒有發行包或素材公開。
+
+KONAMI新增來源是§5同一正常玩家命令封存重取的156格無損影像，全部RGBA SHA與已驗事件相同，沒有新遊戲開機。再以保留的初始畫面及逐場FNV摘要，617場全部對回026 §11正常播放來源，依該場cycles／33868800建立可變格率時間線，沿相同VBlank原音區間。H.264每個影像轉換時間以1/90000秒保存，不插光流中間格；最後同圖哨兵確保末格時長，整體影像時長與來源誤差小於一組44100Hz取樣。這是VBlank觀測精度，不稱逐CPU指令或原STR168格映射已證實。§5原CPU播放器仍為索引／固定格率介面，此新VFR候選未接正式播放器，後續事件介面回到§3處理。
+
+首次LOGO封裝的concat片段逐項轉成整數微秒，末端PTS累積偏移63微秒，沒有調寬門檻。改為先取整絕對邊界再相減，MP4 movie timescale使用90000／44100的公倍數4410000；只重封失敗LOGO，不重新推論或重畫，前三段尚未封裝。[固定FFmpeg concat契約](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/doc/demuxers.texi)及[MP4時基](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/doc/muxers.texi)。首次MP4與失敗檢查保留本機，不改稱通過。
