@@ -79,3 +79,21 @@ KONAMI原生156格與LOGO原檔168格尚無逐格映射證據，不能把10.293�
 有聲OPN預覽hd-movie-h264-with-audio-v1.mp4共2441893 bytes，1440×1080／15fps／45格，加44100Hz雙聲道AAC。音畫起點0、片長3秒，影像packet SHA不變；完整解碼無錯，原STR同段零偏移相關度0.9996519843530091、SNR31.5392dB，3秒264600個左右聲道取樣中264571個非零。解碼器暴露820組尾端AAC padding，與MP4標示3秒有效範圍分列，不延長正式播放。頁面移除muted與loop，新增四段原音控制項，無聲原生影像移入明確標示的參考區。
 
 限定結果沿私人hd-movie-audio-plan-v1.json／hd-movie-audio-v1-summary.json／hd-movie-audio-acceptance-v1.json，工具prepare_hd_movie_audio.py及record_hd_movie_audio.py由素材索引連入。正式遊戲聲音裝置與時序、KONAMI逐格映射、整段AI影片未完成；本批無人耳／硬體音訊驗收，無Rust核心變更或舊測試重跑。
+
+
+## 7. 已核准AI單格的短連續細節傳遞原型
+
+狀態：DRAFT，可丟棄離線研究，禁止接正式播放器。承接§4的短片停止線與已核准TYK第45格AI母稿，僅取原片第30至59格，即2至4秒、30格／15fps。以原生格之間的運動估計，把同一母稿的新增細節傳至鄰格，不重畫已定案美術，不把獨立逐格改稿當時間一致性。
+
+先沿既有Pillow11.3.0工具映像，實測三個現有映像均無cv2。只在相同映像／相同Python ABI的明確私人輸出根安裝鎖版numpy2.2.6及opencv-python-headless4.11.0.86輪檔，不掛主機Python或虛擬環境，不改系統或重建重複Docker映像。下載僅走官方PyPI，逐檔SHA與版本JSON核對；後續處理網路關閉，原資料唯讀、工作有界，來源與執行manifest只留本機。
+
+[OpenCV4.11 DIS光流](https://docs.opencv.org/4.11.0/de/d4f/classcv_1_1DISOpticalFlow.html)及[remap](https://docs.opencv.org/4.11.0/da/d54/group__imgproc__transform.html)只作運動估計與幾何取樣，AI內容來自既有imagegen母稿，不能把光流稱生成模型。以目標原格到第45格的逆向光流配合正反一致性與原格亮度誤差，低信心處回原生放大；保留15fps、1440×1080與同段原音。這種單參考方法未證實可處理遮擋、切鏡或所有電影，不能批次套到整段。
+
+本原型只集中檢查30格、格率／片長／PTS／原音／解碼、細節保留與畫面變形／亮度跳動，數值與一次影像抽樣分開記錄。若不足就如實記錄限制，不自動反覆改圖或擴大審查；原型不等於整段HD影片、完整美術或正式遊戲接線。工具入口私人素材docs/assets-catalog.md#render-control的prepare_hd_movie_flow.py及後續原型腳本；輪檔／AI母稿／逐格資料／MP4及收據沿既有direct-go-v1，不入公開Git或發行包。
+
+
+§7首次原型結果：已核准的第45格母稿沒有重畫，對原片第30至59格做一次光流細節傳遞，保留30格／15fps／2秒／1440×1080。固定母格與縮至目標尺寸的AI母稿逐像素相同；低信心區回原生。每格AI權重至少半數的像素占比，最低0.4334505208，不能稱整個畫面全AI重繪。逐格運動補償RGB平均差最高3.6501，但一次抽樣30／45／59格仍發現塔尖、屋脊彎折；數值低不能當幾何／藝術通過。
+
+有聲H.264研究版1177341 bytes，同段原片放大對照1065875 bytes；兩者皆30格、起點0／片長2秒，完整音畫解碼無錯，44100Hz雙聲道AAC。AI版原音與同段來源零偏移相關度0.9995662291、SNR30.5737dB。技術封裝通過，建築幾何閘門未通過，§7維持DRAFT，禁止自動批次處理整片或安裝遊戲。下一窄問題是為剛性建築加幾何約束，母稿保持，不再重開美術。這是一次研究檢查，沒有為用滿審查次數重跑。
+
+輪檔SHA／Python ABI與來源沿私人hd-flow-runtime-v1.json，光流／逐格／編碼原始結果hd-flow-plan-v1.json、hd-flow-propagation-v1.json、hd-flow-encoded-v1.json，完整限定紀錄hd-flow-summary-v1.json。工具prepare_hd_movie_flow.py、propagate_hd_movie_flow.py、encode_hd_movie_flow.py、record_hd_movie_flow.py由素材docs/assets-catalog.md#render-control索引。只有私人預覽提供同段對照及原音；原片、母稿、輪檔、逐格資料與MP4均未公開，沒有正式HD影片或播放器接入完成聲明。

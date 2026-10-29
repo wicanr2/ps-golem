@@ -207,3 +207,29 @@ WAV以場邊界取原SPU取樣，保持44100Hz／16-bit雙聲道；沒有HD音�
 命令列入口例：依§7.1在有界Docker中建置psgolem-machine-probe，從既有輸入唯讀掛載執行-bios /bios/SCPH5500.BIN -cue /disc/sotn.cue -press-file /engine/apps/sotn/testdata/m4-first-save.press -fields 12000 -card /output/new-card.mcd -wav /output/replay.wav -state /output/replay。新卡／輸出根須可寫且不能指向玩家原檔作測試。-press／-fields是一般輸入與真時鐘，沒有RAM／PC注入；-state仍是診斷輸出，不是正式存檔格式。
 
 固定來源與首次結果沿私人direct-go-v1/rust-player-plan-v1.json、rust-player-execution-v1.json、rust-player-normal-execution-v1.json及rust-player-summary-v1.json。素材工具record_rust_player.py只核對已保存結果與取最後3秒原音，入口docs/assets-catalog.md#render-control。正式玩家GUI／實體聲音與USB／已配對藍芽設定、第一存檔室存讀、完整HD接管／GPU／海報與三平台Rust雙擊包仍待接。整段AI影片與HD自動替換沿027仍未完成，不能把原生序章或1080p放大樣片稱HD完成。
+
+
+## 13. Rust正常首存與重新開機讀檔
+
+狀態：CONFORMED，限015 §7既有M4路線的Rust正常首存及010／012原卡重新開機。承接§12已驗的CLI／輸入／原卡，這輪不改核心、畫質或格式。來源936f286的Rust binary與m4-first-save.press；私人素材tools/prepare_rust_save.py固定SHA及已驗Go基準，入口docs/assets-catalog.md#render-control。
+
+已證實的Go基準為workplace/final/linux.mcd，SHA256 5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36，131072 bytes；linux.log記錄正常field45784、26150980006週期及摘要6c35c2701228722f，原M4測試通過。linux_end.png SHA256 d0dc2e0be51124a3e595589180d39089883243ae1bacb82ac36d0797d8b26627。015 §7記錄同卡在Mednafen1.29正常讀到存檔室HP70；只在Rust卡逐位元組相同時承接這項舊交叉證據，不宣稱本批新跑Mednafen或整機同態。
+
+Rust從真BIOS／原CUE／本批新空卡reset開始，只用原m4-first-save.press至field45784，經序章戰鬥、阿魯卡德入城與第一存檔室，不側載、不注入RAM／PC／座標／物品。一次完整Rust重播即可；已驗Go首存不重跑。終點需原卡目錄0x80項為51、檔名BISLPM-86023DRAX00，卡片完整bytes同已驗Go，並一次目視實際存檔室；保存成功由完整卡片基準一致及重新開機讀回共同證明，不假稱固定終點截圖仍有保存完畢文字。原生終點RGBA同Go PNG則列像素相同；若只卡片相同而畫面不同，保留差異／推論等級，不由卡片推論CPU／RAM同態。
+
+之後以新產生的卡分別複製成本批Rust可寫測試副本及Go唯讀輸入，各從真BIOS／原CUE重新reset。沿既有stone-reload.go已驗讀檔按鍵4500:START:5,4700:START:5,4900:START:5,5650:CIRCLE:5,5900:CIRCLE:5,6200:CIRCLE:5,6500:CIRCLE:5,8200:LEFT:120至field9000，確認存檔室與HP70。Go採ExactTiming，與Rust比完整RAM／VRAM／TTY／原卡、RGBA及原音WAV，沒有用舊RAM重建機器或補PC。遊戲位址若需觀測，僅在私人素材探針依015現有證據解讀，不放通用核心。
+
+Rust CLI仍用§12，Go讀檔參考tools/oracle_rust_saved_game.go只做正常輸入／觀測。外層Docker首存與讀檔分段有界，UID／GID1000、原版與基準唯讀、明確輸出根；本批新卡與副本不覆寫玩家卡。首存WAV只驗取樣／長度與非靜音，不稱喇叭或人工聆聽。卡片與原生素材只留私人direct-go-v1。
+
+通過只表示正常無頭首存／重新開機讀檔切片完成。玩家GUI、實體聲音與USB／藍芽、HD接管／GPU／海報、整段AI影片與三平台Rust雙擊包仍待接。CPU／GTE／GPU／MDEC舊矩陣及已核准美術直接承接，不因這個較長玩家切片重跑或調低畫質，也不把執行耗時換算FPS。
+
+
+§13首次結果：唯一一次Rust原M4腳本從reset至field45784，26150980006週期、PC800154CC，與既有Go首存紀錄相同。正常原協定成功寫入66個frame，原卡131072 bytes與已驗Go逐位元組相同，SHA256 5b86c3b3402064ca2e7fd551ce111968c3b54b7ae258278d35250969af5b0a36；有效第一目錄51、檔名BISLPM-86023DRAX00。原生RGBA同既有Go PNG解碼像素，SHA256 02b9bc2db161fa5675d867aeec057ccebd5cb9f6912db0fe46ed159d78c8ddd7。一次目視阿魯卡德在存檔台。固定終點文字已消失，未宣稱圖中看見保存完畢，也未為等文字另跑遊戲。首存WAV為44100Hz／16-bit雙聲道34050755組，長度等於CPU週期整除768。
+
+新卡分別給Go及Rust各一次新BIOS／光碟開機、正常選單讀檔／左移至field9000，均5139514453週期、PC8001548C。完整2MiB RAM／1MiB VRAM、TTY、26768348-byte原音WAV、131072-byte原卡及RGBA逐位元組相同。原卡保持，重開原協定寫入1次但內容相同，不另存。HP70沿015已證實RAM位址0x97BA0核對；一次目視同一存檔室的阿魯卡德已向左移。重開WAV6692076組。卡片同已驗基準，因此承接015 §7舊Mednafen讀取相容證據，這輪沒有新跑Mednafen或完整Go首存。
+
+聲音限制：完整首存WAV60274059個非零左右聲道取樣，重開WAV4927984個非零取樣，但重開最後3秒Go／Rust均全零。接納腳本原先額外假設尾段應非靜音，首次停止後只分析既有PCM，未重跑遊戲；移除未有原版證據的尾段假設，同時把存檔室BGM列為未知／待成熟模擬器核對，不能把Go差分當音樂正常。預覽取首存路線最後3秒並明確標示，沒有拿別段聲音補入重開或遊戲。rust-save-audio-audit-v1.json保留全程每秒統計。
+
+這輪沒有Rust核心變更或重跑舊CPU／GTE／GPU／MDEC矩陣；只增加通用Go正常讀檔觀測工具、驗收與文件。來源、命令及首次結果沿私人direct-go-v1/rust-save-plan-v1.json、rust-save-execution-v1.json、rust-save-comparison-v1.json、rust-save-summary-v1.json。prepare_rust_save.py／run_rust_save.py／record_rust_save.py由素材docs/assets-catalog.md#render-control進入。兩張已驗原生截圖只依既有授權加入私人素材docs/screenshots與README，公開引擎沒有圖片或原資料。
+
+完成聲明限正常無頭首存／重開讀檔M4切片。玩家GUI、實體音訊／USB／藍芽、全部HD／GPU／海報、整段AI影片與三平台Rust雙擊仍未交付；全遊戲通關及速度未驗。本輪短HD影片原型另見027 §7，其建築變形未通過，不能混稱HD已完成。
