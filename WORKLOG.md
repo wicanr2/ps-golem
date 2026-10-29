@@ -2670,3 +2670,14 @@ Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK�
 技能首次整根掛載遇目錄內符號連結無效，改用技能本體目錄唯讀掛載；沒有把技能當遺失或修改工具鏈。原資料庫SHA保持、無新遊戲／美術／GPU／GUI／速度驗收、沒有打包或Release。收據由rust-flow-v1/plan.json、flow-IDA.json、IDA-execution.json、flow-boundary.json與publication.json索引，來源與輸出1000:1000；當輪Docker清理與提交見publication.json。
 
 跳躍高度與恢復原版的後續專項已登記：https://github.com/wicanr2/castlevinia_x/issues/26。本輪未改物理數值、存檔或畫面。
+
+
+## 2026-10-29 Rust整場起始資料元件
+
+026 §16.3先DRAFT：一次性IDA9.4副本查0x80012C90／0x800E3754／0x8001290C，原DB保持。原ClearOTag為CPU前向512鏈，非反向鏈或DMA6；不能由名稱猜硬體機制。正常原版僅一條真BIOS／原首存卡／固定按鍵到8382後擷取八次前段至8389，原始輸入含光碟全SHA保持，PC／RAM／程式注入0。八態每次5161原指令／7351原週期，CPU I/O／中斷0，VRAM／scratch及所取裝置保持。
+
+原始保存態的離線投影完整RAM相同後，先設16.3.1資料契約READY，再寫Rust。新的apps/sotn/frame.rs直接產生528字及FrameResources，獨立整合測試讀來源，正式玩家沒有mod宣告／註冊；不執行MIPS或GP0。八態完整16777216 bytes逐位元組相同，32個過期／程式／入口原子拒絕保持RAM，五個公開案例通過。資料元件限定CONFORMED，CPU／快取／時間／裝置、整場Rust接線與完整HD仍DRAFT；不把原參考指令數當作已省下的正式遊戲成本，沒有新速度或GPU／GUI聲明。
+
+初次離線分析誤用GPR而非gpr，在第0例比較前停止；修正schema只分析已保存資料，無原版重播。首版Rust五公開／八態通過後，依原S1相對儲存與八態常值先回填READY，再補S1=0x8009792C守門；原來源／初收據保留，最終改動案例／八態及受共用輸入影響的五公開皆通過。實作兩版、保存態Rust核對兩次；正常遊戲始終1次，美術／素材／舊矩陣重驗0。測試未用自製代用品冒充原版輸入，缺原版語料的正常公開測試預設ignored。
+
+入口：素材docs/assets-catalog.md的frameprep-v1，inputs.json／plan.json／capture.json／effects-evidence.json／data-plan-READY.json／S1-guard-evidence.json／rust-results/rust-verification.json／acceptance.json／publication.json。原始ROM與資料庫不入Git。擁有權、原始DB與原檔雜湊、一次性DB／研究binary清理及提交推送由publication.json記錄；未改現行Go包、素材、設定、卡片、影片或海報，沒有新Release。
