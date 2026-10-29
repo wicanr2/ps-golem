@@ -2,6 +2,8 @@
 
 狀態：`CONFORMED`，限素材包載入與驗證層；§8.3 為 `CONFORMED`；§8.4 為 `CONFORMED`（限載入與接續繪圖資料）。GPU 替換、傾印與 CLI 另依 CONFORMED `018-hd-texture-replacement.md` 接入，不屬本載入器層驗收。
 
+Rust 的逐值圖像相容性見 `026-rust-migration.md` §15，已限定 CONFORMED。它不建立常駐 TexturePack，亦未接遊戲繪圖或驗 sprite-runs；本規格的 Go 正式載入與 512 MiB 常駐契約保持。
+
 ## 1. 決定與範圍
 
 2026-10-18 使用者授權 Codex 比較工具相容性後定案。採用 UTF-8 JSON manifest、

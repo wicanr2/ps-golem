@@ -50,3 +50,9 @@ GPU 後端用 `-hd-renderer gpu` 選擇，預設為 `cpu`；選項與限制見 [
 
 GPL-3.0-or-later，見 `LICENSE`。參照來源見
 [`docs/spec/002-references-and-licensing.md`](docs/spec/002-references-and-licensing.md)。
+
+
+HD 圖像格式診斷可用 `psgolem-player -check-textures DIR`。此入口不需要 BIOS／光碟，
+不啟動 SDL、音訊或機器；全部圖像成功後輸出 JSON，保留索引與 RGB555／STP 逐值雜湊。
+來源為 [`rust/player/src/texture_audit.rs`](rust/player/src/texture_audit.rs)，契約見 `docs/spec/026-rust-migration.md` §15。
+這是離線圖像診斷，`sprite-runs.json` 明列未驗，不能當作全套 HD 已接入 Rust 遊戲。

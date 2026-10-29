@@ -9,6 +9,7 @@ publish = false
 psgolem-core = { path = ".." }
 sdl2 = "=0.38.0"
 serde_json = "=1.0.145"
+serde = "=1.0.229"
 png = "=0.17.16"
 sha2 = "=0.10.9"
 

@@ -2646,3 +2646,16 @@ Rust視窗已接入定案A／B／C海報、關閉、外側九點柔和融合、�
 Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK後於執行前修正TestMain，初稿與SHA差異保留，不當成產品失敗。初次像素接納把所有側邊一律要求三階，native-a-soft最大24而停止。只分析既有資料及平台規格，精確有理數定位邊界與四種相鄰選樣覆蓋四張比較全部2283個位置，模型殘差最大2.175；非邊界仍三階，沒有提高門檻、改產品、改圖片或重跑遊戲。原始Go全畫面差異與其本身nearest縮放差異保留，不稱跨後端逐位元相同。接納修正腳本的引號準備問題在執行前更正，亦保留紀錄。
 
 一次集中技術目視工具列與HD影片海報，定案美術審查0。私人工具verify_rust_posters.py、audit_rust_poster_sampling.py、record_rust_posters.py由素材docs/assets-catalog.md#render-control進入，rust-poster-v1保存plan／execution、source PNG、Go shader參考、sampling-audit、首次失敗與acceptance-resolution／acceptance；本機index.html只切換真實已驗截圖。來源／原資料唯讀，唯一/output可寫，所有寫入UID1000。公開引擎無圖片或原資料，授權畫面只存私人README。Go雙擊包、原偏好與定案素材保持；提交／推送、Issue及Docker清理收據見同根publication.json。
+
+
+## 2026-10-29 Rust HD 圖像逐值相容性
+
+公開程式為 rust/player/src/texture_audit.rs，明確 CLI 與 026 §15／019 回填；原生核心、worker、影片、海報及既有 Go 包保持。
+
+七項合成測試首次通過，低位深合成調色盤修正後只補測該一項；明確 CLI 最終完整 7387 條／1136 鍵與 Go 正式解碼逐條雜湊全相同，累計1651519296貼素。缺目錄／多餘參數兩項守門通過。無 SDL、Machine、音訊、遊戲、圖片修改或新美術審查。Rust 不驗 sprite-runs，不建立常駐素材包，不稱遊戲已套用、速度通過或全 HD 完成。
+
+首次準備在不存在的 rust/README.md 檢查停止，程式未寫；改用既有根 README 後接續。首次 Go 靜態參考 signal: killed，176.876秒，原因未知，未保留控制群組（cgroup）記憶體收據；保留 go-first.log／go-first-execution.json。相同3GiB容器加 GOMEMLIMIT=1400MiB 與逐秒cgroup觀測後，只接續未完成 Go 參考。耗時為離線核對成本，不作 Go／Rust遊戲速度比較。
+
+原計畫一次 Rust 全包核對，實際兩次：完成首份後依 Go 1.26.7 官方顏色算術補齊16位非滿alpha通道取整，增加獨立Go四值及單項Rust檢查，再以最終來源完整核對。現行10719張不同引用圖無16位來源，兩次完整資料保持；舊來源、報告及PNG標頭盤點保留。Go完整成功參考1次、初次終止1次；沒有第三次Rust全包、圖片修改或遊戲重播。
+
+收據入口：相鄰素材專案 workplace/render-control-v1/direct-go-v1/rust-textures-v1/acceptance.json、installed-inventory.json、plan.json 與 publication.json。三平台只核對manifest及引用存在，不稱真機驗收。全部資料唯讀掛載，來源與輸出1000:1000；Docker清理與提交推送由publication.json記錄，沒有新交付版或Release。
