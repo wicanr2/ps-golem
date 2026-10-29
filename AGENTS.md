@@ -139,3 +139,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## Rust海報與工具列接續（2026-10-29）
 
 024 §6限定CONFORMED，入口rust/player/src/poster.rs、preferences.rs。外部A／B／C／關閉、九點外側融合、黑邊安全16/15放大、同schema偏好保存與706場重開已驗；原版9000及HD LOGO2600端點／原音保持，中央相同縮放切換逐像素保持。F1恢復工具列顯示，手動暫停為F2或按鈕；完整手把面板另接。Go／SDL取樣邊界差異保留，不稱GPU逐位元相同；CPU計算融合帶再交SDL，沒有GPU模糊／影片解碼聲明。私人工具verify_rust_posters.py、audit_rust_poster_sampling.py及record_rust_posters.py由素材docs/assets-catalog.md#render-control進入rust-poster-v1，原版／HD各一次正常路線，核心／美術不重跑。速度、實體設備、其他影片與三平台Rust包仍待；Go包、原設定及定案素材保持。
+
+
+## Rust 整段繪圖接管
+
+使用者已明確定案：HD 由 Rust 接手整段繪圖資料流程，直接建立場景／動畫／文字／特效及 3D 並寫入顯存／呈現目標；不先完成舊版光柵化再換圖，也不以原 GP0 命令重播當主流程。原版模式仍走原流程，CPU／GPU與海報保留。入口為 ps-golem docs/spec/026-rust-migration.md §16，目前實作DRAFT；來源／相容效果未封閉前不接正式主路徑。未來跳躍高度等另作明確啟用的遊戲修改，不默認改玩法；速度以同條件量測，不預先承諾倍率。

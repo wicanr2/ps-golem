@@ -2659,3 +2659,14 @@ Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK�
 原計畫一次 Rust 全包核對，實際兩次：完成首份後依 Go 1.26.7 官方顏色算術補齊16位非滿alpha通道取整，增加獨立Go四值及單項Rust檢查，再以最終來源完整核對。現行10719張不同引用圖無16位來源，兩次完整資料保持；舊來源、報告及PNG標頭盤點保留。Go完整成功參考1次、初次終止1次；沒有第三次Rust全包、圖片修改或遊戲重播。
 
 收據入口：相鄰素材專案 workplace/render-control-v1/direct-go-v1/rust-textures-v1/acceptance.json、installed-inventory.json、plan.json 與 publication.json。三平台只核對manifest及引用存在，不稱真機驗收。全部資料唯讀掛載，來源與輸出1000:1000；Docker清理與提交推送由publication.json記錄，沒有新交付版或Release。
+
+
+## 2026-10-29 Rust整段繪圖與3D接管方向
+
+使用者明確修正為整段繪圖流程攔截，由Rust直接建立場景／動畫／文字／特效與3D，寫顯存／呈現目標；不先完成舊版再換圖。原版模式與CPU／GPU／海報保留。跳躍高度等登記為後續可選遊戲修改，不默認更動玩法；速度以同畫質同路線另驗。
+
+026 §16 DRAFT已記錄資料與相容效果、完整場發布、原流程計數為0的完成條件，025舊切片回填指向新方向。原DB與DRA／boot唯讀；沿已驗IDA9.4映像與UID1000對一次性副本查詢。sub_800E3880範圍1832 bytes，62個JAL／56個目標的原始固定字與IDA完整相同；0x800E3FA0回跳0x800E3B80，沒有JR RA返回。已確認外層包含更多流程，不能直接整函式返回；分模式完整繪圖邊界與副作用仍未知，未接正式Rust主路徑。SDK既有名稱只作導覽，未因名稱標語意已證實。
+
+技能首次整根掛載遇目錄內符號連結無效，改用技能本體目錄唯讀掛載；沒有把技能當遺失或修改工具鏈。原資料庫SHA保持、無新遊戲／美術／GPU／GUI／速度驗收、沒有打包或Release。收據由rust-flow-v1/plan.json、flow-IDA.json、IDA-execution.json、flow-boundary.json與publication.json索引，來源與輸出1000:1000；當輪Docker清理與提交見publication.json。
+
+跳躍高度與恢復原版的後續專項已登記：https://github.com/wicanr2/castlevinia_x/issues/26。本輪未改物理數值、存檔或畫面。
