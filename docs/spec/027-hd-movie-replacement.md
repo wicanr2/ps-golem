@@ -123,3 +123,46 @@ KONAMI原生156格與LOGO原檔168格尚無逐格映射證據，不能把10.293�
 KONAMI新增來源是§5同一正常玩家命令封存重取的156格無損影像，全部RGBA SHA與已驗事件相同，沒有新遊戲開機。再以保留的初始畫面及逐場FNV摘要，617場全部對回026 §11正常播放來源，依該場cycles／33868800建立可變格率時間線，沿相同VBlank原音區間。H.264每個影像轉換時間以1/90000秒保存，不插光流中間格；最後同圖哨兵確保末格時長，整體影像時長與來源誤差小於一組44100Hz取樣。這是VBlank觀測精度，不稱逐CPU指令或原STR168格映射已證實。§5原CPU播放器仍為索引／固定格率介面，此新VFR候選未接正式播放器，後續事件介面回到§3處理。
 
 首次LOGO封裝的concat片段逐項轉成整數微秒，末端PTS累積偏移63微秒，沒有調寬門檻。改為先取整絕對邊界再相減，MP4 movie timescale使用90000／44100的公倍數4410000；只重封失敗LOGO，不重新推論或重畫，前三段尚未封裝。[固定FFmpeg concat契約](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/doc/demuxers.texi)及[MP4時基](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/doc/muxers.texi)。首次MP4與失敗檢查保留本機，不改稱通過。
+
+
+## 9. CPU週期驅動的CFR／VFR播放器
+
+狀態：CONFORMED，限通用CPU時戳播放器API，未接正式遊戲／GUI／素材包。承接已確認HD影片方向，補§5的固定格號API不能表達§8原生VBlank時間線的缺口。此切片不識別STR，不以猜測位址、第一段24-bit模式或固定開機場數自動選片。
+
+### 9.1 實際證據與範圍
+
+固定FFmpeg5.1.9、§8已驗KONAMI VFR候選有93個影像包／time_base 1/90000。現有§5解碼參數省略vsync時會產生157格RGB，和probe93格不符；明確-vsync 0後為93格。這是輸出同步插複格，不是原影片缺格。來源SHA、兩側格數與原始flat probe保存私人hd-movie-VFR-decoder-evidence-v3.json／hd-movie-VFR-probe-v3.txt。修正Player解碼命令為逐來源格輸出，原CFR介面保持。
+
+新TimedPlayer在Player之外持有Timeline；沿用明確FFmpeg／ffprobe／MP4路徑、首格預讀與單格RGB快取。Timeline從同一MP4的ffprobe flat輸出讀整數best_effort_timestamp、stream time_base及duration_ts，不能由名目fps推算VFR。時間戳來源是MP4視訊軌，不是CPU PC或原光碟LBA。
+
+### 9.2 輸入／時間契約
+
+影片既有256MiB、4096×2160／總像素與100000格／120fps上限沿§5。額外metadata最多8MiB；以有界stdout讀取，溢位／讀取／子程序失敗均kill並wait。只接受單一所選視訊軌的正u32 time_base分子／分母、正u64 duration_ts；格數必須與ClipInfo相同、首PTS0、嚴格遞增、末PTS小於duration。缺欄位、重複欄位、負值、N/A、索引缺口及不合法範圍回具體錯誤，不默默猜fps。
+
+present_at_cycles(elapsed, clock_hz)接收影片起點後的u64模擬週期與非零u32主時鐘。先比較elapsed×time_base_den與PTS×time_base_num×clock_hz，全部用u128整數交叉相乘，不用浮點。選半開區間[PTS_i,PTS_next)；末格到duration。時鐘第一次選定後不接受中途改變，非暫停時elapsed不能倒退。同格重取只讀快取，前進跳過不保留中間RGB格。
+
+pause保持目前影格且不更新已接受週期；正式前端負責暫停遊戲時鐘。到duration時stop／回收解碼器並回完成，重複完成保持完成。顯式stop可重複，之後取圖回已停止錯誤；倒退必須重新開啟session。沒有wall-clock讀取、音訊裝置、RAM／VRAM／IRQ或遊戲等待副作用；正式遊戲仍沿SPU／XA單一路徑，這個API只呈現影像。
+
+### 9.3 一次集中驗收與停止線
+
+先以人工可算的有理數區間驗精確邊界／大u64值／錯誤metadata，再以已保存真實CFR45格與VFR93格候選取完整RGB，逐格對FFmpeg獨立framecrc，使用其AVAdler32初值0。每個來源PTS邊界驗前一週期與到達週期，另驗pause／同格、改時鐘／倒退拒絕、到期完成／重複完成、stop及子程序回收。既有§5兩個CFR案例承接到本次movie模組集中執行，因解碼參數有變才重跑，舊CPU／GPU／MDEC／M4矩陣不重測。
+
+測試參考由私人素材tools/prepare_hd_movie_timed_player.py產生，入口docs/assets-catalog.md#render-control；內部二進位參考不成為正式影片包格式、不入公開Git。來源沿hd-movie-timed-plan-v3.json，固定工具映像仍為§2與026既有Rust映像。此切片完成不表示正常遊戲已自動換片、海報／GUI／GPU已接或Windows／macOS交付通過，正式來源識別與VFR事件適配留§3。
+
+
+§9結果：五個movie案例集中通過。新CFR45及VFR93共138格完整RGB同獨立Adler32參考，所有PTS前一週期／到達週期、同格／pause、倒退／改時鐘／零時鐘拒絕、到期完成與stop／回收通過；既有兩CFR案例也通過。舊核心32案例未執行，未重跑M4或新增速度聲明。測試檔及紀錄沿私人hd-movie-timed-accepted-tests-v3與hd-movie-timed-tests-v3.log，來源在rust/src/movie/timeline.rs，Player解碼明確-vsync 0。
+
+## 10. 正常開機的顯示接線觀測
+
+狀態：DRAFT，可丟棄原型，禁止當正式自動選片功能。§9已通過五個movie案例；本節只把同一已測TimedPlayer放到正常真BIOS／原光碟執行的只讀觀察程式，於GPU24-bit影片VBlank輸出HD影像，離開影片後停止／回收。候選檔案在開機前由原型參數明確選定為已知KONAMI，首格預讀；不由第一個24-bit模式猜STR身份，也不改正式CLI、素材包或前端。
+
+原型使用引擎Rust來源的獨立副本，只有複本Cdrom新增讀cur_sector／drive的getter，標成內部下一扇區計數觀測，不能稱實際讀取事件或正式來源識別。記錄已知LOGO LBA extent23104至24783內的觀測；正式來源映射仍沿§3研究，不把命中區間當所有影片選片規則。原引擎CD-ROM／CPU／GPU／GTE／MDEC不改。
+
+同一有界程序兩台Machine從相同真BIOS／光碟重設起跑，一側原生、一側增加HD呈現。正常逐指令到2600場，無側載／PC跳轉／座標注入／新遊戲輸入。每場比完整公開CPU足跡、RAM、VRAM與SPU取樣；結束比完整CPU匯出／RAM／VRAM／TTY／PCM及原畫面，原MDEC與DMA照常保留。HD只寫外部1440×1080影像，原生狀態不可回寫。這是新增呈現分支的必要同態實驗，不重跑舊核心矩陣或完整M4。
+
+來源與SHA沿私人hd-movie-normal-plan-v3.json，工具為素材tools/prepare_hd_movie_normal.py及probe_hd_movie_normal.rs，索引docs/assets-catalog.md#render-control。首段呈現VBlank取得起點，後續以實際Machine週期差供TimedPlayer選格；MP4時間戳量化後與原VBlank可能有一場取樣差，原型不偷加時差常數。GUI、聲音裝置、HD自動來源、海報、GPU播放器與後續影片不在本實驗完成範圍，產圖不等於玩家視窗。
+
+
+§8本批集中抽樣：OPN／END／LOGO首次抽樣採用；TYK首次發現母稿跨入原片近景，依原生56至71格定位70格交叉淡入，將疊圖限0至69、61至69回既有神經超解析，第二次也是最後一次抽樣採用。母稿及模型未重畫／重跑；只重編TYK影像，原AAC封包保持。來源hd-full-v3/transition-result.json與hd-movie-review-decision-v3.json，最新素材總表hd-movie-full-summary-v3.json。採用限所選格，不稱全片人眼逐格／連續觀看或人工聆聽。
+
+§10首次原型結果：兩台Machine正常重設從真BIOS／原光碟到2600場、1483757071週期、PC80015494；1717至2333共617場選取HD影像，2334退出影片回原生並回收解碼器。每場完整公開CPU足跡、RAM／VRAM及SPU音訊相同；完整端點CPU／RAM／VRAM／TTY／PCM／原圖也相同，RAM／VRAM／TTY／PCM及最後原圖同026 §11已保存正常基準。音訊1931975組44100Hz立體聲，未另播放MP4音軌。內部CD下一扇區計數落已知LOGO範圍625場，只是觀測提示，不當作已證實自動來源識別。原型明確指定候選，正式自動選片／CLI／GUI／海報／GPU與後續影片仍未接，§10保持DRAFT。詳見私人hd-movie-normal-v3/result.json及本批總表。

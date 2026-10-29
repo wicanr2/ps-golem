@@ -9,6 +9,9 @@ use std::{
     process::{Child, ChildStdout, Command, Stdio},
 };
 
+mod timeline;
+pub use timeline::{TimedPlayer, Timeline};
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ClipInfo {
     pub width: usize,
@@ -122,6 +125,8 @@ impl Player {
                 "-map",
                 "0:v:0",
                 "-an",
+                "-vsync",
+                "0",
                 "-filter_threads",
                 "1",
                 "-pix_fmt",
