@@ -2594,3 +2594,16 @@ OPN已從完整原生顯示序列建立同風格HD，920段影像加末尾哨兵
 封裝初期的冗餘1080p PNG轉存停在影片編碼前，保留來源與停止紀錄，改由FFmpeg直接縮放已完成模型圖；未重跑NN。已記錄SHA後只刪除254張未使用中間PNG，回收430788450 bytes。集中核對曾在封裝尚未完成時因缺結果而未啟動，保留分類為編排先後問題，之後依程序退出0才啟動相依核對；不算產品或美術失敗。
 
 收尾：九項新工具已有索引與語法檢查，兩庫git diff --check通過，觸及工作根的root-owned檔及.md目錄皆0。所有sotn-opn容器均--rm，無保留背景GPU／播放器工作，未清理共用映像。素材庫private已由主機gh核對，新增兩張授權同場PNG及來源註記，完整影片與原素材保持本機。提交／推送與Issue收據沿私人publication-hd-movie-opn-v5.json，現行Go雙擊包與設定保持。
+
+
+## 2026-10-29：共用影片Session與正常暫停／續播
+
+Rust共用Session已接到正常影片路線，整合來源、固定epoch、暫停／續播與原生結束回收。五個新案例通過，正常12000場仍自動呈現4258場HD；OPN3641場影像身分與完整RGB校驗保持。100次暫停呈現要求沒有Machine步進、新原音取樣或狀態變更，續播600場的完整公開CPU／RAM／VRAM／原音／卡片同原生分支。端點及逐場cycles／PC／模式同既有基準，原腳本START6800未使OPN提早結束，控制層沒有強制跳片。四段定案素材與52.50MiB總表保持，新美術審查0；正式玩家GUI、實體聲音／手把、TYK／END正常事件與完整包仍待接。
+
+先由§13保留腳本SHA及6800至6805逐場影片模式證實START不等於已跳過，再補027 §14 READY後實作。新增rust/src/movie/session.rs，只組合既有SourceTracker／TimedPlayer，沒有Machine或遊戲位址、按鍵路由。來源過期停止預讀、錯來源／晚到準備拒絕，begin固定整段選擇與epoch；同cycle暫停凍結、倒退／暫停時計時變動拒絕，錯誤／早EOF停止並單向原生回退；實際native exit才end，Drop回收。
+
+新五測試首次集中通過，完整log已保存、0skip、43其他案例未執行。唯一新正常原M4路線至12000場，6802場的100個同cycle呈現poll不步進Machine，無新增音訊，CPU／RAM／VRAM／卡片不變；6803至7402的600場與同狀態原生Clone分支每場比較完整公開CPU、RAM／VRAM／原音／TTY／卡片相同。兩段邊界、12000場cycles／PC／模式及3641場OPN呈現／CRC整列逐位元同§13；完整端點亦同基準。這不稱全12000場逐場RAM、真實時間暫停、硬體音訊或成功跳過OPN。
+
+來源、SHA與結果沿hd-movie-session-v6，工具由素材docs/assets-catalog.md#render-control索引。既有原MDEC／DMA／SPU、海報／CPU與GPU方向及Go雙擊包保持，沒有新素材、圖片、神經推論、美術審查或速度驗收。
+
+收尾：索引正對照與三項新工具入口完整，Python語法與兩庫git diff --check通過；觸及工作根root-owned檔案及.md目錄0，所有sotn-movie-events驗證容器已--rm，未清共用映像。前批影片預讀117次的具體成本已回填既有效能Issue #9，這輪只登記未調速。無新媒體或交付包；提交／推送與Issue收據沿私人publication-hd-movie-session-v6.json。

@@ -9,6 +9,8 @@ use std::{
     process::{Child, ChildStdout, Command, Stdio},
 };
 
+mod session;
+pub use session::Session;
 pub mod source;
 mod timeline;
 pub use timeline::{TimedPlayer, Timeline};

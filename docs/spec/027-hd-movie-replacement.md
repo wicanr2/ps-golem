@@ -236,3 +236,21 @@ ISO檔案範圍從原Disc既有ISO9660路徑尋址程式的副本查得，保留
 
 
 §13限定結果：OPN已從完整原生顯示序列建立同風格HD，920段影像加末尾哨兵共921格。3641場影像身分全部對齊原生，避免近似原片對格與時間戳取整晚一場。正常12000場自動選取LOGO及OPN，共4258場HD；完整端點狀態／原音與逐場cycles／PC／模式同基準。四段現行素材合計52.50MiB，另外三段SHA保持。沿同一已定案模型，沒有新母稿或美術審查；原MDEC／DMA保留，正式GUI／GPU、TYK／END正常事件與完整包仍待接。全部OPN呈現格的完整RGB Adler32同獨立FFmpeg，原生影像序號／整數PTS全數相同，包含開頭四場原生全黑停留；新正常路線端點CPU／RAM／VRAM／TTY／PCM／卡片／原圖相同，不稱逐場完整RAM比較。來源為私人hd-movie-opn-player-v5/acceptance.json、hd-movie-opn-hd-v5/verification.json，由素材docs/assets-catalog.md#render-control索引。這是無頭呈現，沒有正式CLI／GUI接線、GPU影片解碼或速度驗收。
+
+
+## 14. 共用影片Session、暫停與原生結束
+
+狀態：CONFORMED，限通用Rust控制層與已觀測LOGO／OPN正常路線，正式GUI／素材包仍DRAFT。證據承接§9整數時間線、§12來源／整段選擇與§13原生OPN；原M4腳本的6800:START:5及實際6800至6805影片模式持續為true，10333才退出，已由同一腳本SHA與保存逐場資料核對。因此按鍵不等於影片已跳過，禁止收到START就強制停止HD或改guest等待／PC。位址基準為模擬週期、VBlank與標準手把按鍵mask，無新遊戲RAM位址。
+
+1. 新movie::Session只組合SourceTracker與既有TimedPlayer，接受來源profiles／非零固定clock_hz。沒有Machine、遊戲位址、按鍵規則、檔案格式或音訊裝置，呼叫端仍核對來源／素材SHA。一次只持有一個預備或活動解碼器，首格由既有Player預讀。
+2. observe只更新來源；影片外候選消失／變更時停止舊預備解碼器。needs_prepare僅在影片外且目前唯一來源尚未備妥時回key。prepare只接受目前來源且未開始，錯key或活動中拒絕且回收傳入Player。begin在實際完整影片邊界一次決定HD或整段原生，重複begin不重置epoch；活動中不因預讀或讀碟升HD。
+3. present_at_cycles以begin時的原生cycle為epoch，沿同一非零固定時鐘選格。週期倒退或暫停期間週期改變回錯誤，保持既有合法會話；同週期／同格讀快取。pause只凍結呈現器，前端必須同時停止Machine.step及新音訊取樣的提交，不能用主機時間補償影片進度。resume不新增偏移或重設epoch。
+4. 影片自然結束或原遊戲接受跳過後，呼叫端在觀察到原生影片模式退出的完整VBlank才呼叫end。end清來源／epoch／呈現並stop、Drop／回收解碼器，可重複。按鍵繼續沿正常手把送原遊戲，本控制層不實作跳片或模擬遊戲狀態。
+5. 解碼錯誤、缺影像或素材先到尾端而原生仍播放時，先停止解碼器，再單向退原生，該段不可因晚到素材重新升HD。呼叫端可記錄具體錯誤；原生機器繼續原流程，原MDEC／DMA／SPU保持。準備／停止錯誤不可冒充成功；關閉與Drop仍確保回收。
+6. 一次集中新測試涵蓋錯key／活動中準備、整段原生及晚到不升HD、正確epoch與重複begin、pause凍結／暫停時計時違約與resume、原生end／重複end、早到EOF／解碼故障單向退原生與來源重開。使用既有真實CFR45格／VFR素材，未選真實fixture時明列skip，不自製遊戲素材。舊播放器／核心矩陣承接。
+7. 新正常接線沿同一原M4腳本至12000場，LOGO／OPN來源不猜。既有START6800維持原生決定，pause採100次停止Machine.step的同cycle呈現要求，CPU／RAM／VRAM／卡片與已取原音不變。全路線端點及逐場cycles／PC／模式與§13基準相同，OPN3641場序號／完整RGB校驗保持，原生結束後沒有解碼器。這是無頭控制接線，不宣稱實體音訊／鍵盤／手把、真正成功跳過OPN或完整GUI。
+
+私人來源入口為素材docs/assets-catalog.md#render-control；準備工具與收據沿既有direct-go-v1/hd-movie-session-v6，不建立第二份現況表。既有四段素材及52.50MiB總表保持，新美術審查0；本段不重編影片、不重畫或增加速度聲明。
+
+
+§14限定結果：Rust共用Session已接到正常影片路線，整合來源、固定epoch、暫停／續播與原生結束回收。五個新案例通過，正常12000場仍自動呈現4258場HD；OPN3641場影像身分與完整RGB校驗保持。100次暫停呈現要求沒有Machine步進、新原音取樣或狀態變更，續播600場的完整公開CPU／RAM／VRAM／原音／卡片同原生分支。端點及逐場cycles／PC／模式同既有基準，原腳本START6800未使OPN提早結束，控制層沒有強制跳片。四段定案素材與52.50MiB總表保持，新美術審查0；正式玩家GUI、實體聲音／手把、TYK／END正常事件與完整包仍待接。暫停只驗同cycle的100次呈現呼叫，沒有主機wall-clock／實體音訊宣稱；不是成功跳過OPN。五個新Session案例使用保留真實CFR45素材，0skip，其餘43案例未重跑。新路線兩段開始／結束與全部12000場、OPN完整呈現列皆同§13保存資料，沒有重新審查或修改影片。來源為rust/src/movie/session.rs與私人hd-movie-session-v6/tests.log、pause.json、result.json／acceptance.json，由素材docs/assets-catalog.md#render-control的prepare_hd_movie_session.py／probe_hd_movie_session.rs／record_hd_movie_session.py索引。

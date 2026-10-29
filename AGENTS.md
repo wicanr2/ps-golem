@@ -119,3 +119,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## OPN原生時間線接續（2026-10-29）
 
 027 §13已限定CONFORMED，OPN直接使用920段已觀測原生畫面及同一已定案模型，保存3641場VBlank與原音；普通原片對格的386個保守篩選未知保持，不以最近均差猜身分。正常自動LOGO＋OPN共4258場HD，端點及原音同基準。現行素材總表hd-movie-full-summary-v5.json，工具／收據入口為素材docs/assets-catalog.md#render-control的record_hd_movie_opn_player.py。正式GUI、GPU影片解碼、TYK／END正常事件與完整包仍待接；美術不重新審查，沒有新速度聲明。
+
+
+## 影片Session控制接續（2026-10-29）
+
+027 §14已限定CONFORMED，通用控制入口rust/src/movie/session.rs，使用movie::Session組合來源／首格準備／epoch／pause及原生end；標準呼叫為observe_batch、needs_prepare／prepare、begin、present_at_cycles、set_paused與end。呼叫端仍核對來源SHA並在暫停時停止Machine步進與新音訊提交；按鍵不代表原生已跳過，不得直接用START結束HD。正常12000場、100次同cycle凍結呈現及續播600場成對狀態已驗。四段素材沿hd-movie-full-summary-v5.json保持，新的控制收據在hd-movie-session-v6/acceptance.json，入口素材docs/assets-catalog.md#render-control；正式GUI／實體音訊／手把與其他影片事件仍待接。
