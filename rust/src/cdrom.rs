@@ -5,6 +5,9 @@ use crate::disc::{bcd, unbcd, Disc, SECTOR_SIZE};
 use std::sync::Arc;
 mod audio;
 mod commands;
+mod reads;
+use reads::ReadObserver;
+pub use reads::{SectorRead, SectorReads, VideoHeader};
 #[cfg(test)]
 mod tests;
 use audio::Audio;
@@ -21,6 +24,7 @@ const READING: i32 = 7;
 const RESETTING: i32 = 8;
 #[derive(Clone)]
 pub struct Cdrom {
+    read_observer: Option<ReadObserver>,
     disc: Option<Arc<Disc>>,
     is_psx: bool,
     disc_id: [u8; 4],
@@ -88,6 +92,7 @@ impl Default for Cdrom {
 impl Cdrom {
     pub fn new() -> Self {
         let mut c = Self {
+            read_observer: None,
             disc: None,
             is_psx: false,
             disc_id: [0; 4],
@@ -151,6 +156,9 @@ impl Cdrom {
         c
     }
     pub fn insert(&mut self, d: Option<Arc<Disc>>) {
+        if let Some(o) = self.read_observer.as_mut() {
+            o.reset();
+        }
         self.disc = d;
         self.is_psx = false;
         self.disc_id = [0; 4];
@@ -167,6 +175,9 @@ impl Cdrom {
         }
     }
     fn soft_reset(&mut self) {
+        if let Some(o) = self.read_observer.as_mut() {
+            o.reset();
+        }
         self.audio.clear();
         self.audio.reset_volume();
         self.selector = 0;
@@ -646,6 +657,9 @@ impl Cdrom {
             }
         }
         d.read_sector(self.cur_sector, &mut self.pipe[p]);
+        if let Some(o) = self.read_observer.as_mut() {
+            o.record(self.cur_sector, &self.pipe[p]);
+        }
         self.subq = d.subq(self.cur_sector);
         self.pipe_q[p] = self.subq;
         if self.subq[1] == 0xaa
@@ -725,6 +739,21 @@ impl Cdrom {
         self.mode & 64 != 0
             && b[18] & 4 != 0
             && (self.mode & 8 == 0 || (b[16] == self.filter_file && b[17] == self.filter_chan))
+    }
+    pub fn enable_sector_reads(&mut self, enabled: bool) {
+        self.read_observer = if enabled {
+            let mut o = ReadObserver::default();
+            o.reset();
+            Some(o)
+        } else {
+            None
+        };
+    }
+    pub fn take_sector_reads(&mut self) -> SectorReads {
+        self.read_observer
+            .as_mut()
+            .map(ReadObserver::take)
+            .unwrap_or_default()
     }
     pub fn next_event(&self) -> i64 {
         if self.aip_irq != 0 && self.ready <= 0 {

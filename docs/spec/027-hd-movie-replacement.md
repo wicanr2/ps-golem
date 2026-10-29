@@ -166,3 +166,37 @@ pause保持目前影格且不更新已接受週期；正式前端負責暫停遊
 §8本批集中抽樣：OPN／END／LOGO首次抽樣採用；TYK首次發現母稿跨入原片近景，依原生56至71格定位70格交叉淡入，將疊圖限0至69、61至69回既有神經超解析，第二次也是最後一次抽樣採用。母稿及模型未重畫／重跑；只重編TYK影像，原AAC封包保持。來源hd-full-v3/transition-result.json與hd-movie-review-decision-v3.json，最新素材總表hd-movie-full-summary-v3.json。採用限所選格，不稱全片人眼逐格／連續觀看或人工聆聽。
 
 §10首次原型結果：兩台Machine正常重設從真BIOS／原光碟到2600場、1483757071週期、PC80015494；1717至2333共617場選取HD影像，2334退出影片回原生並回收解碼器。每場完整公開CPU足跡、RAM／VRAM及SPU音訊相同；完整端點CPU／RAM／VRAM／TTY／PCM／原圖也相同，RAM／VRAM／TTY／PCM及最後原圖同026 §11已保存正常基準。音訊1931975組44100Hz立體聲，未另播放MP4音軌。內部CD下一扇區計數落已知LOGO範圍625場，只是觀測提示，不當作已證實自動來源識別。原型明確指定候選，正式自動選片／CLI／GUI／海報／GPU與後續影片仍未接，§10保持DRAFT。詳見私人hd-movie-normal-v3/result.json及本批總表。
+
+
+## 11. 影片來源的實際光碟管線證據
+
+狀態：DRAFT，只讀觀測副本，禁止以未知事件接正式自動換片。§10的cur_sector是下一扇區計數，尚不足以證實實際讀取來源。改在Cdrom實際呼叫Disc::read_sector、內容送入pipe後記錄LBA與格式頭中繼資料；32筆有界佇列，每指令取出，溢位計數必須0。原始8個u32以2352-byte扇區byte24／28／32／36／40／44／48／52為基準，不從數值猜功能名稱。資料負載及原音不進記錄，無原素材公開。
+
+ISO檔案範圍從原Disc既有ISO9660路徑尋址程式的副本查得，保留雙端序及界線檢查，不以固定LBA當普遍選片規則。只追正常M4既有腳本至12000場，沒有PC／RAM注入、不改輸入；來源與準備工具為私人素材prepare_hd_movie_source_trace.py／probe_hd_movie_source_trace.rs，由docs/assets-catalog.md#render-control索引。完整來源SHA、原始頭offset與腳本沿hd-movie-source-plan-v4.json。
+
+第一窄驗收為實際讀取／原始扇區頭／檔案範圍與影片模式開始／結束的先後關係，以及完整端點RAM／VRAM／TTY／原音同既有12000場基準。不重跑舊核心矩陣或完整M4；未知檔案／多義範圍／壞頭或來不及預讀時應沿整段原生，不中途先原版再HD。此節先蒐證，證據足以定義來源及選片契約才推READY，影片素材不重畫／重審。
+
+
+§11實際讀取結果：一次正常原M4腳本至12000場，28150筆管線讀取、0遺漏；完整CPU端點、RAM／VRAM／TTY／原音／卡片／原圖同既有基準。影片模式兩段的最後實際讀取分別落LOGO15XA.STR與OPN_WS.STR，並非僅靠內部下一扇區計數。逐筆電影格式頭與原片對應LBA的原始扇區一致。精確ISO範圍、首個有效影片扇區到影片開始的週期差、原生模式起訖及完整SHA沿私人hd-movie-source-evidence-v4.json，位址基準是原始光碟LBA／2352-byte扇區offset，不是CPU位址。
+
+## 12. 實際讀取驅動的影片來源選擇
+
+狀態：CONFORMED，限通用來源辨識／整段選擇API及已觀測正常前綴；不是正式GUI、所有影片事件或影片包格式。§11真實讀取及既有ISO尋址足以固定本切片，不以第一段24-bit模式或固定開機場數猜片名。正式來源SHA／影片SHA由呼叫端已驗的素材綁定提供，此API只選來源，不替代§3的素材驗證。
+
+1. Disc::file_extent公開既有ISO尋址的LBA／邏輯bytes；read_file_limit沿同一尋址，雙端序／路徑／上限規則保持。原ISO邏輯2048-byte扇區數向上取整後形成不重疊來源範圍；STR的2352-byte內容不經user-data視圖誤截。
+2. CD-ROM的讀取觀測預設關閉，只在原有Disc::read_sector完成、送入pipe的位置記格式中繼資料。啟用後最多32筆、溢位明列，取出不影響DMA、IRQ、時鐘、音訊或guest資料；reset／換片回報觀測中斷。啟用／關閉只動主機觀測狀態。
+3. SourceTracker接受最多64個呼叫端已驗來源範圍／opaque key／原生尺寸。拒絕空／重複key、0長度、溢位或重疊範圍與0尺寸。沒有原片bytes、遊戲位址、固定LBA或正式素材包schema寫進通用播放器。
+4. 僅影片外更新候選。實際讀取必須有Mode2同步／重複XA頭且位於來源範圍；有效STR magic80010160、DATA或VIDEO型別、chunk序號／總數／frame_size界線與原生尺寸匹配才備妥來源。格式依FFmpeg n5.1.9/libavformat/psxstr.c的公開契約核實，chunk載荷上限2016bytes。相同來源交錯XA音訊不改候選；未知檔案／壞頭／中斷／遺漏清候選，不沿用舊來源。
+5. begin在完整影片邊界一次決定：唯一目前來源且呼叫端已預讀Ready才用HD，否則整段原生。進入後不因後續讀碟／預讀完成更換來源，禁止原生先閃再HD。end清除來源與本段選擇；明確解碼故障可單向退原生且本段不重試。只有begin／end／故障改呈現決定，均不回寫原生機器。影片本身的開始／結束事件由呼叫端已驗呈現邊界提供。
+6. 正常接線驗收先只綁已有VBlank映射的KONAMI；OPN來源辨識可驗，但raw CFR與原生起點尚未同態映射時沿原生，不猜偏移。TYK／END在本正常前綴未播放，不能外推其開始／跳過／結束已驗。正式GUI與三平台包仍沿§3，原MDEC／DMA照常保留。
+
+一次集中測試涵蓋範圍／格式／音訊交錯、未知／壞頭／重疊／重複來源、缺包／未Ready整段原生、延遲Ready不可中途升HD、影片中來源不改、故障單向回退／結束可重開，以及32筆觀測溢位與reset。再重播§11全部28150筆已保存真實中繼資料，兩次begin分別得LOGO與OPN，不重新跑遊戲。正常原M4前綴另以真正來源選擇接線一次，和§11／既有完整端點比較，影片素材不再審查、舊核心矩陣不重跑。
+
+來源與獨立參考為私人素材analyze_hd_movie_source_trace.py、hd-movie-source-evidence-v4.json／hd-movie-source-reference-v4.bin，入口docs/assets-catalog.md#render-control。原始扇區與圖像負載不加入公開測試語料。方法只讀格式文件及自有程式，未移植外部編解碼實作。
+
+
+§12集中結果：六個新案例通過，source_篩選同時命中一個既有DMA案例，合計7通過、36未執行。真實參考的28150筆格式頭與原光碟逐筆相同，四個ISO extent相同；兩次開始分別辨識LOGO與OPN。正常原M4腳本到12000場的自動接線一次有效驗證，1717至2333共617場自動LOGO HD，2334回原生並停止／回收；OPN在6692辨識正確但未綁未驗時間線，整段Native到10333。預讀來源早於影片開始約13／16場，使用最新連續有效來源，不沿用先前掃描TYK／END的讀取。
+
+完整CPU端點、RAM／VRAM／TTY／原音PCM／卡片／原圖逐位元組同§11及既有原生基準；12000場的cycles／PC／24-bit模式列完整相同。1920場HD RGB與§10已採用原型相同，沒有新美術審查。音訊僅原生SPU，未疊播AAC。這一新正常路線沒有逐場比完整RAM，§10的2600場成對完整狀態證據直接承接。來源、SHA與接納收據為私人素材tools/prepare_hd_movie_auto.py、probe_hd_movie_auto.rs、record_hd_movie_auto.py及hd-movie-auto-v4/acceptance.json，由docs/assets-catalog.md#render-control索引。
+
+公開格式來源：[FFmpeg n5.1.9 psxstr.c](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/libavformat/psxstr.c)，LGPL-2.1-or-later，只讀公開格式契約，未移植編解碼器。實際參考全文SHA256 e224cd2b4d9e244abf01a2d681f9a63656308be995b7903f657a751573879d0c，保存在私人hd-movie-ffmpeg-psxstr-n5.1.9.c。未驗OPN時間線／TYK與END正常事件、GUI、實體音訊、GPU播放器及正式包保持未完成，沒有新速度聲明。§10原先明確指定的原型歷史保持，本節才是實際讀取自動選片證據。

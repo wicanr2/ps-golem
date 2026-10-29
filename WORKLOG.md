@@ -2566,3 +2566,16 @@ Rust從真BIOS／原片／空白卡正常經序章、入城、戰鬥與首存，
 來源、原始結果及限定總表沿hd-movie-timed-*、hd-full-v3與hd-movie-normal-*；工具由素材索引連入。提交／推送／Issue／來源擁有權及容器清理狀態另存publication-hd-movie-timed-v3.json。所有影片、原音、ROM／BIOS、快照、卡片保持本機，沒有新tag／Release或發行包。
 
 接納腳本初版將既有成功測試RUST_MOVIE_SKIP標記誤判為缺料SKIP，在任何寫入前停止。依原五通過摘要與實際診斷格式修正辨識，接納同一份結果，沒有重跑測試或放寬產品判準。
+
+
+## 2026-10-29：實際讀取來源與首段HD自動選擇
+
+027 §11先以DRAFT副本追正常原M4腳本12000場，28150筆實際CD管線讀取、0遺漏，11868筆電影扇區頭逐筆同原片；完整端點同既有基準。核對固定FFmpeg n5.1.9公開STR格式後，先寫§12 READY才接通用API。預設關閉32筆讀取觀測、ISO extent與SourceTracker整段選擇已實作；六新案例通過，篩選另命中一既有DMA案例，合計7通過、36未執行，舊核心及影片美術矩陣不重跑。
+
+正常原M4前綴自動接線至12000場，無側載／PC或RAM注入。LOGO在1717場自動開始HD、2334結束，共617場；OPN在6692辨識正確，時間線未映射故整段原生，10333結束。首格前預讀與整段選擇避免晚到HD中途取代原生；解碼器全回收。完整CPU／RAM／VRAM／TTY／PCM／卡片／原圖端點、12000場cycles／PC／模式同§11基準；1920場HD RGB同先前已採用呈現緩衝。原SPU單一音源，未疊播AAC，原MDEC／DMA保留。沒有重審四段美術或新圖片，沒有GUI／GPU／速度與全HD完成聲明。
+
+來源及還原入口為私人素材docs/assets-catalog.md#render-control，trace/evidence/source-reference-v4與hd-movie-auto-v4/plan.json／acceptance.json保存工具、SHA與範圍。下一段為OPN等原片到原生呈現時間線，及正式前端／影片包；兩庫Issue #20／#13持續OPEN。
+
+首次自動接線驗證在240秒外層時限停止於6736場，退出124。沒有產品斷言失敗，當時未產出完整端點，接納器拒絕缺少結果。已保留hd-movie-auto-timeout-v4/stop.json及原逐場／來源紀錄；容器／二進位／原始輸入保持，以900秒有界時限乾淨重跑，僅接受後者。這是驗證環境修正，沒有為用滿審查次數重審美術。
+
+收尾：既有預覽文字與私人README已更新，沿用原圖，新增媒體0。索引正對照及六新工具入口完整，Python語法與兩庫git diff --check通過；本輪可寫輸出均UID1000，觸及根目錄未見root-owned檔案或.md目錄。所有sotn-movie-source驗證容器均--rm，無保留背景工作，未清理共用映像。兩庫提交／推送收據及Issue更新沿私人publication-hd-movie-source-v4.json，不把原片、參考二進位或MP4加入公開Git。

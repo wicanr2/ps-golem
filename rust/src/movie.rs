@@ -9,6 +9,7 @@ use std::{
     process::{Child, ChildStdout, Command, Stdio},
 };
 
+pub mod source;
 mod timeline;
 pub use timeline::{TimedPlayer, Timeline};
 

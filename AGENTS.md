@@ -109,3 +109,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## HD影片接續（2026-10-29）
 
 四段離線素材已集中抽樣採用，TYK轉場只修一次，兩輪結束，後續接線承接本批素材，不自行重開母稿或重審。來源為素材docs/assets-catalog.md#render-control的hd-movie-full-summary-v3.json。027 §9通用CPU整數時間線播放器已CONFORMED，§10正常開機無頭HD呈現原型已得到617場原生狀態相同證據，但候選預先明確指定，不是正式自動STR辨識、GUI或GPU播放器。下一段回027 §3補來源／事件與正式前端契約，未知副作用不猜補。
+
+
+## HD影片來源選擇（2026-10-29）
+
+027 §12通用來源辨識／整段選擇API已限定CONFORMED，入口rust/src/movie/source.rs、cdrom/reads.rs及Disc::file_extent。實際管線讀取觀測預設關閉，32筆有界／遺漏與reset明列；影片前未Ready維持整段原生，不中途升HD。正常原M4前綴12000場已自動選LOGO並呈現617場HD，OPN已辨識但時間映射未驗故整段原生；TYK／END正常播放、GUI、GPU與正式包仍未完成。承接既有四段定案美術，不重新審查。私人驗證入口為素材docs/assets-catalog.md#render-control的prepare_hd_movie_auto.py／probe_hd_movie_auto.rs／record_hd_movie_auto.py，收據hd-movie-auto-v4/acceptance.json；沒有新速度聲明。

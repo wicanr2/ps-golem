@@ -252,7 +252,7 @@ impl Disc {
     pub fn read_file(&self, name: &str) -> Result<Vec<u8>, String> {
         self.read_file_limit(name, u32::MAX)
     }
-    pub fn read_file_limit(&self, name: &str, max: u32) -> Result<Vec<u8>, String> {
+    pub fn file_extent(&self, name: &str) -> Result<(u32, u32), String> {
         let name = name.replace('\\', "/");
         let parts: Vec<_> = name
             .split('/')
@@ -308,6 +308,10 @@ impl Disc {
             }
             (lba, size) = found.ok_or("ISO entry not found")?;
         }
+        Ok((lba, size))
+    }
+    pub fn read_file_limit(&self, name: &str, max: u32) -> Result<Vec<u8>, String> {
+        let (lba, size) = self.file_extent(name)?;
         if size > max || size as u64 > usize::MAX as u64 {
             return Err(err("ISO file exceeds read limit"));
         }
