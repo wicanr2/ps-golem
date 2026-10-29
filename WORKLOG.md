@@ -2607,3 +2607,14 @@ Rust共用Session已接到正常影片路線，整合來源、固定epoch、暫�
 來源、SHA與結果沿hd-movie-session-v6，工具由素材docs/assets-catalog.md#render-control索引。既有原MDEC／DMA／SPU、海報／CPU與GPU方向及Go雙擊包保持，沒有新素材、圖片、神經推論、美術審查或速度驗收。
 
 收尾：索引正對照與三項新工具入口完整，Python語法與兩庫git diff --check通過；觸及工作根root-owned檔案及.md目錄0，所有sotn-movie-events驗證容器已--rm，未清共用映像。前批影片預讀117次的具體成本已回填既有效能Issue #9，這輪只登記未調速。無新媒體或交付包；提交／推送與Issue收據沿私人publication-hd-movie-session-v6.json。
+
+
+## 2026-10-29 Rust原版玩家視窗
+
+先核對012時鐘／原卡、020標準手把與既有圖集，再將026 §14補為READY，實作獨立rust/player crate。SDL只繫結平台API，唯一worker推進既有Rust Machine；最新完整場有界發布，音訊callback用至多44100個i16 FIFO。F1場邊界暫停／續播、失焦釋放、標準手把熱插拔及鍵位、原卡120場安靜保存與關窗原子保存已接。明確-native防止未完成HD被靜默降級，不讀寫現有HD偏好或取代Go包。新目錄由026及README索引，沒有第二份目前狀態表。
+
+建置準備時manifest尚無target、兩個cast比較與Box slice型別錯誤已在首次執行前修正；這些是開發期編譯問題。相同工具鏈離線乾淨建置成功，三個新單元案例全通過。唯一正常GUI讀檔至9000場，5139514453週期／PC8001548C，完整RAM／VRAM／原音／原像素／卡片同既有§13基準，最後場真正呈現。7214場暫停，39次GUI檢查field／cycle／音訊消費不變；續播完整端點保持。dummy callback確實消費13384152個i16、4927984非零，FIFO峰10266。另一次短重開由真正WM_DELETE_WINDOW關閉，join與原卡保存通過。沒有PC／RAM注入，舊核心矩陣與已驗美術重跑0；一次技術目視確認實際1920×1080存檔室。
+
+速度限制保留：軟體SDL／Xvfb功能重播234.390秒，含開機／暫停，音訊補零7032360個i16。未稱連續聲音／全速、實體聲音或USB／藍芽驗收，亦非Go／Rust效能A/B。既有存檔室靜音未知保持，不補音樂。HD影片Session、GPU／A／B／C海報、完整設定及三平台Rust包仍待接，原Go雙擊包、素材與偏好保持。
+
+固定工具image a5b26f4，Rust／Cargo1.99.1、SDL2 2.26.5；固定相依Cargo.lock及授權核對已保存，核心仍std-only。私人工具verify_rust_window.py由相鄰素材專案docs/assets-catalog.md#render-control進入，rust-window-v1保存plan／execution／acceptance與報告，accept只核對既有結果。工具cache只留本地，原圖僅授權私人repo。收尾檢查、提交／推送與Issue收據見同根publication.json。

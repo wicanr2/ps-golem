@@ -20,3 +20,6 @@
 *.srm
 *.state
 /*.png
+
+# Rust前端及核心的Cargo建置產物
+/rust/**/target/

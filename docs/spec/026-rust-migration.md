@@ -233,3 +233,36 @@ Rust CLI仍用§12，Go讀檔參考tools/oracle_rust_saved_game.go只做正常�
 這輪沒有Rust核心變更或重跑舊CPU／GTE／GPU／MDEC矩陣；只增加通用Go正常讀檔觀測工具、驗收與文件。來源、命令及首次結果沿私人direct-go-v1/rust-save-plan-v1.json、rust-save-execution-v1.json、rust-save-comparison-v1.json、rust-save-summary-v1.json。prepare_rust_save.py／run_rust_save.py／record_rust_save.py由素材docs/assets-catalog.md#render-control進入。兩張已驗原生截圖只依既有授權加入私人素材docs/screenshots與README，公開引擎沒有圖片或原資料。
 
 完成聲明限正常無頭首存／重開讀檔M4切片。玩家GUI、實體音訊／USB／藍芽、全部HD／GPU／海報、整段AI影片與三平台Rust雙擊仍未交付；全遊戲通關及速度未驗。本輪短HD影片原型另見027 §7，其建築變形未通過，不能混稱HD已完成。
+
+## 14. Rust原版玩家視窗
+
+狀態：CONFORMED，限Linux原版視窗功能／Xvfb與dummy音訊驗證。這是026既有Rust核心的原版視窗切片，沿012的顯示、輸入、時鐘與原卡契約；不宣稱Rust完整HD或取代現行Go雙擊包。來源是本專案6e66bd5的machine、input、cardfile與frontend/ebiten/input.go。平台繫結只用rust-sdl2 0.38.0的SDL2介面，不搬其他模擬器核心。
+
+入口rust/player/Cargo.toml，獨立crate依賴../的psgolem-core，使原核心保持std-only及forbid(unsafe_code)。新增相依固定版本並保存Cargo.lock：sdl2 0.38.0（MIT）、serde_json 1.0.145（MIT／Apache-2.0）、png 0.17.16（MIT／Apache-2.0）、sha2 0.10.9（MIT／Apache-2.0）；SDL2 2.26.5為zlib。中文字使用frontend/ebiten/ui-font.png／json與同目錄OFL，不新增字型設計。來源：https://docs.rs/sdl2/0.38.0/sdl2/ 、https://wiki.libsdl.org/SDL2/SDL_QueueAudio 。只用原生視窗／輸入／音訊API，依賴授權與鎖檔另列於本節結果。
+
+命令列psgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]。原版輸出固定4:3置中，不以PS1儲存寬高當螢幕比例。present只選SDL呈現裝置，原生PS1仍由已驗Rust軟體GPU計算，不能稱HD GPU或硬體影片解碼。這個分段入口必須明確-native，避免把尚未遷移的HD偏好靜默降為原版；不寫現有Go設定，也不覆蓋local-full。缺原版資料即停止，不自造輸入。
+
+按鍵與012相同：方向鍵、Z/X/A/S、Q/W/1/3、Enter／Backspace。USB與已配對藍芽標準SDL手把從已連線裝置選第一支；熱插拔後重新列舉，十字／左類比與標準實體位置映射PS按鍵，觸發器對L2／R2。左類比預設死區0.2，鍵盤與手把OR。失焦釋放按鍵，F1暫停／續播，Esc正常關窗。這輪只驗標準映射，完整020裝置選擇／重設／保存面板仍待遷移，不把SDL虛擬手把當實體藍芽驗收。
+
+主執行緒持有SDL。先呈現第一張黑畫面並開啟44100Hz、雙聲道i16音訊，再啟動唯一機器worker。機器只在worker改動，每場開始取一次輸入，每次執行到真VBlank。單場上限兩百萬CPU週期防止GPU停場無界。worker發布至多一張最新完整畫面；GUI可漏掉呈現，機器不能跳場。最終場一定真正繪製後才能自動結束。
+
+CPU主時鐘33868800Hz，步調依週期除頻，不改模擬週期；落後100ms重設實時基準，暫停後重設基準。音訊只取原SPU，不另播影片AAC。callback以有界FIFO取樣，不足補零並計數。FIFO最多22050組立體聲，滿時worker等待並可被stop打斷，不能無界累積或丟原取樣。暫停在場邊界確認，停止步進與新取樣提交，再暫停輸出；續播保留已排取樣。靜音不等音訊裝置。裝置失敗回報後靜音沿012，不能將dummy後端稱人耳驗收。
+
+原卡沿cardfile原子保存；定期在120場無新增原協定寫入後保存，及任何正常／錯誤關窗時收尾保存。stop可打斷等待並join worker。錯誤須顯示於stderr並非零退出；保存失敗不能回報成功。按鍵／GUI操作均不改遊戲RAM或PC。測試使用獨立卡片，不能覆寫玩家卡。
+
+診斷-fields N、-press／-press-file、-report PREFIX及-screenshot FILE只服務正常重播。腳本依既有input解析、與即時按鍵互斥；每個field仍正常執行。report保存完整最終RAM／VRAM摘要、原PCM串流摘要、卡片摘要、週期／PC／field與呈現／音訊計數，原圖僅留私人素材工作區。-unpaced僅供靜音診斷且需明確-fields，不能拿它推即時FPS。
+
+集中驗證：平台無關鍵位、類比邊界與4:3排版；一次Xvfb／dummy音訊正常重開讀檔至9000場，使用既有新卡副本及已驗重開腳本，對照026 §13的完整RAM／VRAM／原音／卡／原像素。視窗最後場必須呈現，音訊須實際交callback而非只生WAV。另以同一場內受控F1暫停／續播與正常WM關窗驗證worker／原卡生命週期。沒有更動核心，不重跑CPU／GTE／GPU舊矩陣；不稱實體音訊、實體手把、全遊戲速度、HD／海報或三平台Rust包完成。
+
+
+§14首次結果：三個新平台無關案例通過，鍵位14項、chord、類比邊界、4:3排版與既有中文字圖集可讀。唯一一次正常視窗讀檔至9000場、5139514453週期、PC8001548C，完整RAM／VRAM／卡片／原像素與§13已驗Go／Rust完全相同；13384152個i16原取樣的SHA256亦同舊WAV資料區。GUI最後實際呈現9000場，1920×1080畫面一次目視確認阿魯卡德存檔室及4:3比例。
+
+實際X11鍵盤事件在7214場、4119329659週期完成暫停；39次GUI呈現檢查中場數、CPU週期與音訊callback已消費數均不變，續播後仍達相同完整端點。dummy音訊裝置確實取走13384152個原i16取樣，其中4927984個非零；FIFO峰值10266個i16，上限44100。獨立短重開由WM_DELETE_WINDOW正常關閉，worker已join且原卡保存成功，兩張測試卡與來源卡保持相同。原版資料、PC及RAM均未注入，沒有重跑舊核心矩陣。
+
+速度限制：本次1920×1080軟體SDL／Xvfb單次功能重播耗時234.390秒，包含開機與暫停，callback補零7032360個i16。聲音資料與傳送鏈通過，連續播放品質／全速未通過；這不是實體硬體、穩定遊玩FPS或Go／Rust同環境效能比較。效能成本沿既有Issue #9列管，不因資料摘要相同而稱聲音或速度完整驗收。
+
+現有可重現工具為本機Docker image dosgolem-rust-san5-gui-tools:1.99.1-r3，固定image ID a5b26f4bd035234bbcaab0e12c3081bb70c4833f1b1c4983d06fbcea98eb7ad8；Rust／Cargo1.99.1、SDL2 2.26.5、Python3、Xvfb／xdotool。沿§7.1的有界Docker契約，工作樹掛/src、明確Cargo快取／target掛可寫/output，其餘原版資料唯讀；先在明確network bridge容器執行cargo fetch --manifest-path /src/rust/player/Cargo.toml --locked，之後network none執行cargo test及cargo build --release，兩者皆帶相同--manifest-path、--locked --offline。這個獨立crate不改核心Cargo.toml或Cargo.lock；正式三平台工具鏈及Rust發行包仍另做。
+
+Cargo.lock固定37個package含本機核心／前端；取得的相依授權已逐一核對，皆MIT／Apache-2.0、zlib、0BSD、BSL-1.0、Unicode-3.0或其相容選項。來源／版本／checksums由rust/player/Cargo.lock定位；SDL2來源由sdl2-sys 0.38.0的vendor與MIT／zlib條款定位；UI字型OFL全文仍在frontend/ebiten/ui-font-OFL.txt，後續打包須附上，不因include_bytes嵌入而省略。現行Go包不變。
+
+私人驗證入口tools/verify_rust_window.py，從素材docs/assets-catalog.md#render-control進入，依序prepare、run、accept；使用/engine、/materials、/baseline、/build唯讀及唯一/output可寫。完整命令、固定來源與首次結果存rust-window-v1/{plan,execution,acceptance}.json及reload／close報告，accept只讀既有結果不重新開遊戲。HD影片Session、A／B／C海報、原版／HD切換、完整020設定與實體手把、GPU影片及三平台Rust雙擊包仍未接到本入口。
