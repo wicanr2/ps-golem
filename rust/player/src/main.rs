@@ -1,5 +1,6 @@
 //! Rust native player window, spec026 section14. GPL-3.0-or-later.
 //! SDL2 is a platform binding; CPU/GTE/GPU/SPU/CD/MDEC remain our Rust core.
+mod apps;
 mod display;
 mod input;
 mod worker;
@@ -31,16 +32,22 @@ struct Options {
     present: String,
     size: Option<(u32, u32)>,
     native: bool,
+    movies: Option<PathBuf>,
+    ffmpeg: PathBuf,
+    ffprobe: PathBuf,
+    captures: Vec<u64>,
 }
 fn options() -> Result<Option<Options>> {
     let mut o = Options {
         present: "auto".into(),
+        ffmpeg: "/usr/bin/ffmpeg".into(),
+        ffprobe: "/usr/bin/ffprobe".into(),
         ..Options::default()
     };
     let mut args = env::args().skip(1);
     while let Some(a) = args.next() {
         if a == "-h" || a == "--help" {
-            println!("Rust 原版玩家視窗（HD、海報與完整設定面板尚未遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\n鍵盤同 Go 版；已連線標準手把；F1 暫停／續播；Esc 關窗保存原卡。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-unpaced（限靜音有界診斷）]");
+            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；海報與完整設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 暫停／續播；Esc 關窗保存原卡。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
             return Ok(None);
         }
         if a == "-version" {
@@ -71,6 +78,18 @@ fn options() -> Result<Option<Options>> {
                     "-report" => o.report = Some(v.into()),
                     "-screenshot" => o.screenshot = Some(v.into()),
                     "-present" => o.present = v,
+                    "-sotn-hd-movies" => o.movies = Some(v.into()),
+                    "-ffmpeg" => o.ffmpeg = v.into(),
+                    "-ffprobe" => o.ffprobe = v.into(),
+                    "-capture-fields" => {
+                        o.captures = v
+                            .split(',')
+                            .map(|n| {
+                                n.parse::<u64>()
+                                    .map_err(|_| "capture-fields格式錯誤".to_string())
+                            })
+                            .collect::<Result<Vec<_>>>()?;
+                    }
                     "-resolution" => {
                         let (w, h) = v.split_once('x').ok_or("解析度須為 WIDTHxHEIGHT")?;
                         let (w, h) = (
@@ -87,8 +106,17 @@ fn options() -> Result<Option<Options>> {
             }
         }
     }
-    if !o.native {
-        return Err("這是原版視窗切片，請明確使用 -native；HD 偏好不會被改寫".into());
+    if o.native == o.movies.is_some() {
+        return Err("請指定-native或-sotn-hd-movies DIR，兩者互斥；既有HD偏好不會被改寫".into());
+    }
+    if !o.captures.is_empty()
+        && (o.report.is_none()
+            || o.captures.len() > 16
+            || o.captures
+                .iter()
+                .any(|&n| n == 0 || o.fields.is_some_and(|f| n > f)))
+    {
+        return Err("capture-fields需-report，限16個有效正整數場數且不得超過-fields".into());
     }
     if o.bios.as_os_str().is_empty() || o.cue.as_os_str().is_empty() {
         return Err("請指定 -bios 與 -cue".into());
@@ -142,6 +170,22 @@ fn entry() -> Result<()> {
     };
     let mut m = Machine::new(&fs::read(&o.bios).map_err(|e| e.to_string())?)?;
     m.bus.sio.cards[0] = Some(cardfile::load_or_new(&card).map_err(|e| e.to_string())?);
+    let movie = o
+        .movies
+        .as_ref()
+        .map(|root| {
+            apps::sotn::Overlay::load(
+                &disc,
+                root,
+                o.ffmpeg.clone(),
+                o.ffprobe.clone(),
+                o.report.is_some(),
+            )
+        })
+        .transpose()?;
+    if movie.is_some() {
+        m.bus.cd.enable_sector_reads(true);
+    }
     m.insert_disc(disc);
     let script = o
         .script
@@ -152,8 +196,13 @@ fn entry() -> Result<()> {
     let video = sdl.video()?;
     let controllers = sdl.game_controller()?;
     let (w, h) = o.size.unwrap_or((1280, 960));
+    let mode = if o.movies.is_some() {
+        "HD影片"
+    } else {
+        "原版"
+    };
     let window = video
-        .window("ps-golem Rust 原版", w, h)
+        .window(&format!("ps-golem Rust {mode}"), w, h)
         .resizable()
         .position_centered()
         .build()
@@ -167,7 +216,7 @@ fn entry() -> Result<()> {
     }
     let mut canvas = builder.build().map_err(|e| e.to_string())?;
     eprintln!(
-        "Rust 原版視窗：SDL呈現={}；PS1繪圖=原生Rust軟體GPU；記憶卡={}",
+        "Rust {mode}視窗：SDL呈現={}；PS1繪圖=原生Rust軟體GPU；記憶卡={}",
         canvas.info().name,
         card.display()
     );
@@ -207,6 +256,8 @@ fn entry() -> Result<()> {
         card,
         unpaced: o.unpaced,
         report: o.report.clone(),
+        movie,
+        captures: o.captures.clone(),
     };
     let producer = shared.clone();
     let sound = device.as_ref().map(|_| audio.clone());
@@ -221,6 +272,7 @@ fn entry() -> Result<()> {
     let mut screenshot_size = (w, h);
     let mut freeze = None::<(u64, u64, u64)>;
     let mut freeze_checks = 0u64;
+    let mut captures = std::collections::BTreeMap::<u64, serde_json::Value>::new();
     // Always reach cleanup after the worker has started, including renderer errors.
     let gui_result = (|| -> Result<()> {
         'ui: loop {
@@ -344,12 +396,35 @@ fn entry() -> Result<()> {
                 screenshot = Some(canvas.read_pixels(None, PixelFormatEnum::RGBA32)?);
                 screenshot_size = (size_w, size_h);
             }
+            let capture = if o.captures.contains(&shown) && !captures.contains_key(&shown) {
+                Some(canvas.read_pixels(None, PixelFormatEnum::RGBA32)?)
+            } else {
+                None
+            };
             canvas.present();
+            if let Some(bytes) = capture {
+                let path = o
+                    .report
+                    .as_ref()
+                    .unwrap()
+                    .with_extension(format!("field{shown}.png"));
+                display::png(&path, size_w, size_h, &bytes)?;
+                captures.insert(
+                    shown,
+                    json!({"path":path,"width":size_w,"height":size_h,
+                    "movie":latest.as_ref().and_then(|f|f.movie.clone())}),
+                );
+            }
+            {
+                let mut s = shared.state.lock().unwrap();
+                s.presented_field = shown;
+                shared.wake.notify_all();
+            }
             draws += 1;
             if last_title.elapsed() > Duration::from_millis(500) {
                 canvas
                     .window_mut()
-                    .set_title(&format!("ps-golem Rust 原版 | field {field} | F1 暫停"))
+                    .set_title(&format!("ps-golem Rust {mode} | field {field} | F1 暫停"))
                     .map_err(|e| e.to_string())?;
                 last_title = Instant::now();
             }
@@ -383,6 +458,7 @@ fn entry() -> Result<()> {
     report["audio_underrun_i16"] = json!(audio.silence.load(Ordering::Relaxed));
     report["audio_queue_high_water_i16"] = json!(audio.high_water.load(Ordering::Relaxed));
     report["pause_frozen_gui_checks"] = json!(freeze_checks);
+    report["captures"] = json!(captures);
     report["worker_error"] = json!(state.error);
     report["gui_error"] = json!(gui_result.as_ref().err());
     if let Some(p) = &o.report {

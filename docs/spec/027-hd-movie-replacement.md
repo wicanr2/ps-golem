@@ -1,6 +1,6 @@
 # 027 HD影片替換與H.264播放
 
-狀態：整體DRAFT。使用者2026-10-28明示「改播放器，用H.264及AI提升畫質，播放時以高畫質影片取代」，決定已確認。離線來源與編碼原型已驗；§5 CPU拉取播放器及完整原生顯示事件鏈限定通過，正式播放攔截、前端與連續AI影片尚未完成。Rust核心移植沿026，MDEC原生相容沿011，不把本原型稱為遊戲影片已替換。
+狀態：整體DRAFT，§15限LOGO／OPN的Rust玩家視窗功能CONFORMED，其餘事件、GPU及正式包待接。使用者2026-10-28明示「改播放器，用H.264及AI提升畫質，播放時以高畫質影片取代」，決定已確認。離線來源與編碼原型已驗；§5 CPU拉取播放器及完整原生顯示事件鏈限定通過，正式完整播放攔截與影片包尚未完成；目前實際前端切片見§15，定案連續素材沿§13。Rust核心移植沿026，MDEC原生相容沿011，不把本原型稱為遊戲影片已替換。
 
 ## 1. 已確認的呈現方向
 
@@ -240,7 +240,7 @@ ISO檔案範圍從原Disc既有ISO9660路徑尋址程式的副本查得，保留
 
 ## 14. 共用影片Session、暫停與原生結束
 
-狀態：CONFORMED，限通用Rust控制層與已觀測LOGO／OPN正常路線，正式GUI／素材包仍DRAFT。證據承接§9整數時間線、§12來源／整段選擇與§13原生OPN；原M4腳本的6800:START:5及實際6800至6805影片模式持續為true，10333才退出，已由同一腳本SHA與保存逐場資料核對。因此按鍵不等於影片已跳過，禁止收到START就強制停止HD或改guest等待／PC。位址基準為模擬週期、VBlank與標準手把按鍵mask，無新遊戲RAM位址。
+狀態：CONFORMED，限通用Rust控制層與已觀測LOGO／OPN正常路線，GUI接續沿§15，正式影片包仍DRAFT。證據承接§9整數時間線、§12來源／整段選擇與§13原生OPN；原M4腳本的6800:START:5及實際6800至6805影片模式持續為true，10333才退出，已由同一腳本SHA與保存逐場資料核對。因此按鍵不等於影片已跳過，禁止收到START就強制停止HD或改guest等待／PC。位址基準為模擬週期、VBlank與標準手把按鍵mask，無新遊戲RAM位址。
 
 1. 新movie::Session只組合SourceTracker與既有TimedPlayer，接受來源profiles／非零固定clock_hz。沒有Machine、遊戲位址、按鍵規則、檔案格式或音訊裝置，呼叫端仍核對來源／素材SHA。一次只持有一個預備或活動解碼器，首格由既有Player預讀。
 2. observe只更新來源；影片外候選消失／變更時停止舊預備解碼器。needs_prepare僅在影片外且目前唯一來源尚未備妥時回key。prepare只接受目前來源且未開始，錯key或活動中拒絕且回收傳入Player。begin在實際完整影片邊界一次決定HD或整段原生，重複begin不重置epoch；活動中不因預讀或讀碟升HD。
@@ -254,3 +254,38 @@ ISO檔案範圍從原Disc既有ISO9660路徑尋址程式的副本查得，保留
 
 
 §14限定結果：Rust共用Session已接到正常影片路線，整合來源、固定epoch、暫停／續播與原生結束回收。五個新案例通過，正常12000場仍自動呈現4258場HD；OPN3641場影像身分與完整RGB校驗保持。100次暫停呈現要求沒有Machine步進、新原音取樣或狀態變更，續播600場的完整公開CPU／RAM／VRAM／原音／卡片同原生分支。端點及逐場cycles／PC／模式同既有基準，原腳本START6800未使OPN提早結束，控制層沒有強制跳片。四段定案素材與52.50MiB總表保持，新美術審查0；正式玩家GUI、實體聲音／手把、TYK／END正常事件與完整包仍待接。暫停只驗同cycle的100次呈現呼叫，沒有主機wall-clock／實體音訊宣稱；不是成功跳過OPN。五個新Session案例使用保留真實CFR45素材，0skip，其餘43案例未重跑。新路線兩段開始／結束與全部12000場、OPN完整呈現列皆同§13保存資料，沒有重新審查或修改影片。來源為rust/src/movie/session.rs與私人hd-movie-session-v6/tests.log、pause.json、result.json／acceptance.json，由素材docs/assets-catalog.md#render-control的prepare_hd_movie_session.py／probe_hd_movie_session.rs／record_hd_movie_session.py索引。
+
+## 15. HD影片接入Rust玩家視窗
+
+狀態：CONFORMED，限本節正常Linux／軟體SDL功能與dummy音訊驗證，限已驗LOGO／OPN與Linux視窗切片。沿026 §14玩家worker、§14 Session及§13定案影片。既有正常收據hd-movie-session-v6/sessions.tsv已證實完整VBlank開始時的唯一來源：1717場／979376799週期為LOGO15XA.STR，6692場／3821156949週期為OPN_WS.STR；退出2334／10333。這些數字只作驗收，不寫成正式播放觸發常數。實際觸發仍由真讀碟metadata及GPU 24-bit模式進出決定。
+
+入口rust/player/src/apps/sotn.rs，明確-sotn-hd-movies DIR，與-native互斥。這是影片HD切片，不稱全遊戲HD，也不讀寫Go偏好、改019 manifest或新增正式影片包格式。DIR只定位既有定案檔名：hd-movie-LOGO-full-HD-v2.mp4及hd-movie-opn-hd-v5/hd-movie-OPN-native-HD-v5.mp4。FFmpeg／ffprobe由-ffmpeg／-ffprobe指定，Linux預設/usr/bin下既有工具。
+
+啟動時核對boot_file SLPM_860.23、ISO原檔extent及完整2352-byte原扇區SHA。LOGO原1680扇區SHA256 5799bdb50503fdccdb5c6742c3c0123ad7795f938bc11fa0379a8929cf9c8c94；OPN原9240扇區SHA256 26ebb4c8f37af8b60fc358a98f5f5f09e9a0741b95d930805e85ba3cadadc56c。基準為既有raw-sectors對應STR.raw，位址空間光碟LBA，不是CPU或PTS。外部影片SHA沿現行v5總表，LOGO 02a28c5ac00b112a7bccfd0dc22e2190c388d2f49bb44767bcfbcd2e41abe6a6，OPN fae19b9c8718a2a87a416ba9fcd024158b7c6f1e8bdd547bbdd16a623df96232。原片／影片缺少或SHA不符時該來源整段原生並回報，不用近似身分；TYK／END保持原生，正常事件尚未驗。
+
+呼叫端每場先收32筆有界真CD metadata。僅在觀察到原生影片模式進入、同一完整場尚未發布GUI之前，為當前來源同步準備首格，再呼叫Session.begin，最後只發布單一完整HD或原生影像。這是§14既有prepare→begin順序移至呈現提交邊界，沒有先發布原片再晚到升HD。準備期間worker不步進Machine或新增音訊，UI仍能處理事件並保留前一完整畫面；原生epoch保留該VBlank週期，不隨主機載入耗時移動。缺檔／準備失敗則在begin選原生，整段不可再升HD。已通過的原生MDEC／DMA必要副作用保持。
+
+讀碟候選交錯不能視為播放；本呼叫端不為每次候選變化開解碼器，亦不猜穩定場數或以讀碟frame id當呈現索引。每個真正原生開始最多開一次，沿既有嚴格TimedPlayer核對1440×1080及93／921格。一次只持有一個預備或活動decoder；自然退出、錯誤／早EOF與關窗時Session.end回收。解碼錯誤單向原生回退，不隱藏具體錯誤，也不強制跳原生等待。
+
+worker仍是Machine唯一擁有者，原SPU／XA是唯一音源，MP4 AAC不播放。暫停在完整場提交後同時Session.set_paused、停止Machine.step／新音訊，再由GUI暫停callback；續播不重設影片epoch。START仍只送原遊戲，不能直接end影片。自然或原遊戲接受跳過後，原生24-bit模式退出的VBlank才end。
+
+HD RGB24按原通道轉RGBA供SDL整張呈現，以Arc保存一張不可變目前影像；相同影片格重用同一張，不累積整段影像。原版仍用已驗原生輸出，維持4:3置中與1920×1080輸出，SDL呈現裝置不當作GPU影片解碼。海報／完整設定沿024／020仍待接，不移除既有Go功能。正常CLI不傾印原影片或素材。
+
+診斷-report增加逐場cycles／PC／原生mode／來源／HD格與RGB Adler32、首格準備／開始／結束及錯誤計數。-capture-fields配-report只在指定正常VBlank等待GUI呈現與截圖確認，不注入RAM／PC，不改影片epoch；正式遊玩不使用此gate。最終場沿026 §14真正呈現後才自動結束。
+
+集中驗證只跑一次正常原M4前綴12000場。核對全部逐場cycles／PC／mode、兩段邊界及OPN3641場格號／完整RGB校驗同已保存v6，最終RAM／VRAM／原音／TTY／原卡／原像素同既有基準；正常GUI只抽LOGO／OPN各一張。OPN內實際F1暫停續播後端點保持，dummy callback確實非零，原卡原子保存。另一次短正常開機在活動HD中WM關窗，確認decoder回收、worker join與原卡保存。缺／錯影片以一次純來源守門檢查，不能冒稱完整故障矩陣、成功跳過OPN或所有影片完成。既有CPU／GTE／GPU及美術不重跑；速度、實體聲音／手把、GPU解碼、A／B／C海報、完整HD與三平台Rust包仍另列。
+
+原始資料與影片只留本機；工具／收據由素材docs/assets-catalog.md#render-control進入既有direct-go-v1。建置沿026 §14已固定Rust GUI工具，執行沿既有kol-package映像0b933af1238ab5839ad7a64b6ae05f069f57cb85da5917dfbe59730f6d7ba53f，同具SDL2 2.26.5、FFmpeg5.1.9、Xvfb／xdotool；不把主機runtime掛進容器，不建立重複工具映像。
+
+§15校驗註：新GUI診斷採標準Adler32初值A=1，v6保存的RGB和沿原探針初值A=0。比較時只將舊A加1、舊B加RGB位元組長度，各模65521，再與新校驗逐場比較；兩側影像與舊收據保持。兩張GUI原圖另以獨立FFmpeg完整RGB逐位元組核對，不只比校驗和。
+
+
+§15首次結果：LOGO與OPN的HD影片已接入Rust玩家視窗。唯一正常原M4前綴12000場中，4258場選用HD，兩段開始／退出及全部逐場cycles／PC／mode同既有v6；OPN全部3641場格號及完整RGB校驗保持，最終完整RAM／VRAM／TTY／原音／原卡／原像素符合已驗基準。兩張1920×1080實際視窗的中央1440×1080 RGB逐位元組同獨立FFmpeg，兩側保持黑邊。OPN內F1暫停的25次GUI檢查field／cycles／音訊消費不變，續播後端點保持。活動HD中的WM關窗與錯SHA／缺檔守門通過，解碼器均回收；本前端只開兩次decoder。原SPU為唯一音源，四段定案素材與52.50MiB總表保持，新美術審查0。
+
+本次軟體SDL／Xvfb功能重播499.335秒，包含首格準備、兩次截圖呈現等待及F1暫停，callback補零23774758個i16；不當作穩定遊玩FPS、Go／Rust因果比較或速度通過。實體聲音／手把、GPU影片解碼、TYK／END正常事件、A／B／C海報與完整設定、全遊戲HD及三平台Rust包仍待接。
+
+只新增Rust player的apps/sotn綁定與既有worker／GUI接線，核心movie::Session、Player／Timeline、CPU／GTE／GPU／SPU／MDEC與機器演算法保持。原版-native分支仍沿原遊戲繪圖；HD影片模式以實際CD metadata與原生24-bit邊界辨識，沒有硬寫開始場數或用讀碟格號當呈現時間。來源與影片SHA均逐一核對，準備在完整場發佈前完成；沒有先把原片提交再升HD。準備失敗整段原生，解碼故障沿Session單向原生回退。沒有修改019格式或現行Go雙擊包。
+
+五個前端小型案例首次通過，含兩個新來源／校驗邊界及三個既有受影響前端案例，舊核心／美術矩陣未重跑。新GUI逐場標準Adler32與v6初值0經本節已固定公式比對，兩張實際視窗另與獨立解碼完整RGB相同。關窗測試由真WM_DELETE_WINDOW在活動LOGO中觸發，Session.end／worker join／原卡保存成功，容器內ffmpeg／ffprobe殘留0。錯SHA與缺OPN只用核准影片的私有測試副本，不動原片／定案素材；正常1場回原生，來源綁定0、decoder0，兩項原因如實回報。
+
+私人工具verify_rust_hd_window.py由素材docs/assets-catalog.md#render-control進入；prepare、run、accept依序執行，accept只讀已保存結果。固定來源、建置、實際命令、逐場資料、兩張視窗原圖與驗收沿direct-go-v1/rust-hd-window-v1/{plan,execution,acceptance}.json，工具與輸入唯讀，唯一/output可寫。這不是實體GPU／音訊、成功跳過OPN、全片人工聆聽、全部影片或正式Rust雙擊包驗收。

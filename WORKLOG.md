@@ -2618,3 +2618,16 @@ Rust共用Session已接到正常影片路線，整合來源、固定epoch、暫�
 速度限制保留：軟體SDL／Xvfb功能重播234.390秒，含開機／暫停，音訊補零7032360個i16。未稱連續聲音／全速、實體聲音或USB／藍芽驗收，亦非Go／Rust效能A/B。既有存檔室靜音未知保持，不補音樂。HD影片Session、GPU／A／B／C海報、完整設定及三平台Rust包仍待接，原Go雙擊包、素材與偏好保持。
 
 固定工具image a5b26f4，Rust／Cargo1.99.1、SDL2 2.26.5；固定相依Cargo.lock及授權核對已保存，核心仍std-only。私人工具verify_rust_window.py由相鄰素材專案docs/assets-catalog.md#render-control進入，rust-window-v1保存plan／execution／acceptance與報告，accept只核對既有結果。工具cache只留本地，原圖僅授權私人repo。收尾檢查、提交／推送與Issue收據見同根publication.json。
+
+
+## 2026-10-29 HD影片接入Rust玩家視窗
+
+先依規格閘門核對實際兩段開始VBlank的唯一來源與原扇區SHA，再補027 §15 READY。只接Rust player遊戲專屬來源／素材綁定與既有worker／GUI，沒有改核心演算法或新影片包格式。原版-native與-sotn-hd-movies互斥；原扇區／外部素材SHA不符就整段原生。候選讀碟不開decoder，只在真正原生影片開始、完整場發布前準備首格再begin，沒有先發布原片再升HD。虛擬epoch保持；暫停同時凍結Machine／新音訊與Session；原音只沿SPU，MP4 AAC不播。相同HD格以Arc共享一張RGBA，沒有累積整段影像。
+
+LOGO與OPN的HD影片已接入Rust玩家視窗。唯一正常原M4前綴12000場中，4258場選用HD，兩段開始／退出及全部逐場cycles／PC／mode同既有v6；OPN全部3641場格號及完整RGB校驗保持，最終完整RAM／VRAM／TTY／原音／原卡／原像素符合已驗基準。兩張1920×1080實際視窗的中央1440×1080 RGB逐位元組同獨立FFmpeg，兩側保持黑邊。OPN內F1暫停的25次GUI檢查field／cycles／音訊消費不變，續播後端點保持。活動HD中的WM關窗與錯SHA／缺檔守門通過，解碼器均回收；本前端只開兩次decoder。原SPU為唯一音源，四段定案素材與52.50MiB總表保持，新美術審查0。
+
+本次軟體SDL／Xvfb功能重播499.335秒，包含首格準備、兩次截圖呈現等待及F1暫停，callback補零23774758個i16；不當作穩定遊玩FPS、Go／Rust因果比較或速度通過。實體聲音／手把、GPU影片解碼、TYK／END正常事件、A／B／C海報與完整設定、全遊戲HD及三平台Rust包仍待接。
+
+五個前端小型案例首次通過，包含兩個新來源／校驗邊界與三個受影響既有案例；核心舊矩陣重跑0。新標準Adler32與v6初值0的差異在GUI驗證前固定代數正規化公式，保留舊收據與兩側圖片；兩張GUI另以獨立FFmpeg完整RGB逐位元組相同。診斷capture-fields只等待正常場呈現，不注入RAM／PC；正式無此gate。原腳本START6800仍由原生判斷，未強制跳片。一次集中技術目視兩張正常視窗，不重審既有美術。
+
+建置沿既有Rust GUI工具a5b26f4，執行沿既有含SDL2／FFmpeg／Xvfb的kol-package 0b933af，沒有新建映像或掛主機runtime。固定來源、命令、build log、兩張原圖與驗收沿rust-hd-window-v1，私人工具verify_rust_hd_window.py由素材docs/assets-catalog.md#render-control索引；accept只核對保存結果。原圖只依既有授權加入私人README，公開引擎沒有媒體；Go雙擊包、設定與素材保持。收尾／提交／推送與Issue收據見同根publication.json。

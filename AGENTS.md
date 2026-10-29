@@ -129,3 +129,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## Rust原版玩家視窗接續（2026-10-29）
 
 026 §14限定CONFORMED，入口ps-golem的rust/player/Cargo.toml。SDL只處理視窗／輸入／音訊，機器仍由自有Rust核心執行。正常視窗讀檔9000場的完整RAM／VRAM／卡片／原音／原像素同§13基準；F1凍結／續播、dummy音訊callback非零取樣、正常WM關窗存卡已驗。這個切片必須明確-native，不改既有HD偏好或Go雙擊包。軟體視窗有7032360個i16補零，速度與實體聲音未過關；完整手把設定／實體USB與藍芽、HD影片Session／GPU／A／B／C海報及三平台Rust包仍待遷移。私人工具verify_rust_window.py與rust-window-v1收據由素材docs/assets-catalog.md#render-control進入，已定案美術不重審。
+
+
+## Rust HD影片視窗接續（2026-10-29）
+
+027 §15限定CONFORMED，正式綁定在ps-golem rust/player/src/apps/sotn.rs。-native保留原版，-sotn-hd-movies DIR只接已驗LOGO／OPN並互斥；來源完整扇區及素材SHA須符合，首格在完整場發布前準備再Session.begin，不中途升HD。正常12000場4258場HD、OPN3641場序號／RGB、完整端點／原音同既有基準；實際F1凍結續播、活動影片WM關窗回收、錯SHA／缺檔回原生已驗。本前端只開2次decoder，不為交錯讀碟候選重複預讀。海報／完整設定、實體聲音／手把、TYK／END事件、GPU解碼與Rust雙擊包仍待接，速度未過。私人工具verify_rust_hd_window.py與rust-hd-window-v1收據由素材docs/assets-catalog.md#render-control進入。既有Go包、四段素材與已定案美術保持。

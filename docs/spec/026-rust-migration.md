@@ -266,3 +266,6 @@ CPU主時鐘33868800Hz，步調依週期除頻，不改模擬週期；落後100m
 Cargo.lock固定37個package含本機核心／前端；取得的相依授權已逐一核對，皆MIT／Apache-2.0、zlib、0BSD、BSL-1.0、Unicode-3.0或其相容選項。來源／版本／checksums由rust/player/Cargo.lock定位；SDL2來源由sdl2-sys 0.38.0的vendor與MIT／zlib條款定位；UI字型OFL全文仍在frontend/ebiten/ui-font-OFL.txt，後續打包須附上，不因include_bytes嵌入而省略。現行Go包不變。
 
 私人驗證入口tools/verify_rust_window.py，從素材docs/assets-catalog.md#render-control進入，依序prepare、run、accept；使用/engine、/materials、/baseline、/build唯讀及唯一/output可寫。完整命令、固定來源與首次結果存rust-window-v1/{plan,execution,acceptance}.json及reload／close報告，accept只讀既有結果不重新開遊戲。HD影片Session、A／B／C海報、原版／HD切換、完整020設定與實體手把、GPU影片及三平台Rust雙擊包仍未接到本入口。
+
+
+§14接續解析：027 §15已限定CONFORMED，原入口另支援-sotn-hd-movies DIR並與-native互斥；LOGO／OPN的Session已接到正式Rust視窗。§14既有原版功能與限制保持，海報／完整手把設定、實體聲音與三平台Rust交付仍待完成，不能沿較早的「HD影片Session未接入」重新開啟本段已完成工作。

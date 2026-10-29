@@ -2,6 +2,7 @@
 use psgolem_core::{cardfile, input, machine::Machine};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
+use std::io::{BufWriter, Write};
 use std::{
     collections::VecDeque,
     path::PathBuf,
@@ -17,7 +18,8 @@ pub struct Image {
     pub field: u64,
     pub w: u32,
     pub h: u32,
-    pub rgba: Vec<u8>,
+    pub rgba: Arc<Vec<u8>>,
+    pub movie: Option<(String, usize)>,
 }
 #[derive(Default)]
 pub struct State {
@@ -33,6 +35,7 @@ pub struct State {
     pub cycles: u64,
     pub pause_count: u64,
     pub pause_cycles: u64,
+    pub presented_field: u64,
 }
 #[derive(Default)]
 pub struct Shared {
@@ -79,6 +82,8 @@ pub struct Options {
     pub card: PathBuf,
     pub unpaced: bool,
     pub report: Option<PathBuf>,
+    pub movie: Option<super::apps::sotn::Overlay>,
+    pub captures: Vec<u64>,
 }
 fn save(m: &mut Machine, p: &std::path::Path) -> Result<(), String> {
     if let Some(c) = m.bus.sio.cards[0].as_mut() {
@@ -86,14 +91,21 @@ fn save(m: &mut Machine, p: &std::path::Path) -> Result<(), String> {
     }
     Ok(())
 }
-pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts: Options) {
+pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut opts: Options) {
     let started = Instant::now();
     let mut clock_base = Instant::now();
     let mut cycle_base = m.cycles();
     let mut pcm = Sha256::new();
     let (mut values, mut nz) = (0u64, 0u64);
     let (mut last_writes, mut changed) = (0, 0);
+    let mut movie = opts.movie.take();
     let result = (|| -> Result<(), String> {
+        let mut fields = opts
+            .report
+            .as_ref()
+            .map(|p| std::fs::File::create(p.with_extension("fields.tsv")).map(BufWriter::new))
+            .transpose()
+            .map_err(|e| e.to_string())?;
         loop {
             let mut s = shared.state.lock().unwrap();
             while s.pause && !s.stop {
@@ -101,6 +113,9 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
                     s.pause_count += 1;
                     s.pause_cycles = m.cycles();
                     s.paused = true;
+                    if let Some(movie) = movie.as_mut() {
+                        movie.pause(true);
+                    }
                     shared.wake.notify_all();
                 }
                 s = shared.wake.wait(s).unwrap();
@@ -108,6 +123,9 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
                 cycle_base = m.cycles();
             }
             s.paused = false;
+            if let Some(movie) = movie.as_mut() {
+                movie.pause(false);
+            }
             if s.stop {
                 break;
             }
@@ -152,19 +170,61 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
                     a.high_water.fetch_max(q.len() as u64, Ordering::Relaxed);
                 }
             }
-            let f = m.bus.gpu.screen();
+            let hd = if let Some(movie) = movie.as_mut() {
+                let batch = m.bus.cd.take_sector_reads();
+                movie.update(&m, &batch)?
+            } else {
+                None
+            };
+            let image = if let Some(hd) = hd {
+                hd
+            } else {
+                let f = m.bus.gpu.screen();
+                Image {
+                    field: m.field(),
+                    w: f.width,
+                    h: f.height,
+                    rgba: Arc::new(f.rgba),
+                    movie: None,
+                }
+            };
+            if let Some(out) = fields.as_mut() {
+                let (source, index, crc) = movie
+                    .as_ref()
+                    .map(|v| {
+                        (
+                            v.last_source.as_str(),
+                            v.last_index.map(|i| i as i64).unwrap_or(-1),
+                            v.last_crc.unwrap_or(0),
+                        )
+                    })
+                    .unwrap_or(("native", -1, 0));
+                writeln!(
+                    out,
+                    "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    m.field(),
+                    m.cycles(),
+                    m.cpu.pc(),
+                    m.bus.gpu.status() & (1 << 21) != 0,
+                    source,
+                    index,
+                    crc
+                )
+                .map_err(|e| e.to_string())?;
+            }
             {
                 let mut s = shared.state.lock().unwrap();
                 s.field = m.field();
                 s.cycles = m.cycles();
-                s.frame = Some(Image {
-                    field: m.field(),
-                    w: f.width,
-                    h: f.height,
-                    rgba: f.rgba,
-                });
+                s.frame = Some(image);
             }
             shared.wake.notify_all();
+            if opts.captures.contains(&m.field()) {
+                let mut s = shared.state.lock().unwrap();
+                while !s.stop && s.presented_field < m.field() {
+                    s = shared.wake.wait(s).unwrap();
+                }
+            }
             if let Some(c) = m.bus.sio.cards[0].as_ref() {
                 if c.writes != last_writes {
                     last_writes = c.writes;
@@ -191,8 +251,16 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
                 }
             }
         }
+        if let Some(fields) = fields.as_mut() {
+            fields.flush().map_err(|e| e.to_string())?;
+        }
         Ok(())
     })();
+    let movie_stopped = if let Some(movie) = movie.as_mut() {
+        movie.finish(m.field(), m.cycles())
+    } else {
+        Ok(())
+    };
     let saved = save(&mut m, &opts.card);
     let vram: Vec<u8> = m
         .bus
@@ -202,13 +270,14 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
         .flat_map(|v| v.to_le_bytes())
         .collect();
     let frame = m.bus.gpu.screen();
-    let mut report = json!({"scope":"Rust original player window; not HD or physical audio/controller acceptance",
+    let mut report = json!({"scope":"Rust player window; optional source-selected LOGO/OPN HD movies; no physical audio/controller acceptance",
         "field":m.field(),"cycles":m.cycles(),"pc":m.cpu.pc(),"ram_sha256":hash(m.bus.ram()),
-        "vram_sha256":hash(&vram),"pcm_sha256":format!("{:x}",pcm.finalize()),"pcm_i16_values":values,
+        "vram_sha256":hash(&vram),"tty_sha256":hash(m.tty()),"pcm_sha256":format!("{:x}",pcm.finalize()),"pcm_i16_values":values,
         "pcm_nonzero_values":nz,"rgba_sha256":hash(&frame.rgba),"native_width":frame.width,"native_height":frame.height,
         "elapsed_seconds":started.elapsed().as_secs_f64(),"unpaced":opts.unpaced,
         "card_sha256":m.bus.sio.cards[0].as_ref().map(|c|hash(&c.data[..])),
         "card_writes":m.bus.sio.cards[0].as_ref().map(|c|c.writes),"card_save_ok":saved.is_ok()});
+    report["movies"] = movie.as_ref().map(|v| v.report()).unwrap_or(Value::Null);
     let screenshot = if let Some(p) = &opts.report {
         let p = p.with_extension("native.png");
         super::display::png(&p, frame.width, frame.height, &frame.rgba)
@@ -218,7 +287,11 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, opts:
     let mut s = shared.state.lock().unwrap();
     report["pause_count"] = json!(s.pause_count);
     report["pause_cycle"] = json!(s.pause_cycles);
-    s.error = result.err().or(saved.err()).or(screenshot.err());
+    s.error = result
+        .err()
+        .or(movie_stopped.err())
+        .or(saved.err())
+        .or(screenshot.err());
     s.report = Some(report);
     s.done = true;
     shared.wake.notify_all();

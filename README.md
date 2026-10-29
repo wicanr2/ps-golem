@@ -12,7 +12,7 @@
 素材替換及可選 CPU／GPU 後端。完整遊戲 HD 美術、速度與通關仍待驗收；
 3D 貼圖透視校正可選用 `-hd 2 -pgxp -texture-perspective`，範圍見 [022](docs/spec/022-hd-texture-perspective.md) 與 [Issue #12](https://github.com/wicanr2/ps-golem/issues/12)。
 
-Rust改寫位於[`rust/`](rust/)，已有自有CPU、GTE、原生GPU及光碟、聲音、影片、手把／原卡裝置。正常首存與重新讀檔已驗，原版玩家視窗位於[`rust/player/`](rust/player/)，已通過正常讀檔、暫停續播、音訊回呼與關窗存卡。實體音訊／手把、HD影片與海報接線、完整設定及三平台Rust雙擊仍待完成；軟體視窗驗證有音訊供應不足，速度未過關。來源、Docker入口與範圍見[026 §14](docs/spec/026-rust-migration.md#14-rust原版玩家視窗)。目前雙擊遊玩版本仍使用Go。
+Rust改寫位於[`rust/`](rust/)，自有核心已能正常首存與重新讀檔。玩家視窗位於[`rust/player/`](rust/player/)，支援原版顯示與LOGO／OPN的HD影片替換，影片沿原生時間線、原SPU聲音與場邊界切換。正常讀檔、HD影片暫停續播及關窗存卡已驗；實體音訊／手把、海報與完整設定、其餘影片、全遊戲HD及三平台Rust雙擊仍待完成。軟體視窗仍有音訊補零，速度未過關。入口與範圍見[026](docs/spec/026-rust-migration.md#14-rust原版玩家視窗)及[027 §15](docs/spec/027-hd-movie-replacement.md#15-hd影片接入rust玩家視窗)。目前雙擊遊玩版本仍使用Go。
 
 ## 執行
 
