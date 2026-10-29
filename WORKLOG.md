@@ -2579,3 +2579,18 @@ Rust從真BIOS／原片／空白卡正常經序章、入城、戰鬥與首存，
 首次自動接線驗證在240秒外層時限停止於6736場，退出124。沒有產品斷言失敗，當時未產出完整端點，接納器拒絕缺少結果。已保留hd-movie-auto-timeout-v4/stop.json及原逐場／來源紀錄；容器／二進位／原始輸入保持，以900秒有界時限乾淨重跑，僅接受後者。這是驗證環境修正，沒有為用滿審查次數重審美術。
 
 收尾：既有預覽文字與私人README已更新，沿用原圖，新增媒體0。索引正對照及六新工具入口完整，Python語法與兩庫git diff --check通過；本輪可寫輸出均UID1000，觸及根目錄未見root-owned檔案或.md目錄。所有sotn-movie-source驗證容器均--rm，無保留背景工作，未清理共用映像。兩庫提交／推送收據及Issue更新沿私人publication-hd-movie-source-v4.json，不把原片、參考二進位或MP4加入公開Git。
+
+
+## 2026-10-29：OPN原生時間線與自動HD呈現
+
+OPN已從完整原生顯示序列建立同風格HD，920段影像加末尾哨兵共921格。3641場影像身分全部對齊原生，避免近似原片對格與時間戳取整晚一場。正常12000場自動選取LOGO及OPN，共4258場HD；完整端點狀態／原音與逐場cycles／PC／模式同基準。四段現行素材合計52.50MiB，另外三段SHA保持。沿同一已定案模型，沒有新母稿或美術審查；原MDEC／DMA保留，正式GUI／GPU、TYK／END正常事件與完整包仍待接。
+
+原生擷取正常至12000場，原片近似對照有386段超過4色階保守篩選、最大9，其中影像905的最近均差錯選904。保留mapping-DRAFT.json未知，不調高門檻；以完整原生920段作同一官方模型的新輸入，直接保存實際VBlank。首段全黑4場保留，音訊按floor(cycles/768)擷取同場原SPU，無重疊AAC。時戳以floor(cycles×90000/33868800)，結束向上取整，同圖哨兵保存末格時長；921PTS及3641場影像序號均精確。完整RGB／AAC非靜音與原PCM相關度／SNR集中通過。
+
+一次原生擷取及一次有效完整新正常HD接線，另保留首次拒絕紀錄，沒有重跑舊核心／美術矩陣。既有GPU映像沒有Python，首次wrapper在工作負載啟動前停止；改直接執行已鎖版NCNN二進位，沿相同Intel MTL／Mesa25.2.8，沒有新增重複映像。正式核心未改，來源及指令在素材索引的prepare／probe／build／verify／record工具，收據hd-movie-opn-native-v5、hd-movie-opn-hd-v5及hd-movie-opn-player-v5。原片近似身分未知保持，不把本批稱rawSTR逐格還原。
+
+首次正常接線在OPN預讀時被嚴格Timeline拒絕，duration_ts等於末PTS，沒有OPN成功聲明。依實際B-frame封包與固定FFmpeg setts契約，只把最後解碼sample的duration設為2ticks，track時長增加1tick；全部視訊／音訊封包PTS、DTS、payload SHA、trim與extradata相同，已驗RGB／原音承接。真正Rust首格／stop預讀通過後，以同一二進位與原輸入乾淨重跑。失敗前綴同原生並保留於hd-movie-opn-player-zero-tail-v5，尾端修復及後續乾淨重建的真實fixture驗證均有收據，後者與已驗修復MP4逐位元相同。
+
+封裝初期的冗餘1080p PNG轉存停在影片編碼前，保留來源與停止紀錄，改由FFmpeg直接縮放已完成模型圖；未重跑NN。已記錄SHA後只刪除254張未使用中間PNG，回收430788450 bytes。集中核對曾在封裝尚未完成時因缺結果而未啟動，保留分類為編排先後問題，之後依程序退出0才啟動相依核對；不算產品或美術失敗。
+
+收尾：九項新工具已有索引與語法檢查，兩庫git diff --check通過，觸及工作根的root-owned檔及.md目錄皆0。所有sotn-opn容器均--rm，無保留背景GPU／播放器工作，未清理共用映像。素材庫private已由主機gh核對，新增兩張授權同場PNG及來源註記，完整影片與原素材保持本機。提交／推送與Issue收據沿私人publication-hd-movie-opn-v5.json，現行Go雙擊包與設定保持。

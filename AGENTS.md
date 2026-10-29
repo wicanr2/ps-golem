@@ -114,3 +114,8 @@ HD（內部解析度放大、PGXP 類次像素精度、寬螢幕 16:9、2D 圖�
 ## HD影片來源選擇（2026-10-29）
 
 027 §12通用來源辨識／整段選擇API已限定CONFORMED，入口rust/src/movie/source.rs、cdrom/reads.rs及Disc::file_extent。實際管線讀取觀測預設關閉，32筆有界／遺漏與reset明列；影片前未Ready維持整段原生，不中途升HD。正常原M4前綴12000場已自動選LOGO並呈現617場HD，OPN已辨識但時間映射未驗故整段原生；TYK／END正常播放、GUI、GPU與正式包仍未完成。承接既有四段定案美術，不重新審查。私人驗證入口為素材docs/assets-catalog.md#render-control的prepare_hd_movie_auto.py／probe_hd_movie_auto.rs／record_hd_movie_auto.py，收據hd-movie-auto-v4/acceptance.json；沒有新速度聲明。
+
+
+## OPN原生時間線接續（2026-10-29）
+
+027 §13已限定CONFORMED，OPN直接使用920段已觀測原生畫面及同一已定案模型，保存3641場VBlank與原音；普通原片對格的386個保守篩選未知保持，不以最近均差猜身分。正常自動LOGO＋OPN共4258場HD，端點及原音同基準。現行素材總表hd-movie-full-summary-v5.json，工具／收據入口為素材docs/assets-catalog.md#render-control的record_hd_movie_opn_player.py。正式GUI、GPU影片解碼、TYK／END正常事件與完整包仍待接；美術不重新審查，沒有新速度聲明。

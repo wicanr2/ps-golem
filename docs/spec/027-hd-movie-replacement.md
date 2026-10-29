@@ -200,3 +200,39 @@ ISO檔案範圍從原Disc既有ISO9660路徑尋址程式的副本查得，保留
 完整CPU端點、RAM／VRAM／TTY／原音PCM／卡片／原圖逐位元組同§11及既有原生基準；12000場的cycles／PC／24-bit模式列完整相同。1920場HD RGB與§10已採用原型相同，沒有新美術審查。音訊僅原生SPU，未疊播AAC。這一新正常路線沒有逐場比完整RAM，§10的2600場成對完整狀態證據直接承接。來源、SHA與接納收據為私人素材tools/prepare_hd_movie_auto.py、probe_hd_movie_auto.rs、record_hd_movie_auto.py及hd-movie-auto-v4/acceptance.json，由docs/assets-catalog.md#render-control索引。
 
 公開格式來源：[FFmpeg n5.1.9 psxstr.c](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/libavformat/psxstr.c)，LGPL-2.1-or-later，只讀公開格式契約，未移植編解碼器。實際參考全文SHA256 e224cd2b4d9e244abf01a2d681f9a63656308be995b7903f657a751573879d0c，保存在私人hd-movie-ffmpeg-psxstr-n5.1.9.c。未驗OPN時間線／TYK與END正常事件、GUI、實體音訊、GPU播放器及正式包保持未完成，沒有新速度聲明。§10原先明確指定的原型歷史保持，本節才是實際讀取自動選片證據。
+
+
+## 13. OPN原片到正常原生顯示時間線
+
+狀態：CONFORMED，限原生派生OPN素材的VBlank時間線與無頭正常自動呈現；原STR逐格身分與正式GUI仍未知。以下保留最初只讀觀測及失敗對格的範圍。§12已辨識OPN來源，但不能由15fps或6692場直接推算每格。沿同一真BIOS／原光碟、原M4腳本與新卡正常到12000場，於實際來源為OPN及24-bit影片模式的每個VBlank保存完整320×240 RGBA；相鄰相同影像逐位元組合併，保留每場cycles與對應影像序號。CD扇區頭frame_id僅標最後實際預讀的上界線索，不冒稱已顯示格號。正式核心不改、沒有PC或RAM注入。
+
+先核對完整CPU／RAM／VRAM／TTY／原音／卡片／原圖端點及12000場cycles／PC／模式同既有基準，再與已固定原片FFmpeg922格內容對照。沒有唯一身分或等價影像證據的畫面保持未知，不加猜測偏移。既有HD畫稿與原音不重做、不重審；只有映射證據足以固定typed契約後才推READY與接線。此研究不宣稱GUI、GPU或速度驗收。工具為私人素材prepare_hd_movie_opn.py／probe_hd_movie_opn.rs，由docs/assets-catalog.md#render-control索引；來源SHA與畫面沿hd-movie-opn-native-v5/plan.json。
+
+
+§13原生結果：正常12000場端點與逐場cycles／PC／模式全部同基準。OPN6692至10332共3641場，920段原生影像，第一段為實際全黑畫面；原片15fps直接起播會漏掉此停留且首個完整畫面已對原片第1格。原片像素近似對照有386段超過先前兩個樣本的4色階保守篩選，最大9色階；其中第905段的最近平均差候選是904，次候選才是905，證實平均差不足以證實影格身分。沒有調高門檻或把這些unknown改成通過。
+
+沿已定案LOGO方法，改以這份完整原生920段畫面作同一官方realesr-animevideov3-x4模型的新來源，保存每段原生VBlank週期，末尾加同圖哨兵確保時長。沒有重畫母稿、改風格或新美術審查，舊四段定案素材保留；OPN新來源與原始STR逐格身分繼續分列。SPU原始PCM按同一VBlank週期邊界擷取，樣本序號為floor(cycles/768)，依rust/src/spu.rs初始clock_divider768及每組取樣768CPU週期，並核對完整末端sample_count= floor(total_cycles/768)。影像沿同一33868800Hz原生週期，封裝沿§8絕對邊界取整與90000視訊／4410000容器時基。
+
+
+### 13.1 原生派生影片的正式窄契約
+
+1. 輸入固定為本節正常原M4路線的920段完整320×240原生RGBA與每段第一個VBlank的週期。完整端點與12000場cycles／PC／模式須同既有基準，逐像素來源SHA不可替換成近似原STR候選。原STR最近影格比對的386段未知保留，不調高4色階研究篩選，也不作runtime規則。
+2. HD處理承接已定案的Real-ESRGAN官方v0.2.5.0／realesr-animevideov3-x4／320整格分塊，模型與工具SHA沿hd-movie-ncnn-lock-v2.json；新原生輸入直接採同一流程，不重畫母稿、不增加美術審查。產物1440×1080 H.264，920段加同圖末尾哨兵共921格，只留本機。其他三段已定案影片保持。
+3. 影片起點為實際來源OPN且24-bit模式開始的第一個呈現VBlank，不用固定場數選片。每段MP4整數PTS=floor(elapsed_cycles×90000/33868800)，最後哨兵取ceil(duration_cycles×90000/33868800)；以絕對微秒邊界先取整再相減送concat，encoder time_base1/90000，容器4410000。每個PTS不得晚於原生對應VBlank，且必須晚於上一個觀察VBlank，3641場選出的影像序號須全部相同。這可避免最近取整把同一格延後整個VBlank，沒有改變遊戲週期或加光流插格。
+4. 原音從同次完整原SPU的PCM按floor(start_cycles/768)至floor(end_cycles/768)擷取，44100Hz雙聲道，確認完整末端取樣數同floor(total_cycles/768)。預覽AAC只轉碼同段原音，起點0、長度誤差不超過一組原取樣，完整解碼與非靜音、相關度>0.98及SNR>15dB；正式遊戲仍只播放原SPU，不疊播AAC。
+5. 通用TimedPlayer、首格預讀、單格快取、整數時鐘與stop／回收沿§9，不新增播放器或素材包schema。選片沿§12的實際CD管線來源／ISO範圍／SourceTracker，呼叫端核對素材SHA。缺包或來不及預讀時整段原生，開始後不改來源；本次只增加OPN綁定，不把TYK／END未驗事件或GUI當完成。
+6. 集中技術驗證為全部921PTS、3641場原生影像序號、完整RGB解碼與獨立FFmpeg framecrc、同段AAC原音。再用相同原M4輸入正常到12000場自動呈現LOGO及OPN，完整CPU／RAM／VRAM／TTY／PCM／卡片／原圖端點與逐場cycles／PC／模式保持，OPN每個實際呈現格的完整RGB Adler32須同獨立參考。原MDEC／DMA保留；不聲稱逐場完整RAM、GPU影片解碼、速度或正式玩家GUI。
+
+離線集中技術結果已通過：全部921PTS與3641場影像序號精確，完整RGB及原音沿私人hd-movie-opn-hd-v5/verification.json；正式正常呈現尚待本節一次接線驗證。來源與工具由素材docs/assets-catalog.md#render-control的build_hd_movie_opn_native.py、verify_hd_movie_opn_native.py與prepare_hd_movie_opn_player.py索引。原始位址基準為模擬CPU累計週期、VBlank及PCM取樣序號，不是遊戲RAM位址或原片15fps格號。
+
+
+### 13.2 零時長末尾與嚴格預讀
+
+狀態：CONFORMED，補齊§13.1的末端契約，通用播放器檢查不放寬。首次正常接線在OPN預讀時因duration_ts5526635等於末PTS5526635被既有Timeline拒絕，尚未選OPN HD。完整失敗前綴同原生，保留hd-movie-opn-player-zero-tail-v5。初版離線檢查只驗所有PTS及原生影像序號，漏驗duration必須嚴格大於末PTS，已補此必要條件。不是CPU或遊戲音畫錯誤。
+
+實際B-frame封包最後DTS5514491、首DTS−12143、最大PTS5526635；將最後解碼封包的duration設為2個90000Hz tick，使track duration由5526635變5526636，只延長1tick。使用FFmpeg n5.1.9 setts的N／PTS／DTS／DURATION契約，明確pts=PTS:dts=DTS，不能省略而讓預設TS覆蓋B-frame的PTS。僅stream-copy重封，所有921視訊與全部音訊封包的PTS、DTS、payload SHA、trim side-data及兩軌codec extradata相同。全部RGB／原音證據因此承接，不重新推論、重畫或整片重編。修正後仍須先以真正Rust TimedPlayer開啟、首格、stop／回收，再乾淨跑同一正常路線；首試不改稱通過。
+
+[固定FFmpeg setts原始契約](https://raw.githubusercontent.com/FFmpeg/FFmpeg/n5.1.9/libavcodec/setts_bsf.c)，LGPL-2.1-or-later，只呼叫工具，不移植程式。全文SHA256 dd13f1a67e021c9685fb3c02d58b77dbd741def37f0304612f08caa7a6948e47；本機來源ffmpeg-setts-n5.1.9.c、完整無損證據tail-repair.json。工具repair_hd_movie_opn_tail.py由素材docs/assets-catalog.md#render-control索引。原GPU模型及原生觀測不重跑，素材修正不影響其他三片、模擬核心、海報或現行Go雙擊包。
+
+
+§13限定結果：OPN已從完整原生顯示序列建立同風格HD，920段影像加末尾哨兵共921格。3641場影像身分全部對齊原生，避免近似原片對格與時間戳取整晚一場。正常12000場自動選取LOGO及OPN，共4258場HD；完整端點狀態／原音與逐場cycles／PC／模式同基準。四段現行素材合計52.50MiB，另外三段SHA保持。沿同一已定案模型，沒有新母稿或美術審查；原MDEC／DMA保留，正式GUI／GPU、TYK／END正常事件與完整包仍待接。全部OPN呈現格的完整RGB Adler32同獨立FFmpeg，原生影像序號／整數PTS全數相同，包含開頭四場原生全黑停留；新正常路線端點CPU／RAM／VRAM／TTY／PCM／卡片／原圖相同，不稱逐場完整RAM比較。來源為私人hd-movie-opn-player-v5/acceptance.json、hd-movie-opn-hd-v5/verification.json，由素材docs/assets-catalog.md#render-control索引。這是無頭呈現，沒有正式CLI／GUI接線、GPU影片解碼或速度驗收。
