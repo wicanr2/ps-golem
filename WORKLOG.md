@@ -2834,3 +2834,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 唯一正式批次192例、2444952量子及完整CPU／RAM／scratch全同，含32零顯存工作，四個排序512與packed末尾色彩拒絕通過。唯一正常原片前綴一個自然基準續跑8383，完整Machine及原音同；另八個獨立材質／排序／色彩診斷全Machine／成本／排隊音訊同，原控制組95840指令。兩個純ordinary案例保持非預設idle DMA2，原片／原卡保持，注入不當正常玩家覆蓋。
 
 026 §16.7.9限定CONFORMED，其餘bank／SDK／旋轉、空幀／隱藏／裁掉物件、bank15特殊複製、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵仍在。CPU／GPU、海報、影片、定案美術與Go包保持；無新GUI／硬體GPU／包或速度聲明，舊通過矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源與收據由assets-catalog的actor-material-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust packed色彩與相對色盤
+
+沿READY路由只讀既有IDA9.4 EBEFC–BF48與EC030–0FC，確認相對CLUT的signed偏移、cache四頂點色彩優先、entity強度及RGB遮罩。280候選完整資料／時鐘首次全同後凍結026 §16.7.10 READY，才放寬已驗packed最後色彩／相對CLUT守門並補高階資源條件，EBF18／EC048各為RAM成本4。ActorPlan、核心API與原版路徑不改，不執行原ISA或回播GP0／PC足跡建立資料。
+
+唯一正式批次280例、3519084量子及完整CPU／RAM／scratch同，含八個零顯存工作與四個負索引／旋轉拒絕。唯一正常原片前綴一個自然基準續跑8383、完整Machine及原音同；另八個獨立packed材質診斷的全Machine／成本／排隊音訊同，原控制組93735指令。兩個全重用案例保留非預設idle DMA2，原卡／原片保持，注入不當正常玩家覆蓋。
+
+本節限定CONFORMED，其餘bank／SDK／旋轉、空幀／隱藏／裁掉物件、bank15特殊複製、文字／HUD／特效／3D與正式整場仍待，後續原生相容光柵仍在。CPU／GPU、海報、影片、定案美術與Go包保持；無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源與限定收據由assets-catalog的actor-packed-material-v1進入，有界--rm容器、原始資料唯讀，不動共享資源。

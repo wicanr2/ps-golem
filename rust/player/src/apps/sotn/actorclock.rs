@@ -172,6 +172,7 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xebf00, 4),
     (0xebf04, 4),
     (0xebf08, 4),
+    (0xebf18, 4),
     (0xebf30, 4),
     (0xebf3c, 4),
     (0xebf5c, 4),
@@ -188,6 +189,7 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xec000, 4),
     (0xec00c, 4),
     (0xec01c, 4),
+    (0xec048, 4),
     (0xec140, 4),
     (0xec154, 4),
     (0xec158, 4),
@@ -435,11 +437,7 @@ impl Clock {
     }
     fn packed(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let a = 0x800733d8 + slot as u32 * 188;
-        if h(r, a + 0x54) != 1
-            || h(r, a + 0x16) & 0x8000 == 0
-            || !matches!(p.flip, 0 | 2)
-            || h(r, a + 0x14) > 1
-        {
+        if h(r, a + 0x54) != 1 || !matches!(p.flip, 0 | 2) || h(r, a + 0x14) > 1 {
             return Err("packed時鐘分支不在已驗範圍".into());
         }
         self.ranges(&[(0xebb94, 0xebbe4), (0xebc20, 0xebc30), (0xebc48, 0xebccc)])?;
@@ -472,7 +470,11 @@ impl Clock {
         }
         self.run(0xebec4, 0xebef8)?;
         self.transform(r, slot, p.flags, p.flip)?;
-        self.ranges(&[(0xebefc, 0xebf14), (0xebf24, 0xebf48)])?;
+        self.run(0xebefc, 0xebf14)?;
+        if h(r, a + 0x16) & 0x8000 == 0 {
+            self.run(0xebf18, 0xebf20)?;
+        }
+        self.run(0xebf24, 0xebf48)?;
         if byte(r, a + 0x18) != 0 {
             self.run(0xebf4c, 0xebf70)?;
         } else {
@@ -484,9 +486,23 @@ impl Clock {
         } else {
             self.run(0xec030, 0xec040)?;
             if p.flags & 8 != 0 {
-                return Err("未觀測packed color時鐘".into());
+                self.run(0xec044, 0xec080)?;
+                if p.flags & 0x10 != 0 {
+                    self.run(0xec084, 0xec090)?;
+                }
+                self.run(0xec094, 0xec0a4)?;
+                if p.flags & 0x20 != 0 {
+                    self.run(0xec0a8, 0xec0b4)?;
+                }
+                self.run(0xec0b8, 0xec0c8)?;
+                if p.flags & 0x40 != 0 {
+                    self.run(0xec0cc, 0xec0d8)?;
+                }
+                self.run(0xec0dc, 0xec0e4)?;
+            } else {
+                self.run(0xec0e8, 0xec0f0)?;
             }
-            self.run(0xec0e8, 0xec0f4)?;
+            self.run(0xec0f4, 0xec0f4)?;
         }
         self.run(0xec0f8, 0xec100)?;
         for _ in 0..3 {

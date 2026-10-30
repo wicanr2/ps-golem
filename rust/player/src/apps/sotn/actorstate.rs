@@ -399,11 +399,7 @@ impl ActorDataPlan {
                 h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
             })
             .last();
-        let supported_flags = if last.packed || last.flags & 8 == 0 {
-            3
-        } else {
-            0x7b
-        };
+        let supported_flags = if last.flags & 8 == 0 { 3 } else { 0x7b };
         if last.flags & !supported_flags != 0
             || !matches!(last.flip, 0 | 2)
             || if last.packed {
@@ -418,10 +414,7 @@ impl ActorDataPlan {
         let mut previous_ordinary = None;
         if last.packed {
             let a = entity(last_q.entity);
-            if h(input, a + 0x54)? != 1
-                || h(input, a + 0x16)? & 0x8000 == 0
-                || h(input, a + 0x14)? > 1
-            {
+            if h(input, a + 0x54)? != 1 || h(input, a + 0x14)? > 1 {
                 return Err("packed末尾來源分支尚未證實".into());
             }
             for q in plan.quads.iter().rev() {
