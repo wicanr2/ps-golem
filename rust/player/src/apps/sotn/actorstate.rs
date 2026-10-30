@@ -74,7 +74,7 @@ impl Architecture {
             branched: s.branched,
         }
     }
-    fn apply(&self, s: &mut State) {
+    pub(super) fn apply(&self, s: &mut State) {
         s.gpr = self.gpr;
         s.hi = self.hi;
         s.lo = self.lo;
@@ -87,30 +87,30 @@ impl Architecture {
     }
 }
 #[derive(Clone)]
-struct Part {
-    address: u32,
-    frame_data: u32,
-    n: u16,
-    packed: bool,
-    cache: u32,
-    dx: u16,
-    dy: u16,
-    width: u16,
-    height: u16,
-    x: u16,
-    y: u16,
-    flags: u8,
-    flip: u32,
-    part_flags: u16,
-    page_low: u16,
-    u0: i32,
-    v0: i32,
-    u1: i32,
-    v1: i32,
-    palette: i32,
+pub(super) struct Part {
+    pub(super) address: u32,
+    pub(super) frame_data: u32,
+    pub(super) n: u16,
+    pub(super) packed: bool,
+    pub(super) cache: u32,
+    pub(super) dx: u16,
+    pub(super) dy: u16,
+    pub(super) width: u16,
+    pub(super) height: u16,
+    pub(super) x: u16,
+    pub(super) y: u16,
+    pub(super) flags: u8,
+    pub(super) flip: u32,
+    pub(super) part_flags: u16,
+    pub(super) page_low: u16,
+    pub(super) u0: i32,
+    pub(super) v0: i32,
+    pub(super) u1: i32,
+    pub(super) v1: i32,
+    pub(super) palette: i32,
 }
 impl Part {
-    fn read(r: &[u8], slot: usize, index: usize) -> Result<Self> {
+    pub(super) fn read(r: &[u8], slot: usize, index: usize) -> Result<Self> {
         let a = entity(slot);
         let bank = h(r, a + 0x54)?;
         let frame = h(r, a + 0x56)?;
@@ -656,13 +656,12 @@ impl ActorDataPlan {
             irq_mask,
         })
     }
-    /// Offline data only: clock, cache and deadlines remain at the input.
-    /// Never use this partial operation to advance a live Machine.
-    pub fn apply_data(
+    /// Validate the complete immutable input before any data or device commit.
+    pub(super) fn validate(
         &self,
-        ram: &mut [u8],
-        scratch: &mut [u8],
-        state: &mut State,
+        ram: &[u8],
+        scratch: &[u8],
+        state: &State,
         context: TextureContext,
         irq_mask: u32,
     ) -> Result<()> {
@@ -674,6 +673,19 @@ impl ActorDataPlan {
         {
             return Err("物件架構資料計畫已過期".into());
         }
+        Ok(())
+    }
+    /// Offline data only: clock, cache and deadlines remain at the input.
+    /// Never use this partial operation to advance a live Machine.
+    pub fn apply_data(
+        &self,
+        ram: &mut [u8],
+        scratch: &mut [u8],
+        state: &mut State,
+        context: TextureContext,
+        irq_mask: u32,
+    ) -> Result<()> {
+        self.validate(ram, scratch, state, context, irq_mask)?;
         ram.copy_from_slice(&self.geometry.ram);
         scratch.copy_from_slice(&self.scratch);
         self.architecture.apply(state);

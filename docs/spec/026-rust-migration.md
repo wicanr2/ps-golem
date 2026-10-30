@@ -512,3 +512,33 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 首次停止在case0架構GPR1／GPR10，當時RAM及scratch已同、完整案例0；保留初版原碼／日誌／READY後回RE，由原CLUT假指令三個原字及0x800EC954推進端訂正。第二次只完成未過資料批次，12普通態／兩注入及拒絕皆過，沒有第三次。不可將兩次啟動改稱首次全過。16.6新增對齊清邊、短上傳30／31／32個16-bit字邊界及受影響遮罩案例通過；既有144工作皆非新邊界，未重跑其GPU／美術矩陣。
 
 已封閉的是資料與架構結果，尚未封閉快取、now／cost、乘除期限及Machine裝置時間／DMA／IRQ原子提交。Architecture是獨立型別；apply_data保持原時鐘／快取，不得在正式Machine使用它跳過整段人物routine。16.7整體仍DRAFT。原版模式、原卡／原片、定案素材、海報、影片及Go完整包保持；新正常GUI／硬體GPU／速度／跨平台驗收0。來源與原始位址／SHA、原DB保持、首停及最終收據沿私人素材索引actor-state-v1。
+
+
+#### 16.7.2 普通物件快取與時鐘資源
+
+狀態：CONFORMED，限定16.7.1資料分支及已證實普通packed／未旋轉幀的資源模型。DRA／boot／原DB沿16.7.1；新增IDA9.4確認sub_800145D0、sub_8001461C、SetIntrMask原名稱／邊界／bytes／xref，原始範圍及SHA由私人actor-clock-v1/SDK-functions.json保存。原DB唯讀，低位址bytes同boot offset EA-0x80010000+2048。216個已觀測非零讀取成本位置沿原存取及008／現行cpu.rs硬體模型，無成本類別衝突；十二原成本向量及足跡已凍結於evidence.json，僅作測試oracle，不由其生成正式執行序列。
+
+模型由高階工作量生成資源區段：256個物件掃描、幀表選擇、圖像上傳與兩清邊、固定8位縮放、普通部件裁邊／UV／混色、52-byte相容資料拷貝與排序連結、返回ABI。正式繪圖資料仍由ActorDataPlan產生；Clock不讀／解碼／執行MIPS，不由保存輸出或PC向量回播。區段原PC僅定位指令快取及讀取成本，並沿既有16.3／16.5資源方法逐量子更新快取、now／cost及乘積期限。RAM讀+4、I/O讀+2、scratch+0；cached fill=7-word。signed乘法期限依現行CPU的leading-sign-bits表，MFLO等待取max(base,deadline-now)，不是固定總週期或固定26476。
+
+BIU125320、無隔離／待處理IRQ／load／branch、快取valid低4位；16.7.1來源／靜態綁定／queue守門保持。此Clock先限packed bank1、原帧帶上傳、無facing、上傳至少一個16個32-bit字DMA block，清邊非64字整齊分支；普通幀page低位0、不走bank15／未知rotation、垂直UV翻轉／order+4／未觀測color分支。未知工作回錯，不半場沿原MIPS補完。最多100000量子、每步1至32、總和checked，超量／溢位拒絕。Clock endpoint合併已驗Architecture與推導的cache／now／cost／muldiv_done，COP0／GTE完成時點及GTE本體保持。
+
+一次集中核對十二保存態全CPU State、完整成本量子與既有向量，RAM／scratch沿16.7.1不重驗；另case0冷cache與case11完整valid做兩個局部原CPU oracle診斷，供應保留原MMIO回覆，不能稱正常Machine或硬體wall-clock。原CPU只在測試使用。Cache／時間守門及溢位拒絕需通過。舊美術／幾何／GPU矩陣不重跑，通過後只限本節CONFORMED。
+
+#### 16.7.3 同步圖像與資料的Machine提交
+
+狀態：CONFORMED，限定16.7.1–16.7.2支援分支、同步DMA2且不跨場／不發生可受理IRQ。現行SystemBus::advance不讀RAM或VRAM，GPU end_line只更新video欄位，scanout到screen才取pixels；無活動其他DMA／MDEC時可逐原成本量子推進，再套用本段完整資料／圖像終值。GPU line-skip的field_readout在VBlank才更新，跨場拒絕維持其穩定。這是現行執行器已證實相依，不稱PS1實機逐週期時間。
+
+通用新提交入口不放月下位址。輸入為CPU端點、RAM word patches、scratch、成本量子及已完成的TextureJob批次；限定最後job為Clear，完成DMA2 linked-list端點為MADR=0xFFFFFF、BCR=0、CHCR=0x401。啟用DPCR GPU通道、初始GPU完整命令邊界且ready、全部DMA quiescent、MDEC無等待、IRQ非pending；DICR force或啟用GPU通道IRQ時拒絕，不猜中途IRQ。RAM／scratch／CPU／量子／預算守門沿16.5，新入口只放寬已證實的同步GPU／DMA終值，不改舊no-I/O API。
+
+先在候選Machine依每量子保留原advance裝置順序，任何跨field／IRQ／活動DMA或MDEC等待整筆拒絕，原音訊及機器全保持。候選GPU直接套TextureJob，不用GP0／GP1 parser或原光柵回播；設定已描述DMA2終值並沿現行dma_finish更新master狀態，若因此IRQ亦拒絕。初始及結尾i_mask相同，途中SDK設0且沒有可受理IRQ的已驗普通分支不改端點；讀GPU狀態／info及timer counter無其他破壞性副作用，GPU info／FIFO終值沿16.6。所有時鐘與圖像成功才套RAM／scratch及全CPU並移交候選。
+
+遊戲ActorClockPlan提交前核對完整前態RAM／scratch／CPU、BIU、GPU context、IRQ mask，並核對ready／靜態來源，過期回錯。先做通用公開傳輸／原子拒絕測試，再只新跑一條真BIOS／原片／同卡／固定按鍵正常路線至8382，自然到入口連續八次與原MIPS控制組比較全Machine及原音，續跑8390。只在測試副本增加逐欄Eq，無注入PC／RAM／原碼；獨立IRQ／跨場／DMA條件診斷另標。主路徑仍未註冊不完整整場HD，原版、海報、影片、素材／存檔及CPU／GPU目標保持，沒有速度或全遊戲HD聲明。
+
+16.7.2來源守門補充：既有next-draw-helper-IDA-v1已含sub_80012A90及sub_80012B24兩個wrapper，邊界／bytes同原boot。Clock除原16.7.1與三個新增helper身份外，亦核對這兩個wrapper完整SHA，覆蓋每個已觀測時間資源位置。這只收緊接受範圍，不改資料／時間公式；原READY及首次已過成本結果保留，新增守門以十二保存態及破壞wrapper來源／時間溢位拒絕核對。正常對照使用完全相同原來源，不因此重開遊戲。
+
+
+16.7.2–16.7.3限定結果：12保存態的全部CPU State及逐量子成本同原版，另case0冷cache／case11完整valid兩個局部原CPU對照相同。BIU／cache無效位、兩個wrapper身份及時間溢位共五種拒絕通過。新增來源守衛後只補集中快取核對，初次已過結果保留，沒有重開正常遊戲。通用texture／data交易兩個新案例與七個受共享傳輸影響的既有案例共九項通過；舊no-I/O限制保持。
+
+一次真BIOS／原片／同卡／固定按鍵自然開機，8382起八次人物呼叫不執行原MIPS或GP0／GP1，直接提交typed texture jobs、RAM／scratch、CPU及逐量子裝置時間。八次完整Machine逐欄同原控制組，包含VRAM／快取／DMA／timers／CD／SPU／SIO／MDEC及排隊原音，續跑8390仍全同，所取原音SHA相同、原片與卡片保持。IRQ途中、跨場、過期CPU、DICR force、DMA2 IRQ及DPCR關閉六種獨立診斷全機器原子保持；注入副本不回正常路線。輸入／版本、每次指令數及工作量沿私人actor-clock-v1的normal-verification.json、tested-source.json及acceptance.json，原始來源與DB沿既有IDA索引。
+
+這封閉已列普通人物呼叫的同狀態提交，16.7整體與16整段仍DRAFT，尚需其他人物分支、其餘圖元／文字／特效／3D及完整場呈現交易。正式GUI未註冊本切片，後續原生相容DMA／光柵仍存在，不稱完整舊光柵移除或遊戲HD完成。CPU／GPU、海報、影片、已定案素材與原版模式保持；新美術、GUI、硬體GPU、三平台包驗收0，沒有新FPS或加速倍率聲明。

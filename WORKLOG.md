@@ -2758,3 +2758,16 @@ Go準備第一次寫到唯讀/materials alias，在建置前停止；只改/outp
 SDK新證據亦揭出16.6泛用端點的兩個邊界：x及width同時64字對齊用02h快速清除，不改readback；短上傳ceil(width*height/2)不足16個32-bit字時方向保持0，不設DMA2。先補契約後修正，新增對齊清邊、30／31／32個16-bit字界線及一項受影響遮罩案例皆過。舊144工作不在新邊界，原收據保持，不重跑GPU／美術矩陣。唯讀texture_context只提供原繪圖區／偏移與資訊高位，原native GP0路徑未變。
 
 16.7.1資料限定CONFORMED，25165824 bytes RAM及12288 bytes scratch全同，全部Architecture及COP0保持。16.7整段仍DRAFT，尚缺快取／時鐘／乘除期限與Machine DMA／IRQ／音訊等裝置原子提交，正式GUI未註冊此半完成操作。沒有正常新開機、全HD、硬體GPU、速度、三平台或美術新驗收；原版、卡片、素材、影片、海報及Go完整包保持。來源、IDA／原始SHA、首停、READY訂正、最終測試及publication由素材assets-catalog的actor-state-v1追溯。只清本輪容器與暫存DB，不碰共享資源。
+
+
+## 2026-10-30 Rust普通人物時鐘與同步顯存提交
+
+承接已過16.7.1，先凍結十二原成本／PC足跡／存取及現行排程來源。IDA9.4同一既有映像只在一次性DB副本查三個SDK helper，原名稱／位址／bytes與936函式保持，原boot／DRA／DB SHA保持。16.7.2–16.7.3 READY保存後實作actorclock.rs，以物件掃描／幀／上傳／清邊／部件／縮放工作生成cache與讀取／乘法等待資源；不解碼原指令或回播保存PC／結果。繪圖資料沿ActorDataPlan直接產生，原MIPS只作測試oracle。
+
+十二保存態共154929個量子及完整CPU State全同，兩組cold／full-valid cache變體同局部原CPU，BIU／valid位／溢位與兩wrapper身份拒絕通過。初次成本批次已過；來源覆蓋核對補上既有IDA已證實的12A90／12B24完整身份，所有已觀測資源PC均有SHA守門。只補集中新守門及十二態時間核對，沒有重開正常遊戲、改時間公式或重新美術審查。初次已過報告保留。
+
+Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩API維持。候選clone逐量子沿原advance，無活動DMA／MDEC、無pending IRQ且不跨場，直接套用TextureJob並設定已證實同步DMA2完成端點；不用原GP0／GP1或linked-list走訪。所有工作成功才移交CPU／RAM／scratch與顯存，拒絕包含排隊音訊全保持。新增兩個案例與七個受共同傳輸影響案例共九項通過。
+
+唯一正常原片路線自然到8382，八次人物呼叫的103120個原控制組指令由Rust資料與時間提交略去，直接產生120個四邊形及96個圖像工作。完整Machine逐欄、續跑8390及所取原音SHA同原版，原片／卡片不變。IRQ途中、跨場、過期CPU、DICR force／GPU IRQ及DMA2停用六種獨立診斷全機器拒絕保持；正常路線沒有PC／RAM／code注入。正常程式編譯後只有兩個更嚴格的來源守門、格式化及獨立編譯入口變動，來源守門另由十二態通過。
+
+026 §16.7.2–16.7.3限定CONFORMED，16.7其餘分支及16整段仍DRAFT，正式玩家未註冊不完整切片。還須其他人物、圖元／文字／特效／3D與整場呈現，後續原生相容光柵仍在；不能稱已移除整場舊繪圖、完整HD或速度通過。CPU／GPU、海報、影片、原版流程、定案素材與Go包保持，GUI／硬體GPU／三平台包與新美術驗收0。工具／收據入口為素材assets-catalog的actor-clock-v1，工作容器收尾並只刪本批暫存DB。

@@ -4,3 +4,6 @@ mod actor;
 
 #[path = "../src/apps/sotn/actorstate.rs"]
 mod actorstate;
+
+#[path = "../src/apps/sotn/actorclock.rs"]
+mod actorclock;

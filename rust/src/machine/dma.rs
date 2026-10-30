@@ -130,6 +130,14 @@ impl SystemBus {
         }
         self.dma_finish(ch);
     }
+    /// Verified endpoint of the synchronous SDK clear list, 026 §16.7.3.
+    /// Only the explicit typed texture transaction calls this; no RAM traversal.
+    pub(super) fn finish_texture_linked_list(&mut self) {
+        self.dma.madr[2] = 0xffffff;
+        self.dma.bcr[2] = 0;
+        self.dma.chcr[2] = 0x01000401;
+        self.dma_finish(2);
+    }
     fn dma_finish(&mut self, ch: usize) {
         self.dma.chcr[ch] &= !(1 << 24 | 1 << 28);
         let before = self.dma.dicr;

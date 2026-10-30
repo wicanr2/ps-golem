@@ -1,7 +1,8 @@
-//! Bounded no-I/O data transactions, spec026 §16.3.3, GPL-3.0-or-later.
+//! Bounded data and typed texture transactions, spec026 §16.3.3/16.7.3.
+//! GPL-3.0-or-later.
 //! Uses the existing device scheduler; never executes guest instructions.
 use super::Machine;
-use crate::cpu::State;
+use crate::{cpu::State, gpu::transfer::TextureJob};
 
 #[derive(Clone, Copy, Debug)]
 pub struct RamWordPatch {
@@ -31,7 +32,7 @@ impl Machine {
         costs: &[u32],
         budget: u64,
     ) -> Result<(), String> {
-        self.commit_data_phase(endpoint, patches, None, costs, budget)
+        self.commit_data_phase(endpoint, patches, None, costs, budget, None)
     }
 
     /// Explicit completed arithmetic + scratch transport, spec026 §16.5.
@@ -49,7 +50,37 @@ impl Machine {
         if scratch.len() != self.bus.scratch.len() {
             return Err("scratch長度不符".into());
         }
-        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget)
+        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, None)
+    }
+
+    /// Synchronous typed texture batch plus CPU data, spec026 §16.7.3.
+    /// Caller proves SDK semantics and that intermediate RAM/VRAM is invisible
+    /// to devices. No guest instructions, GP0/GP1 parsing, or DMA list traversal.
+    pub fn commit_texture_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        scratch: &[u8],
+        costs: &[u32],
+        budget: u64,
+        jobs: &[TextureJob],
+    ) -> Result<(), String> {
+        if scratch.len() != self.bus.scratch.len()
+            || !matches!(jobs.last(), Some(TextureJob::Clear { .. }))
+        {
+            return Err("顯存交易需要完整scratch及末尾清除".into());
+        }
+        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, Some(jobs))
+    }
+
+    fn texture_phase_ready(&self) -> bool {
+        let dpcr = self.bus.dma.read(0x1f8010f0);
+        let dicr = self.bus.dma.read(0x1f8010f4);
+        self.data_phase_idle()
+            && dpcr & (1 << 11) != 0
+            && dicr & (1 << 15) == 0
+            && (dicr & (1 << 18) == 0 || dicr & (1 << 23) == 0)
+            && self.bus.gpu.status() & ((1 << 26) | (1 << 28)) == ((1 << 26) | (1 << 28))
     }
 
     fn commit_data_phase(
@@ -59,6 +90,7 @@ impl Machine {
         scratch: Option<&[u8]>,
         costs: &[u32],
         budget: u64,
+        textures: Option<&[TextureJob]>,
     ) -> Result<(), String> {
         if costs.is_empty() || costs.len() > 100_000 || patches.len() > 524_288 {
             return Err("資料階段大小不符".into());
@@ -96,6 +128,7 @@ impl Machine {
             || endpoint.gte_done != before.gte_done
             || endpoint.icache.iter().any(|line| line.valid & !15 != 0)
             || !self.data_phase_idle()
+            || (textures.is_some() && !self.texture_phase_ready())
         {
             return Err("CPU／時間或裝置上下文不符".into());
         }
@@ -113,12 +146,26 @@ impl Machine {
         // All speculative device events and audio stay in this owned clone.
         // Same immutable Disc Arc, no borrowed device/presentation callbacks.
         let mut candidate = self.clone();
+        // Validate typed GPU jobs on the isolated candidate before scheduling.
+        // The batch is applied after scheduling. The line-skip field remains
+        // stable, and no scheduler reader consumes the intermediate pixels.
+        if let Some(jobs) = textures {
+            let mut gpu = candidate.bus.gpu.clone();
+            gpu.apply_texture_jobs(jobs)?;
+        }
         let field = self.field();
         for &n in costs {
             candidate.cycles += n as u64;
             candidate.bus.advance(n as u64);
             if candidate.field() != field || !candidate.data_phase_idle() {
                 return Err("資料階段跨場、IRQ或活動裝置".into());
+            }
+        }
+        if let Some(jobs) = textures {
+            candidate.bus.gpu.apply_texture_jobs(jobs)?;
+            candidate.bus.finish_texture_linked_list();
+            if !candidate.texture_phase_ready() {
+                return Err("顯存提交後裝置狀態不符".into());
             }
         }
         for patch in patches {
@@ -295,5 +342,106 @@ mod tests {
         assert_eq!(m.field(), 0);
         assert_eq!(m.bus.video_acc, 0);
         assert!(m.take_audio().is_empty());
+    }
+}
+
+#[cfg(test)]
+mod texture_tests {
+    use super::*;
+    use crate::{cpu::Bus, gpu::transfer::Rect};
+    fn machine() -> Machine {
+        let mut m = Machine::new(&vec![0; 0x80000]).unwrap();
+        m.bus.write32(0x1f8010f0, 0x07654b21);
+        m
+    }
+    fn endpoint(m: &Machine, n: u64) -> State {
+        let mut s = m.cpu.state.clone();
+        s.now += n;
+        s.cost = n;
+        s.pc = 0x80010000;
+        s.next_pc = s.pc + 4;
+        s
+    }
+    fn jobs() -> Vec<TextureJob> {
+        vec![
+            TextureJob::Upload {
+                rect: Rect {
+                    x: 1,
+                    y: 1,
+                    width: 2,
+                    height: 1,
+                },
+                words: vec![0x1234, 0x5678],
+            },
+            TextureJob::Clear {
+                rect: Rect {
+                    x: 3,
+                    y: 1,
+                    width: 1,
+                    height: 1,
+                },
+            },
+        ]
+    }
+    #[test]
+    fn typed_texture_commit_updates_pixels_dma_and_clock() {
+        let mut m = machine();
+        let s = endpoint(&m, 5);
+        m.commit_texture_data_phase(
+            &s,
+            &[RamWordPatch {
+                offset: 12,
+                value: 0x1357,
+            }],
+            &[0x42; 1024],
+            &[5],
+            5,
+            &jobs(),
+        )
+        .unwrap();
+        assert_eq!(m.cpu.state, s);
+        assert_eq!(m.cycles(), 5);
+        assert_eq!(m.bus.scratch(), [0x42; 1024]);
+        assert_eq!(&m.bus.ram()[12..16], &0x1357u32.to_le_bytes());
+        assert_eq!(m.bus.read32(0x1f8010a0), 0xffffff);
+        assert_eq!(m.bus.read32(0x1f8010a4), 0);
+        assert_eq!(m.bus.read32(0x1f8010a8), 0x401);
+        let mut expected = machine();
+        expected.bus.gpu.apply_texture_jobs(&jobs()).unwrap();
+        assert_eq!(m.bus.gpu.vram(), expected.bus.gpu.vram());
+    }
+    #[test]
+    fn typed_texture_rejects_device_irq_and_malformed_jobs_without_mutation() {
+        for kind in 0..5 {
+            let mut m = machine();
+            let mut js = jobs();
+            match kind {
+                0 => m.bus.write32(0x1f8010f4, 1 << 15),
+                1 => m.bus.write32(0x1f8010f4, (1 << 18) | (1 << 23)),
+                2 => js.pop().map(|_| ()).unwrap(),
+                3 => m.bus.write32(0x1f8010f0, 0),
+                _ => {
+                    m.bus.write32(0x1f801074, 1 << 4);
+                    m.bus.write32(0x1f801108, 2);
+                    m.bus.write32(0x1f801104, 1 << 4);
+                }
+            }
+            let before = m.clone();
+            let s = endpoint(&m, 5);
+            assert!(m
+                .commit_texture_data_phase(&s, &[], &[0x42; 1024], &[5], 5, &js)
+                .is_err());
+            assert_eq!(m.cycles(), before.cycles());
+            assert_eq!(m.cpu.state, before.cpu.state);
+            assert_eq!(m.bus.ram(), before.bus.ram());
+            assert_eq!(m.bus.scratch(), before.bus.scratch());
+            assert_eq!(m.bus.gpu.vram(), before.bus.gpu.vram());
+            assert_eq!(m.bus.irq_registers(), before.bus.irq_registers());
+            assert_eq!(
+                m.bus.timers.peek(0x1f801100),
+                before.bus.timers.peek(0x1f801100)
+            );
+            assert!(m.take_audio().is_empty());
+        }
     }
 }
