@@ -742,3 +742,23 @@ EC1B8–1C8對ordinary部件數零跳EC958，delay slot仍清scratch+4C，不設
 唯一正常原片前綴到8382，一個未注入bank1自然基準、續跑8383及所取原音同。另十個五路×上傳／重用的獨立表映射診斷，完整Machine、全部成本及排隊音訊同原CPU，共84849控制指令；五個重用案例保持非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401。幀表／source clone與origin sentinel只在診斷副本，像素payload保持；原卡／原片保持，副本不回正常路線，不稱自然非bank1或角色／關卡覆蓋。
 
 本節只封閉原bank來源選擇與已驗資料／時間路徑；自然來源載入生命週期、其餘幀／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包不改；新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、準備停止、正式版本與局部／整機收據由私人actor-banks-v1索引追溯。
+
+
+#### 16.7.14 Ordinary bank15的額外圖元
+
+狀態：CONFORMED。沿16.7.1–16.7.13的架構／SDK／同步交易範圍，接普通bank15每個部件的第二份圖元；packed bank15、rotation、容量耗盡、自然來源生命週期與正式整場不在本切片。來源DRA／boot／DB SHA與工具沿16.7.13；PS1 KSEG0 RAM、DRA offset EA-0x800A0000，原IDA9.4 EC788–EC954的原bytes與輸入SHA由私人actor-bank15-v1/evidence.json追溯。
+
+已證實EC7A4在普通bank15第一份圖元後進額外分支，容量未滿時將同一型別部件另作一份：X加20或44減entity0的X，分別依當前entity朝向非零／零；Y加24減entity0的Y，CLUT直接取8003C30C。第二份排序為當前entity排序加416減entity0排序，part_flags的100仍加4。頂點、UV、色彩、混色與材質頁沿第一份，只有列出的座標／CLUT／排序變化；scratch保留第二份資料，主routine正常推進部件與entity。
+
+候選將直接建立兩份Quad，標示duplicate以避免重算兩次transform堆疊／乘積；後續CPU／GPU取樣仍沿既有型別資料，不重播GP0或原MIPS。資料／資源Clock及完整Machine須獨立同原CPU。診斷只映射兩份原五部件幀資料，涵蓋朝向／縮放／色彩、part排序加4、上傳前綴、中途／末槽及後續普通部件；不當正常bank15角色／關卡證據。未知來源／第二排序越界／packed bank15／rotation／容量拒絕，不改玩法或存檔。
+
+READY證據：192個隔離候選首次完整通過，包含兩保存態、96／98兩份原五部件幀、中途／末槽、兩朝向、flags0／3／78、part排序加4及有無packed上傳前綴。完整2MiB RAM、scratch、CPU State及每個成本量子與原CPU相同，共1904992量子。尚未將隔離映射當作自然bank15生命週期。
+
+集中驗收：正式來源重做同192案例，加兩保存態各五拒絕，分別packed bank15、rotation、第二排序超界、容量端點與原routine身份破壞。只開一次正常原片前綴、一個未注入基準續跑8383；八個獨立bank15診斷核對完整Machine／逐成本／排隊音訊，有無上傳各四組；無上傳保持非預設idle DMA2。原片／原卡保持，既有美術／GPU／GUI／包不重跑，不作速度聲明。
+
+
+16.7.14限定結果：192正式局部案例、1904992個量子，完整CPU State／2MiB RAM／scratch及逐成本同原CPU；96組無顯存上傳、十個packed bank15／rotation／第二排序超界／容量／原routine身份拒絕通過。兩份五部件原幀各直接生成五份額外Quad，保留UV／色彩／混色與材質頁，資料由Rust建立，未執行原ISA／SDK或GP0回播。
+
+唯一正常原片前綴的一個未注入基準續跑8383及原音同；八個獨立表映射診斷全Machine／成本／排隊音訊同原CPU，共79366控制指令。四個無上傳保持非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401，原片／原卡保持。映射不回正常路線，不當自然bank15、角色／關卡生命週期覆蓋。
+
+候選192首次全同。READY文件已寫、收據因唯讀掛載停止，正式來源未安裝、正式案例0；改收據輸出為/output後沿同一候選續接，沒有重跑候選。整機啟動前索引校準成有無上傳各四組，前後hash保存，不涉及production修改。唯一正式局部與整機批次全過。026 §16／16.7整體仍DRAFT；packed bank15、rotation、容量、其他SDK、自然來源、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術與Go包保持，無新美術／GUI／硬體GPU／打包或速度通過聲明。來源、READY、環境停止、受測來源及集中收據由私人actor-bank15-v1索引追溯。

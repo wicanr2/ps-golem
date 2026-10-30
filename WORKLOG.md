@@ -2870,3 +2870,14 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 測試器先把圖像header誤作payload而停止，CPU比較0；保留原碼／日誌，以EBCE4的A1+4訂正斷言，候選邏輯未改。唯一正式240例、2086800量子及完整CPU／RAM／scratch同，120組零上傳與八拒絕通過。唯一正常原片前綴一個bank1自然基準續跑8383、完整Machine及原音同；另十個獨立來源表映射的全Machine／成本／排隊音訊同，控制組84849指令，五個重用保留非預設idle DMA2。clone原資料並以origin作路由辨識，payload保持；原片／原卡保持，注入不當自然非1 bank或全關卡覆蓋。
 
 本節限定CONFORMED，自然來源啟用、其他幀／SDK／rotation／bank15、文字／HUD／特效／3D與正式整場仍待，後續原生相容光柵保持。README歷程已另封存至WORKLOG，HUD及城堡完整範圍更新既有#11／#5，最終截圖待完整HD正常驗證。CPU／GPU、海報、影片、定案美術與Go包保持，無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源與收據由assets-catalog的actor-banks-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-31 Rust ordinary bank15額外圖元
+
+依原IDA9.4 EC7A4–EC934確認普通bank15第一份圖元後的座標／CLUT／排序轉換。Rust直接建立兩份型別Quad，標示duplicate，避免把transform堆疊／乘積重算；架構尾端及資源Clock保留第二份必要狀態，核心API／原版路徑不改。沿DRAFT、192候選首次全同、READY凍結後才安裝正式來源；非ISA／GP0或原PC足跡重播。
+
+唯一正式批次192例、1904992量子及完整CPU／RAM／scratch／逐成本同，96組零上傳、十拒絕通過。唯一正常原片前綴，一個自然基準續跑8383與原音同；八個獨立表映射診斷全Machine／成本／排隊音訊同，原控制組79366指令，四組無上傳保留非預設idle DMA2。診斷複製兩份原五部件幀，part排序加4單獨切換；不當自然bank15角色／關卡覆蓋。原片、原卡及原IDA資料庫保持。
+
+環境停止：READY文件已寫，收據仍指向唯讀/materials；正式來源未安裝、正式案例0。改用明確可寫/output並保留收據後續接，候選不重跑。首個安裝隨缺少READY.json被拒絕，原檔未改。整機啟動前索引校準有無上傳各四，保留前後probe hash，非production修正。正式資料／時鐘與整機批次均一次通過。
+
+026 §16.7.14限定CONFORMED，整體接管仍DRAFT。packed bank15、rotation、容量、其他SDK與自然來源生命週期，文字／HUD、城堡其餘素材、特效／3D及正式GUI仍待；原生相容光柵保留，無完整HD／速度聲明。CPU／GPU、海報、影片、定案美術與Go包保持，不重跑舊美術／GPU矩陣。README只留穩定現況，歷程沿本WORKLOG；最終遊戲截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27。收據由assets-catalog的actor-bank15-v1進入；有界--rm容器、原始資料唯讀，不動共享Docker資源。

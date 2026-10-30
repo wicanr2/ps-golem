@@ -229,6 +229,17 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xec740, 4),
     (0xec760, 4),
     (0xec788, 4),
+    (0xec7b4, 4),
+    (0xec7c8, 4),
+    (0xec7d8, 4),
+    (0xec828, 4),
+    (0xec85c, 4),
+    (0xec8a4, 4),
+    (0xec8ac, 4),
+    (0xec8e0, 4),
+    (0xec8e4, 4),
+    (0xec904, 4),
+    (0xec924, 4),
     (0xec958, 4),
     (0xec97c, 4),
     (0xec980, 4),
@@ -668,7 +679,25 @@ impl Clock {
         if f & 0x100 != 0 {
             self.run(0xec724, 0xec724)?;
         }
-        self.ranges(&[(0xec728, 0xec7a8), (0xec938, 0xec954)])
+        self.run(0xec728, 0xec7a8)?;
+        if h(r, a + 0x54) == 15 {
+            self.run(0xec7ac, 0xec7c0)?;
+            if h(r, a + 0x14) != 0 {
+                self.run(0xec7c4, 0xec7d0)?;
+            } else {
+                self.run(0xec7d4, 0xec7e0)?;
+            }
+            self.run(0xec7e4, 0xec868)?;
+            for _ in 0..3 {
+                self.run(0xec86c, 0xec894)?;
+            }
+            self.run(0xec898, 0xec8c0)?;
+            if f & 0x100 != 0 {
+                self.run(0xec8c4, 0xec8c4)?;
+            }
+            self.run(0xec8c8, 0xec934)?;
+        }
+        self.run(0xec938, 0xec954)
     }
     fn scene(&mut self, r: &[u8]) -> Result<()> {
         let word = |a: u32| {

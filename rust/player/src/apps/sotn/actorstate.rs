@@ -587,7 +587,7 @@ impl ActorDataPlan {
         working[1] = 0x1f800000;
         let mut product = ((state.hi as u64) << 32 | state.lo as u64) as i64;
         let mut last_transform = None;
-        for q in &plan.quads {
+        for q in plan.quads.iter().filter(|q| !q.duplicate) {
             let p = Part::read(input, q.entity, q.part)?;
             if p.packed {
                 working[2] = p.cache;
@@ -732,7 +732,7 @@ impl ActorDataPlan {
             ),
             (
                 4,
-                if last.packed {
+                if last.packed || last_q.duplicate {
                     0x80097930
                 } else {
                     plan.count_after

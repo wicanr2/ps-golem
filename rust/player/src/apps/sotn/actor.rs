@@ -52,6 +52,7 @@ pub struct Vertex {
 pub struct Quad {
     pub entity: usize,
     pub part: usize,
+    pub duplicate: bool,
     pub order: usize,
     pub address: u32,
     pub page: u16,
@@ -143,7 +144,7 @@ impl ActorPlan {
                 plan.hidden += 1;
                 continue;
             }
-            if flags & 4 != 0 || bank == 15 {
+            if flags & 4 != 0 {
                 return Err("旋轉或bank15複製尚未證實".into());
             }
             let table = if bank & 0x8000 == 0 {
@@ -157,6 +158,9 @@ impl ActorPlan {
             let frame_data = r.pointer(table + (frame as u32 & 0x7fff) * 4)?;
             let n = r.half(frame_data)?;
             let packed = n & 0x8000 != 0;
+            if bank == 15 && packed {
+                return Err("packed bank15尚未證實".into());
+            }
             let parts = if packed { 1 } else { n as usize };
             if parts > 768 {
                 return Err("動畫部件數超界".into());
@@ -412,35 +416,64 @@ impl ActorPlan {
                 if order >= 512 {
                     return Err("物件排序超界".into());
                 }
-                let address = buffer + 0x3c74 + count * 52;
-                let bucket = ot + order as u32 * 4;
-                packet[..4]
-                    .copy_from_slice(&(0x0c000000 | r.word(bucket)? & 0xffffff).to_le_bytes());
-                let at = r.at(address, 52)?;
-                r.0[at..at + 52].copy_from_slice(&packet);
-                r.put(bucket, r.word(bucket)? & 0xff000000 | address & 0xffffff)?;
-                let vertices = std::array::from_fn(|i| Vertex {
-                    x: half(&packet, xy[i]) as i16,
-                    y: half(&packet, xy[i] + 2) as i16,
-                    u: packet[uv[i]],
-                    v: packet[uv[i] + 1],
-                    color: packet[rgb[i]..rgb[i] + 3].try_into().unwrap(),
-                });
-                let words = std::array::from_fn(|i| {
-                    u32::from_le_bytes(packet[4 + i * 4..8 + i * 4].try_into().unwrap())
-                });
-                plan.quads.push(Quad {
-                    entity: slot,
-                    part,
-                    order,
-                    address,
-                    page,
-                    clut: half(&packet, 14),
-                    command: packet[7],
-                    vertices,
-                    words,
-                });
-                count += 1;
+                let primary_order = order;
+                for duplicate in [false, true]
+                    .into_iter()
+                    .take(if bank == 15 { 2 } else { 1 })
+                {
+                    if count >= 768 {
+                        break;
+                    }
+                    if duplicate {
+                        let shift_x = sub(
+                            if r.half(a + 0x14)? != 0 { 20 } else { 44 },
+                            r.half(0x800733da)?,
+                        );
+                        let shift_y = sub(24, r.half(0x800733de)?);
+                        for &p in &xy {
+                            let x = add(half(&packet, p), shift_x);
+                            let y = add(half(&packet, p + 2), shift_y);
+                            put_half(&mut packet, p, x);
+                            put_half(&mut packet, p + 2, y);
+                        }
+                        put_half(&mut packet, 14, r.half(0x8003c30c)?);
+                        let second = primary_order as i32 + 416 - r.half(0x800733fc)? as i32;
+                        if !(0..512).contains(&second) {
+                            return Err("bank15第二排序超界".into());
+                        }
+                        order = second as usize;
+                    }
+                    let address = buffer + 0x3c74 + count * 52;
+                    let bucket = ot + order as u32 * 4;
+                    packet[..4]
+                        .copy_from_slice(&(0x0c000000 | r.word(bucket)? & 0xffffff).to_le_bytes());
+                    let at = r.at(address, 52)?;
+                    r.0[at..at + 52].copy_from_slice(&packet);
+                    r.put(bucket, r.word(bucket)? & 0xff000000 | address & 0xffffff)?;
+                    let vertices = std::array::from_fn(|i| Vertex {
+                        x: half(&packet, xy[i]) as i16,
+                        y: half(&packet, xy[i] + 2) as i16,
+                        u: packet[uv[i]],
+                        v: packet[uv[i] + 1],
+                        color: packet[rgb[i]..rgb[i] + 3].try_into().unwrap(),
+                    });
+                    let words = std::array::from_fn(|i| {
+                        u32::from_le_bytes(packet[4 + i * 4..8 + i * 4].try_into().unwrap())
+                    });
+                    plan.quads.push(Quad {
+                        entity: slot,
+                        part,
+                        duplicate,
+                        order,
+                        address,
+                        page,
+                        clut: half(&packet, 14),
+                        command: packet[7],
+                        vertices,
+                        words,
+                    });
+                    count += 1;
+                }
             }
         }
         r.put(0x80097930, count)?;
