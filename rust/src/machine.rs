@@ -181,6 +181,10 @@ impl Machine {
     }
 }
 impl SystemBus {
+    /// Read-only compatibility scratch source for staged data plans.
+    pub fn scratch(&self) -> &[u8] {
+        &self.scratch
+    }
     pub fn ram(&self) -> &[u8] {
         &self.ram
     }

@@ -438,3 +438,25 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 首個Go準備因可寫輸出使用了只讀/materials別名而在建置前停止，修/output後只執行一次Go參考。保存Rust測試先停在把baseline原碼SHA套到新實作，改驗保留副本；第二次停在從/output推導父目錄，兩次皆像素比較0。清理暫停後由已驗證來源記錄取得原圖目錄，完成唯一一次兩圖像素／完整色字比較。正式繪圖實作僅一版，測試器三版／三次啟動皆保留，不把準備停止稱為通過；已過11個公開案例不重跑。新遊戲、原routine、GPU、GUI、art review與7387條整包重驗皆0。
 
 本節未接正式玩家。呼叫者可見的完整NO3 CPU／RAM／scratch／時鐘效果、原生顯存相依、完整排序與其他人物／文字／3D仍須另接；不能只把這張靜態場景接上就跳過整段原routine。GPU後端、1080p GUI、原版／HD熱切換、正常遊玩與速度未驗，不以HD4 PNG稱完整月下HD。初始化沿16.3.3承接，後續沿16.1補場景的正常提交與其餘圖元，不重開本節已通過美術／資料。私人scene-v1的rust-verification.json、tested-source.json、acceptance.json及publication.json由素材索引追溯。
+
+
+### 16.5 Rust普通NO3呼叫資料與正常提交
+
+狀態：CONFORMED，限定已證實NO3普通兩層、空圖元緩衝與六份正常保存態的高階RAM／scratch／CPU／時間計畫；只進受限正常研究入口，完整玩家HD／人物文字／GPU仍DRAFT。來源承接025 §12.17的2332-byte原函式、兩helper、IDA9.4原位址與SHA，以及現行自有Go apps/sotn/hd_call_{plan,effects,clock}.go；GPL-3.0-or-later，不移植外部非自由原碼。原程式只作oracle，Rust不解碼或逐指令實作MIPS。
+
+私人no3-call-v1/evidence.json由素材assets-catalog索引，記錄precision-oracle及precision-next-8383至8387六態完整前後RAM／scratch／CPU與來源SHA；入口RAM皆同既有entry-gates保存值，不新跑舊遊戲。原PS1 KSEG0函式0x800ECC10..0x800ED52B SHA40dfd40f6a9922dd5ed1b69f1fd32ada3f7a8139b793984f49d373d3f31b797c，0x80011F18長60 SHA1c2e33c9e0ddfcd56385916112089fab3d7d343336e2514633a70260ef7d4064，0x800135F0長1464 SHAbbae27e62769d757261709c0c55190c9d7ea6098ee3efd5cbb8f83c2f1636615；NO3 header與44-byte固定配置SHA沿025 §12.17。
+
+支援入口PC0x800ECC10、RA0x800E3C2C、SP0x801FFFC0、無待處理load／branch／IRQ、無隔離、BIU125320，原碼／helper／header／配置身份須相符。只接兩個已證實緩衝0x8003CB08／0x800542FC、圖元／模式計數0、前景及背景flags3、倒數0、背景kind1、其餘背景關閉、相機偏移0及SDK編碼欄0。兩層非負捲軸的17×16相容掃描窗須在有界資料內，場景data／definition／表仍須有效；未知配置回錯，不改原版、不半場回退或強開不完整HD。
+
+資料計畫直接掃描圖層／格子，建立型別圖塊、頁bucket與必要原相容RAM字，保留原掃描順序、640圖元／1024模式界線、完整排序鏈及計數。這些RAM封包是後續原生相容副作用，不作HD來源或GP0主重播。高階掃描終值及最後非零格推導全部scratch、ABI堆疊字、CPU GPR／HI／LO與返回；不是執行原組語。CPU快取、RAM讀取成本及列乘積完成時點承接Go已驗的資源足跡，總量子、每量子及完整CPU須同原oracle，不寫死59271。
+
+計畫擁有前態完整RAM／scratch摘要與CPU／BIU，提交前再核對全部；過期計畫拒絕，不發布HD。通用Machine新增明確的完成乘積／scratch資料提交，保留16.3.3舊commit_ram_phase的HI／LO及期限守門；新入口只容許已完成muldiv_done<=結束時間、恰1024-byte scratch，COP0與GTE完成期限仍保持，GTE本體不寫。原預算、量子／RAM patch、DMA／MDEC／IRQ／跨場與候選副本原子拒絕皆沿16.3.3，成功才一次套用RAM／scratch／CPU／裝置。
+
+先對六保存態核對完整2MiB RAM、1024-byte scratch及CPU全部欄位，再由Rust CPU oracle局部執行同原bytes逐量子核對成本；原指令只出現在測試。不得用保存輸出生成計畫。正常比較只開一條真BIOS／同卡固定按鍵至8382，自然到入口後兩路連續八次：原路執行原routine，另一側直接Rust計畫／提交，完整Machine及續跑場相同。用可重生的逐欄比較覆蓋，正常路線不注入PC／RAM／原碼；獨立診斷驗scratch長度、未完成乘積、過期入口及IRQ拒絕。所有失敗／版本與來源保存，不重跑已過美術、矩陣或離線場景像素。
+
+在正常入口以16.4元件直接生成CPU-HD4圖層畫布，圖片先準備再提交，未知來源或提交失敗不發布；只記已接受的圖層數與畫布摘要。不是完整前端或完整整場，其他圖元仍未接；原生相容後續DMA／GPU沿原流程保留，不能因此稱整個HD的舊光柵計數為0。原版模式、CPU／GPU、海報、影片、存檔、素材及跨平台目標保持。只限本節完成後標CONFORMED，不宣稱可玩的完整月下HD或速度通過。
+
+
+16.5限定驗收：六份保存態完整2MiB RAM／1024-byte scratch／CPU與42321個成本量子逐筆相同，每份59271週期，72個來源／過期拒絕通過；七個通用資料提交案例通過，舊RAM-only的HI／LO守門保持。真BIOS／原片／同卡／固定按鍵只新開機一次，自然抵達入口後連續八次Rust提交，完整Machine逐欄與原路相同，續跑8390場及所取音訊相同。原控制組合計338568個指令，Rust提交guest step為0。每次提交前由場景／定案素材直接準備1024×960 HD4圖層畫布，成功才接受摘要；不輸出成假遊戲截圖。沒有先畫原生圖層再放大HD，後續原生相容DMA／GPU仍保留，因此完整舊光柵化尚未移除。
+
+第二緩衝位址的準備轉錄0x800543FC由六份原態訂正為0x800542FC，READY原始快照保留；另兩次編譯準備停止分別為缺少Bus匯入及測試器JSON表達式，均未啟動正常遊戲。來源／停止／完整欄位比較與收據由私人素材assets-catalog的no3-call-v1入口追溯；美術／GUI／硬體GPU／舊矩陣／全素材重驗0。本節不代表人物、文字、特效、3D、正式GUI或完整HD已完成，沒有新速度聲明。

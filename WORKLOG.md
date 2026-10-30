@@ -2725,3 +2725,14 @@ HD接續點保持：026 §16.4仍READY，三個畫布與八個素材單元案例
 Go準備第一次寫到唯讀/materials alias，在建置前停止；只改/output後一次參考成功。Rust保存測試第一次以舊baseline hash核新原碼、第二次從/output推導原圖父目錄，均像素比較0；保留舊測試／日誌後只改測試來源定位。清理後續接，第三次啟動才完成唯一一次像素驗證。正式繪圖實作一版；已過11個公開案例不重跑，遊戲／GPU／GUI／美術與7387條全包重驗0。原圖及輸入SHA保持，未生成新美術或改現行完整包／海報／存檔。
 
 026 §16.4只對保存NO3的CPU畫布CONFORMED，完整場景正常提交／相容效果、人物／文字／3D、GPU、1080p GUI、熱切換與速度仍未完成。研究圖不稱正式遊戲截圖，不加入公開引擎或發行包。來源與全部準備停止由素材assets-catalog的scene-v1/scene-evidence.json、READY.json、preparation-stop.json、fixture-baseline-stop.json、fixture-mount-stop.json、rust-verification.json、tested-source.json、acceptance.json及publication.json追溯。提交／推送、Issue、擁有權與只清本輪暫存產物的結果見publication。
+
+
+## 2026-10-30 Rust普通NO3呼叫正常提交
+
+先核對六份既有precision-oracle／precision-next-8383..8387原態與自有Go資料／效果／時間資源，保存026 §16.5 READY及完整來源SHA後實作。call.rs直接建立圖層格子、排序鏈與必要原生相容RAM、scratch、ABI及CPU終值；callclock.rs只維護快取／讀取／乘積期限等資源足跡，不讀取或執行MIPS opcode。HD由已驗scene.rs的型別資料直接畫HD4，不以相容封包重播。Machine新增明確完成乘積／scratch的原子提交，保留舊RAM-only介面的HI／LO守門，IRQ／跨場／活動裝置拒絕仍保持。
+
+六份完整RAM／scratch／CPU與每一步成本同保留原版及局部Rust CPU oracle，每份42321步、59271週期，72個來源／過期拒絕及七個通用提交案例通過。真BIOS／原片／同卡／固定按鍵只新跑一條正常前綴至8382，連續八次正常NO3呼叫的完整Machine逐欄同原路，包括GTE、GPU顯存與快取、各裝置及音訊緩衝；續跑8390場及所取音訊仍相同。原控制組合計338568指令，Rust資料提交未執行原routine。每次先準備1024×960 HD4圖層畫布再提交，失敗不發布，接受後只保存圖層摘要。
+
+前兩個原始快照中第一份已相同，第二份揭出緩衝位址轉錄錯字，0x800543FC訂正為原態0x800542FC，沒有放寬範圍；最初快照READY原文保留。另缺少Bus匯入及測試器JSON表達式造成兩次編譯準備停止，正常遊戲啟動0，修正後沿同一契約完成既定批次。全部準備停止見preparation-stops，未重跑舊美術、像素矩陣、全包圖像或GUI／硬體GPU。格式工具造成兩個無關差異已還原。
+
+026 §16.5僅普通NO3資料提交限定CONFORMED。後續相容DMA／GPU仍沿原路，完整舊光柵未移除，人物／文字／特效／3D、正式GUI／模式分流、GPU與完整Rust包仍待接；原版、海報、影片、素材與Go完整包保持。312.171秒是含開機、成對與圖像準備的蒐證耗時，不是FPS或新速度聲明。入口為素材assets-catalog的no3-call-v1，來源、驗收、提交／推送及Docker清理分別見tested-source、acceptance與publication；不散布原片或狀態。

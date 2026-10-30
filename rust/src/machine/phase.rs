@@ -31,6 +31,35 @@ impl Machine {
         costs: &[u32],
         budget: u64,
     ) -> Result<(), String> {
+        self.commit_data_phase(endpoint, patches, None, costs, budget)
+    }
+
+    /// Explicit completed arithmetic + scratch transport, spec026 §16.5.
+    /// The caller proves no MMIO/GTE or device-visible intermediate RAM writes.
+    /// Neither method runs guest instructions. The older RAM-only contract
+    /// continues to reject any changed HI/LO/multiply deadline.
+    pub fn commit_cpu_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        scratch: &[u8],
+        costs: &[u32],
+        budget: u64,
+    ) -> Result<(), String> {
+        if scratch.len() != self.bus.scratch.len() {
+            return Err("scratch長度不符".into());
+        }
+        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget)
+    }
+
+    fn commit_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        scratch: Option<&[u8]>,
+        costs: &[u32],
+        budget: u64,
+    ) -> Result<(), String> {
         if costs.is_empty() || costs.len() > 100_000 || patches.len() > 524_288 {
             return Err("資料階段大小不符".into());
         }
@@ -57,9 +86,13 @@ impl Machine {
             || endpoint.gpr[0] != 0
             || endpoint.cop0 != before.cop0
             || before.cop0[13] & 0x400 != 0
-            || endpoint.hi != before.hi
-            || endpoint.lo != before.lo
-            || endpoint.muldiv_done != before.muldiv_done
+            || if scratch.is_some() {
+                endpoint.muldiv_done > end
+            } else {
+                endpoint.hi != before.hi
+                    || endpoint.lo != before.lo
+                    || endpoint.muldiv_done != before.muldiv_done
+            }
             || endpoint.gte_done != before.gte_done
             || endpoint.icache.iter().any(|line| line.valid & !15 != 0)
             || !self.data_phase_idle()
@@ -91,6 +124,9 @@ impl Machine {
         for patch in patches {
             let offset = patch.offset as usize;
             candidate.bus.ram[offset..offset + 4].copy_from_slice(&patch.value.to_le_bytes());
+        }
+        if let Some(scratch) = scratch {
+            candidate.bus.scratch.copy_from_slice(scratch);
         }
         candidate.cpu.state = endpoint.clone();
         *self = candidate;
@@ -132,6 +168,46 @@ mod tests {
         assert_eq!(m.cycles(), 7);
         assert_eq!(m.cpu.state, s);
         assert_eq!(&m.bus.ram()[16..20], &456u32.to_le_bytes());
+    }
+    #[test]
+    fn completed_arithmetic_and_scratch_have_an_explicit_contract() {
+        let mut m = machine();
+        let mut s = endpoint(&m, 7, 1);
+        s.hi = 12;
+        s.lo = 345;
+        s.muldiv_done = 6;
+        let scratch = vec![0x57; 1024];
+        assert!(m.commit_ram_phase(&s, &[], &[1, 5, 1], 7).is_err());
+        assert!(m
+            .commit_cpu_data_phase(&s, &[], &scratch[..1023], &[1, 5, 1], 7)
+            .is_err());
+        s.muldiv_done = 8;
+        assert!(m
+            .commit_cpu_data_phase(&s, &[], &scratch, &[1, 5, 1], 7)
+            .is_err());
+        assert_eq!(m.cycles(), 0);
+        assert!(m.bus.scratch().iter().all(|&x| x == 0));
+        s.muldiv_done = 6;
+        m.commit_cpu_data_phase(&s, &[], &scratch, &[1, 5, 1], 7)
+            .unwrap();
+        assert_eq!(m.cpu.state, s);
+        assert_eq!(m.bus.scratch(), scratch);
+    }
+    #[test]
+    fn scratch_transaction_rolls_back_on_irq() {
+        let mut m = machine();
+        m.bus.write32(0x1f801074, 1 << 4);
+        m.bus.write32(0x1f801108, 2);
+        m.bus.write32(0x1f801104, 1 << 4);
+        let timer = m.bus.timers.peek(0x1f801100);
+        let s = endpoint(&m, 5, 5);
+        assert!(m
+            .commit_cpu_data_phase(&s, &[], &[0x57; 1024], &[5], 5)
+            .is_err());
+        assert_eq!(m.cycles(), 0);
+        assert_eq!(m.bus.timers.peek(0x1f801100), timer);
+        assert!(m.bus.scratch().iter().all(|&x| x == 0));
+        assert!(m.take_audio().is_empty());
     }
     #[test]
     fn malformed_data_and_costs_reject_before_mutation() {
