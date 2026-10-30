@@ -2816,3 +2816,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 唯一正式批次80例、886162量子及完整CPU／RAM／scratch全同，含八個無顯存工作案例與無packed拒絕。局部oracle的21筆SDK context group由原寫cache尺寸邊界定位，依原輸入bank／frame／cache選取，不由ActorPlan工作或原輸出驅動；只供測試，全部重用MMIO讀取0。唯一真BIOS／原片／同卡前綴的一個自然基準續跑8383，完整Machine及原音同；另八個獨立重用診斷全Machine／成本／排隊原音相同，原控制組81951指令。四個全重用診斷DMA2非預設idle MADR／BCR／CHCR保持，沒有偽造DMA完成或GPU變更；注入不當自然玩家覆蓋，原卡／原片保持。
 
 本節限定CONFORMED，其他bank／全packed／純ordinary、未知color／SDK／rotation、文字／特效／3D與正式整場仍待，後續原生相容光柵保持。無新美術／GUI／硬體GPU／包或穩態速度驗收，已過ordinary／GPU／美術矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27與總表#1。來源、READY、受測原碼、局部／完整機器證據由assets-catalog的actor-reuse-v1進入，Docker為有界--rm容器，原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust全packed與純ordinary前態
+
+沿READY路由只讀既有IDA9.4 prologue及ordinary分支，確認scratch+34／4C未由入口清零、S7只由ordinary更新，transform框架只在呼叫時寫入。兩保存態144組候選完整資料首次全同後凍結026 §16.7.8 READY，才移除已封閉前態拒絕並接可選transform與輸入保留值。正式型別資料不執行原ISA／GP0／事件回播；Clock、核心交易API與原版路徑不改。
+
+唯一正式批次144例、1187986量子及完整CPU／RAM／scratch全同，含108全packed、36純ordinary、72零顯存工作；每組有非零scratch／SDK／堆疊／S6／S7／HI／LO，八個純ordinary flags0組合不呼叫transform。唯一正常原片前綴的一個自然基準續跑8383，完整Machine及原音同；另八個獨立前態診斷全Machine／成本／排隊音訊同，控制組62850指令。六個零工作診斷保留非預設DMA2 MADR／BCR／CHCR。注入不當正常玩家覆蓋，原片／原卡保持。
+
+本節限定CONFORMED，其他bank／color／SDK／rotation、page／order、空批次、文字／特效／3D及正式整場GUI仍待。026整段仍DRAFT，後續原生相容光柵仍在。沒有新美術／GUI／硬體GPU／包或速度驗收，舊已過矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27與總表#1，不開重複Issue。來源、READY、局部／完整機器及受測原碼由素材assets-catalog的actor-families-v1進入。有界--rm容器、原始資料唯讀，不動共享資源。

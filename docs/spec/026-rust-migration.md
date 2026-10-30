@@ -622,3 +622,23 @@ packed末尾的GPR4由EC194為原global計數位址0x80097930；GPR5由EC110最�
 唯一正常原片前綴取得8382入口，一個自然基準續跑8383同原版及所取原音；另八個獨立部分／全部重用診斷的全Machine／成本／排隊音訊同原CPU，共81951控制指令。四個全重用診斷確認0個顯存工作，DMA2 idle MADR=0x135790、BCR=0x2468、CHCR=0x401保持，GPU／VRAM等完整欄位也相同，沒有偽造上傳完成。原片／原卡保持，八個注入不當自然玩家覆蓋。SDK／cache寫入只取實際Upload工作，0工作用既有commit_cpu_data_phase，核心API未改。
 
 只封閉本節frame bit15混合／全重用分支，無packed純ordinary、全packed前態、其他bank／未知color／SDK／rotation、page／order與正式整場GUI仍待，後續原生相容光柵仍在。原版、CPU／GPU、海報、影片、定案美術與Go包保持；新美術／GUI／硬體GPU／打包0，未量穩態速度，不把少傳送工作換算成倍率。來源、READY、受測原碼及verification／machine-verification／acceptance由私人actor-reuse-v1索引追溯。
+
+
+#### 16.7.8 全packed與純ordinary前態
+
+狀態：CONFORMED，沿16.7.1–16.7.7來源、上下文、朝向／UV／未旋轉縮放及重用限制，擴充全packed沒有ordinary前態、純ordinary沒有packed及完全沒有transform呼叫的非空物件批次。其他bank／未知color／SDK／rotation、page／order、空批次及正式整場仍未封閉。原DRA／boot／DB與PS1 KSEG0 RAM空間沿前節，DRA offset為EA-0x800A0000；來源與保留原位址的IDA9.4匯出由私人actor-families-v1/evidence.json索引，不重開DB。
+
+已證實prologue在EB998–EBA44初始化scratch+3、+7、+48、+5C、+60等欄位，沒有清scratch+34或+4C。ordinary分支EC1C8的delay slot才清+4C，並在EC1CC設定S7=part.address+20，完成後EC938推進22。全packed末尾因此由輸入保留scratch+34與+4C，transform保存的S7沿輸入，若有ordinary才沿16.7.6最後ordinary終值。不得將未寫欄位假設為零。
+
+ordinary flags低兩位皆0時不呼叫EB544 transform；若整批都沒有transform，caller frame+10／14／20／24／28及其下helper frame沿原前態。外層callee-save ABI仍照常寫入。純ordinary沒有圖像上傳，SDK工作區、DMA2及顯存沿既有零工作提交保持；無乘法時HI／LO與完成期限沿原前態，有縮放才由已證實乘積更新。最後active槽98／3或255、scratch、架構與CPU時鐘均由型別資料推導，不讀保存輸出、解碼原ISA、回播GP0或原PC向量。
+
+隔離候選先以兩保存態作144組完整RAM／scratch／Architecture局部原CPU對照，首次全同。108組全packed含部分／全部上傳重用、36組純ordinary，涵蓋末槽、左右朝向、flags0至3及正負縮放。每組注入非零scratch+34／4C、SDK工作區、caller／helper stack、S6／S7及HI／LO，避免零值掩蓋保留錯誤。MMIO回覆僅在測試oracle按原始輸入選擇，不當完整裝置或正常玩家證據。
+
+正式實作只移除兩種已封閉前態拒絕，transform保存框架改為有呼叫才寫，全packed scratch保留值改從輸入取得。Clock、GPU工作、原ISA與核心交易API不改，來源／stale／IRQ／跨場／BIU／cache守門保持。集中驗收只補144組正式全CPU State／完整RAM／scratch與全部成本量子；再新跑一次正常原片前綴至8382，一個自然未注入基準續跑8383，同入口八個獨立全packed／純ordinary非零前態診斷核對完整Machine、成本及排隊音訊。零工作另以非預設idle DMA2核對保持。原卡／原片保持，注入副本不回正常路線且不稱自然覆蓋。舊GPU／美術矩陣不重跑，正式GUI／全人物／整場HD及速度仍未完成。
+
+
+16.7.8限定結果：144局部原CPU案例共1187986量子，完整CPU State／2MiB RAM／scratch及每個成本相同。108全packed、36純ordinary，每組皆非零保留值，72個零顯存工作；八個純ordinary flags0組合完全沒有transform，保留caller／helper框架及HI／LO同原版。候選資料首次144全同，READY後唯一正式批次全過。正式只改型別資料的前態與可選transform終值，Clock／核心API／原ISA不改。
+
+唯一正常原片前綴取得8382自然入口，一個未注入基準與原版同並續跑8383、所取原音同。另八個獨立全packed／純ordinary、朝向／末槽／重用／正負縮放與非零前態診斷，全Machine、全部成本及排隊原音同原CPU，共62850控制指令。六個無顯存工作診斷保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401；原卡／原片保持。注入副本不回正常路線，不當自然玩家覆蓋。
+
+本節只封閉非空全packed／純ordinary前態；其他bank／未知color／SDK／rotation、page／order、空批次、文字／特效／3D及正式整場GUI仍待，後續原生相容光柵仍在。026 §16／16.7整體仍DRAFT，原版、CPU／GPU、海報、影片、定案素材與Go包保持。新美術／GUI／硬體GPU／打包0，速度未量，不以原控制組指令數換算倍率。來源與READY、受測原碼、verification／machine-verification／acceptance由私人actor-families-v1索引追溯。

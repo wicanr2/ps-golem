@@ -427,9 +427,6 @@ impl ActorDataPlan {
                 }
             }
         }
-        if last.packed && previous_ordinary.is_none() {
-            return Err("packed末尾尚需已證實的ordinary前態".into());
-        }
         let mut ram = plan.ram.clone();
         let mut sc = scratch.to_vec();
         let buffer = w(input, 0x8006c37c)?;
@@ -542,11 +539,9 @@ impl ActorDataPlan {
         working[1] = 0x1f800000;
         let mut product = ((state.hi as u64) << 32 | state.lo as u64) as i64;
         let mut last_transform = None;
-        let mut packed_seen = false;
         for q in &plan.quads {
             let p = Part::read(input, q.entity, q.part)?;
             if p.packed {
-                packed_seen = true;
                 working[2] = p.cache;
                 working[3] = p.u1 as u32;
                 working[4] = p.v0 as u32;
@@ -579,33 +574,31 @@ impl ActorDataPlan {
                 working[7] = p.address + 42;
             }
         }
-        if !packed_seen {
-            return Err("只有ordinary的資料前態尚未證實".into());
-        }
-        let (slot, t, regs) = last_transform.ok_or("無transform的ABI未證實")?;
-        let transform_frame = frame - 0x38;
-        for (off, v) in [
-            (0x10, regs[0]),
-            (0x14, regs[1]),
-            (0x18, regs[2]),
-            (0x1c, regs[3]),
-            (0x20, regs[4]),
-            (0x24, regs[5]),
-            (0x28, regs[6]),
-            (0x2c, regs[7]),
-            (0x30, entity(slot) + 0x24),
-            (0x34, if t.packed { 0x800ebefc } else { 0x800ec450 }),
-        ] {
-            put(&mut ram, transform_frame + off, v)?;
-        }
-        for (off, v) in [
-            (0x10, 0x1f800000),
-            (0x14, t.flip),
-            (0x20, 128),
-            (0x24, t.address),
-            (0x28, 0xffffff),
-        ] {
-            put(&mut ram, frame + off, v)?;
+        if let Some((slot, t, regs)) = last_transform {
+            let transform_frame = frame - 0x38;
+            for (off, v) in [
+                (0x10, regs[0]),
+                (0x14, regs[1]),
+                (0x18, regs[2]),
+                (0x1c, regs[3]),
+                (0x20, regs[4]),
+                (0x24, regs[5]),
+                (0x28, regs[6]),
+                (0x2c, regs[7]),
+                (0x30, entity(slot) + 0x24),
+                (0x34, if t.packed { 0x800ebefc } else { 0x800ec450 }),
+            ] {
+                put(&mut ram, transform_frame + off, v)?;
+            }
+            for (off, v) in [
+                (0x10, 0x1f800000),
+                (0x14, t.flip),
+                (0x20, 128),
+                (0x24, t.address),
+                (0x28, 0xffffff),
+            ] {
+                put(&mut ram, frame + off, v)?;
+            }
         }
         sc[3] = 12;
         for (i, v) in last_q.words.iter().enumerate() {
@@ -615,7 +608,10 @@ impl ActorDataPlan {
             (
                 0x34,
                 if last.packed {
-                    previous_ordinary.as_ref().unwrap().page_low
+                    previous_ordinary
+                        .as_ref()
+                        .map(|p| p.page_low)
+                        .unwrap_or(h(scratch, 0x34)?)
                 } else {
                     last.page_low
                 },
@@ -636,7 +632,10 @@ impl ActorDataPlan {
             (
                 0x4c,
                 if last.packed {
-                    previous_ordinary.as_ref().unwrap().n as u32
+                    previous_ordinary
+                        .as_ref()
+                        .map(|p| p.n as u32)
+                        .unwrap_or(w(scratch, 0x4c)?)
                 } else {
                     last.n as u32
                 },
