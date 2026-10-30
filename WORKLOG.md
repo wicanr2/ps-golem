@@ -2825,3 +2825,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 唯一正式批次144例、1187986量子及完整CPU／RAM／scratch全同，含108全packed、36純ordinary、72零顯存工作；每組有非零scratch／SDK／堆疊／S6／S7／HI／LO，八個純ordinary flags0組合不呼叫transform。唯一正常原片前綴的一個自然基準續跑8383，完整Machine及原音同；另八個獨立前態診斷全Machine／成本／排隊音訊同，控制組62850指令。六個零工作診斷保留非預設DMA2 MADR／BCR／CHCR。注入不當正常玩家覆蓋，原片／原卡保持。
 
 本節限定CONFORMED，其他bank／color／SDK／rotation、page／order、空批次、文字／特效／3D及正式整場GUI仍待。026整段仍DRAFT，後續原生相容光柵仍在。沒有新美術／GUI／硬體GPU／包或速度驗收，舊已過矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27與總表#1，不開重複Issue。來源、READY、局部／完整機器及受測原碼由素材assets-catalog的actor-families-v1進入。有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust普通物件材質頁、排序與逐色通道
+
+沿READY路由讀既有IDA9.4 EC494–4CC、EC608–728，確認材質頁低位減128的UV資源、排序bit8加4、entity色彩bit3及RGB遮罩bit4／5／6。既有ActorPlan／Part已產生完整資料，只補高階Clock條件、EC620的entity RAM成本4與最後ordinary色彩接受範圍。192候選完整資料／時鐘首次全同，READY前收緊未驗packed末尾接受範圍並保留初稿，再正式實作；原ISA／GP0／PC足跡不在主資料流程回播。
+
+唯一正式批次192例、2444952量子及完整CPU／RAM／scratch全同，含32零顯存工作，四個排序512與packed末尾色彩拒絕通過。唯一正常原片前綴一個自然基準續跑8383，完整Machine及原音同；另八個獨立材質／排序／色彩診斷全Machine／成本／排隊音訊同，原控制組95840指令。兩個純ordinary案例保持非預設idle DMA2，原片／原卡保持，注入不當正常玩家覆蓋。
+
+026 §16.7.9限定CONFORMED，其餘bank／SDK／旋轉、空幀／隱藏／裁掉物件、bank15特殊複製、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵仍在。CPU／GPU、海報、影片、定案美術與Go包保持；無新GUI／硬體GPU／包或速度聲明，舊通過矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源與收據由assets-catalog的actor-material-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。

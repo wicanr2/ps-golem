@@ -399,7 +399,12 @@ impl ActorDataPlan {
                 h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
             })
             .last();
-        if last.flags & !3 != 0
+        let supported_flags = if last.packed || last.flags & 8 == 0 {
+            3
+        } else {
+            0x7b
+        };
+        if last.flags & !supported_flags != 0
             || !matches!(last.flip, 0 | 2)
             || if last.packed {
                 last_q.part != 0

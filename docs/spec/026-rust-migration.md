@@ -642,3 +642,23 @@ ordinary flags低兩位皆0時不呼叫EB544 transform；若整批都沒有trans
 唯一正常原片前綴取得8382自然入口，一個未注入基準與原版同並續跑8383、所取原音同。另八個獨立全packed／純ordinary、朝向／末槽／重用／正負縮放與非零前態診斷，全Machine、全部成本及排隊原音同原CPU，共62850控制指令。六個無顯存工作診斷保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401；原卡／原片保持。注入副本不回正常路線，不當自然玩家覆蓋。
 
 本節只封閉非空全packed／純ordinary前態；其他bank／未知color／SDK／rotation、page／order、空批次、文字／特效／3D及正式整場GUI仍待，後續原生相容光柵仍在。026 §16／16.7整體仍DRAFT，原版、CPU／GPU、海報、影片、定案素材與Go包保持。新美術／GUI／硬體GPU／打包0，速度未量，不以原控制組指令數換算倍率。來源與READY、受測原碼、verification／machine-verification／acceptance由私人actor-families-v1索引追溯。
+
+
+#### 16.7.9 普通物件材質頁、排序偏移與逐色通道
+
+狀態：CONFORMED，沿16.7.1–16.7.8來源與交易契約，只擴充ordinary材質page低兩位、part flags bit8排序加4、entity flags bit3色彩及bit4／5／6三通道取128的分支，允許ordinary最後物件與末槽255。最後packed仍限flags0至3；其他bank／SDK／rotation、空幀／裁掉物件、bank15特殊複製及正式整場保持未完成。原DRA／boot／DB、PS1 KSEG0 RAM及DRA offset EA-0x800A0000沿前節，原bytes／邊界及雜湊由私人actor-material-v1/evidence.json追溯，不重開DB或美術。
+
+已證實ordinary page由part+12加entity+5A形成，低兩位寫scratch+34，高位右移2寫材質頁。EC4AC／B0分支低bit0時，EC4B4／B8將兩個U資源減128；EC4BC／C0分支bit1時，EC4C4／C8將兩個V資源減128，保留完整32-bit工作暫存器與最後UV byte截斷。既有ActorPlan／Part已建此資料，不以原ISA／GP0或保存輸出回播。
+
+EC608–618檢查色彩bit3；有色彩時EC61C–658把entity+6C強度填四頂點RGB，再由bit4／5／6分別以128覆蓋R／G／B。EC6B4–6BC清raw-texture bit，沿EC6CC共用資料複製；無色彩沿EC6C0–6C8保持舊raw-texture路徑。EC620讀entity RAM成本4，EC61C／66C／690讀scratch成本0；正式只加入高階條件資源區段。EC718–720檢查part bit8，有時EC724排序加4；最終排序511接受，512由既有typed parser拒絕，不向未定義排序表寫入。透明／半透明、UV／裁邊、縮放及ABI沿既有公式，時序、原卡及玩法保持。
+
+兩保存態192候選完整RAM／scratch／CPU State與逐成本量子首次相同，包含128個全部page／RGB遮罩配對、16個無色彩page組、16個中途物件及32個純ordinary組。朝向、UV、正縮放、半透明模式、非零caller／SDK／scratch與HI／LO同批涵蓋。候選接受範圍審查後於READY前收緊未測packed末尾色彩，保留初版來源；既有ordinary候選結果不變，不因此重跑。正式只修改ordinary時鐘條件、EC620讀取成本與最後ordinary色彩接受範圍，ActorPlan、核心交易API與原版路徑不改。
+
+集中驗收：192組正式完整CPU／RAM／scratch與全部成本，另兩保存態各一次排序512拒絕及packed末尾色彩拒絕。再只開一條正常原片前綴到8382，一個自然未注入基準續跑8383，同入口八個獨立材質／排序／色彩診斷比較完整Machine、成本與排隊音訊，兩個純ordinary案例保留非預設idle DMA2。注入不當自然玩家覆蓋，不回正式路線。原片／原卡保持，舊GPU／美術矩陣不重跑；正式整場GUI／全人物HD／3D與速度仍未完成。
+
+
+16.7.9限定結果：192組局部原CPU對照、2444952個量子及完整CPU State／RAM／scratch同原版，32組零顯存工作；全部有非零保留值。128個全部page／RGB遮罩配對、16個無色彩page組、16個中途物件及32個純ordinary組同批通過，四個排序512／packed末尾色彩拒絕通過。候選資料／時鐘首次全同；READY前收緊未驗packed末尾接受範圍，保留初稿；唯一正式批次全過。ActorPlan與核心API／原版路徑不改，正式只增高階ordinary資源條件及EC620讀取成本，不解碼原ISA或回播PC／GP0。
+
+唯一正常原片前綴取得8382自然入口，一個未注入基準及續跑8383的完整Machine／原音同。另八個獨立材質頁／排序／逐色通道診斷的全Machine、成本及排隊音訊同原CPU，共95840原控制組指令；兩個純ordinary零工作案例保留DMA2 idle MADR=0x135790、BCR=0x2468、CHCR=0x401。原片／原卡保持，注入副本不回正常路線，不稱自然玩家覆蓋。
+
+本節只封閉ordinary所列分支；其他bank／SDK／旋轉、空幀／隱藏／裁掉物件、bank15特殊複製、文字／HUD／特效／3D與正式整場GUI仍待。026 §16與16.7整體仍DRAFT，後續原生相容光柵仍保留。原版、CPU／GPU、海報、影片、定案美術與Go包保持，新美術／GUI／硬體GPU／打包0，速度未量，不以量子或原指令數推論加速倍率。來源、READY、初稿與正式受測版本、verification／machine-verification／acceptance由私人actor-material-v1索引追溯。

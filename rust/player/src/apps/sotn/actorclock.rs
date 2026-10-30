@@ -216,6 +216,7 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xec4a4, 4),
     (0xec5c0, 4),
     (0xec5e0, 4),
+    (0xec620, 4),
     (0xec714, 4),
     (0xec73c, 4),
     (0xec740, 4),
@@ -496,12 +497,7 @@ impl Clock {
     fn ordinary(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let f = p.part_flags;
         let a = 0x800733d8 + slot as u32 * 188;
-        if !matches!(p.flip, 0 | 2)
-            || h(r, a + 0x14) > 1
-            || p.page_low != 0
-            || f & 0x100 != 0
-            || p.flags & 8 != 0
-        {
+        if !matches!(p.flip, 0 | 2) || h(r, a + 0x14) > 1 {
             return Err("普通部件時鐘分支不在已驗範圍".into());
         }
         self.run(0xec1d0, 0xec250)?;
@@ -554,7 +550,15 @@ impl Clock {
         if h(r, a + 0x16) & 0x8000 == 0 {
             self.run(0xec470, 0xec478)?;
         }
-        self.ranges(&[(0xec47c, 0xec4b0), (0xec4bc, 0xec4c0), (0xec4cc, 0xec4d0)])?;
+        self.run(0xec47c, 0xec4b0)?;
+        if p.page_low & 1 != 0 {
+            self.run(0xec4b4, 0xec4b8)?;
+        }
+        self.run(0xec4bc, 0xec4c0)?;
+        if p.page_low & 2 != 0 {
+            self.run(0xec4c4, 0xec4c8)?;
+        }
+        self.run(0xec4cc, 0xec4d0)?;
         if f & 4 != 0 {
             self.run(0xec4d4, 0xec4d4)?;
         }
@@ -593,11 +597,33 @@ impl Clock {
         } else {
             self.run(0xec5f8, 0xec604)?;
         }
-        self.ranges(&[(0xec608, 0xec618), (0xec6c0, 0xec6d8)])?;
+        self.run(0xec608, 0xec618)?;
+        if p.flags & 8 != 0 {
+            self.run(0xec61c, 0xec658)?;
+            if p.flags & 0x10 != 0 {
+                self.run(0xec65c, 0xec668)?;
+            }
+            self.run(0xec66c, 0xec67c)?;
+            if p.flags & 0x20 != 0 {
+                self.run(0xec680, 0xec68c)?;
+            }
+            self.run(0xec690, 0xec6a0)?;
+            if p.flags & 0x40 != 0 {
+                self.run(0xec6a4, 0xec6b0)?;
+            }
+            self.run(0xec6b4, 0xec6bc)?;
+        } else {
+            self.run(0xec6c0, 0xec6c8)?;
+        }
+        self.run(0xec6cc, 0xec6d8)?;
         for _ in 0..3 {
             self.run(0xec6dc, 0xec704)?;
         }
-        self.ranges(&[(0xec708, 0xec720), (0xec728, 0xec7a8), (0xec938, 0xec954)])
+        self.run(0xec708, 0xec720)?;
+        if f & 0x100 != 0 {
+            self.run(0xec724, 0xec724)?;
+        }
+        self.ranges(&[(0xec728, 0xec7a8), (0xec938, 0xec954)])
     }
     fn scene(&mut self, r: &[u8]) -> Result<()> {
         self.run(0xeb998, 0xeba48)?;
