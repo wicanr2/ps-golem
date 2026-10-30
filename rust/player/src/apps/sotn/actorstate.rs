@@ -328,6 +328,61 @@ pub struct ActorDataPlan {
     irq_mask: u32,
 }
 impl ActorDataPlan {
+    fn empty_plan(
+        mut plan: ActorPlan,
+        input: &[u8],
+        scratch: &[u8],
+        state: &State,
+        context: TextureContext,
+        irq_mask: u32,
+    ) -> Result<Self> {
+        if !plan.images.is_empty() || plan.count_after != 0 {
+            return Err("空圖元批次帶有未封閉工作".into());
+        }
+        let mut ram = plan.ram.clone();
+        let mut sc = scratch.to_vec();
+        let frame = state.gpr[29] - 0x58;
+        let buffer = w(input, 0x8006c37c)?;
+        for (i, reg) in [16, 17, 18, 19, 20, 21, 22, 23, 30, 31].iter().enumerate() {
+            put(&mut ram, frame + 0x30 + i as u32 * 4, state.gpr[*reg])?;
+        }
+        put(&mut ram, frame + 0x18, entity(256))?;
+        sc[3] = 12;
+        sc[7] = 0x3c;
+        put(&mut sc, 0x48, 256)?;
+        put(&mut sc, 0x5c, buffer + 0x474)?;
+        put(&mut sc, 0x60, buffer + 0x3c74)?;
+        let mut arch = Architecture::of(state);
+        for (reg, v) in [
+            (1, 0x1f800000),
+            (2, 0),
+            (9, 128),
+            (11, 0xffffff),
+            (12, entity(256)),
+        ] {
+            arch.gpr[reg] = v;
+        }
+        finish_scan(input, &mut sc, &mut arch, None)?;
+        arch.gpr[34] = state.gpr[16];
+        arch.pc = state.gpr[31];
+        arch.next_pc = arch.pc + 4;
+        arch.ld_which = 34;
+        arch.ld_value = state.gpr[16];
+        arch.bdbt = 0;
+        arch.branched = false;
+        plan.ram = ram;
+        Ok(Self {
+            geometry: plan,
+            scratch: sc,
+            architecture: arch,
+            before: state.clone(),
+            ram_hash: hash(input),
+            scratch_hash: hash(scratch),
+            context,
+            irq_mask,
+        })
+    }
+
     pub fn prepare(
         input: &[u8],
         scratch: &[u8],
@@ -382,7 +437,6 @@ impl ActorDataPlan {
 
         if plan.count_before != 0
             || plan.count_after >= 768
-            || plan.quads.is_empty()
             || w(input, 0x8002c268)? != 0
             || w(input, 0x8002c26c)? != 0
             || w(input, 0x8002c274)? == 0
@@ -391,22 +445,12 @@ impl ActorDataPlan {
         {
             return Err("SDK分支、queue或物件掃描上下文未證實".into());
         }
+        if plan.quads.is_empty() {
+            return Self::empty_plan(plan, input, scratch, state, context, irq_mask);
+        }
         let last_q = plan.quads.last().unwrap().clone();
         let last = Part::read(input, last_q.entity, last_q.part)?;
-        let last_active = (0..256)
-            .filter(|&i| {
-                h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
-            })
-            .last();
-        let drawable_entities = 1 + plan
-            .quads
-            .windows(2)
-            .filter(|q| q[0].entity != q[1].entity)
-            .count();
-        if last.packed && plan.active != drawable_entities {
-            return Err("含無圖元物件的packed末尾尚未封閉".into());
-        }
-        let supported_flags = if last.flags & 8 == 0 { 3 } else { 0x7b };
+        let supported_flags = if last.flags & 8 == 0 { 0x83 } else { 0xfb };
         if last.flags & !supported_flags != 0
             || !matches!(last.flip, 0 | 2)
             || if last.packed {
@@ -414,7 +458,6 @@ impl ActorDataPlan {
             } else {
                 last_q.part + 1 != last.n as usize
             }
-            || last_active != Some(last_q.entity)
         {
             return Err("最後物件／部件的終值分支尚未支援".into());
         }
@@ -729,6 +772,7 @@ impl ActorDataPlan {
         arch.ld_value = state.gpr[16];
         arch.bdbt = 0;
         arch.branched = false;
+        finish_scan(input, &mut sc, &mut arch, Some(last_q.entity))?;
         plan.ram = ram;
         Ok(Self {
             geometry: plan,
@@ -776,4 +820,89 @@ impl ActorDataPlan {
         self.architecture.apply(state);
         Ok(())
     }
+}
+
+// 026 §16.7.12: typed frame metadata and final scan residue. No ISA replay.
+fn frame_head(r: &[u8], a: u32) -> Result<(u32, u16)> {
+    let bank = h(r, a + 0x54)?;
+    let frame = h(r, a + 0x56)? & 0x7fff;
+    let table = if bank & 0x8000 == 0 {
+        w(r, 0x800a3b80 + bank as u32 * 4)?
+    } else {
+        w(r, w(r, 0x8003c788)? + (bank as u32 & 0x7fff) * 4)?
+    };
+    let fd = w(r, table + frame as u32 * 4)?;
+    Ok((fd, h(r, fd)?))
+}
+fn finish_scan(
+    r: &[u8],
+    sc: &mut [u8],
+    arch: &mut Architecture,
+    last: Option<usize>,
+) -> Result<()> {
+    let mut ordinary_count = w(sc, 0x4c)?;
+    for slot in 0..256 {
+        let a = entity(slot);
+        let bank = h(r, a + 0x54)?;
+        let frame = h(r, a + 0x56)?;
+        let tail = last.map(|n| slot > n).unwrap_or(true);
+        if tail {
+            ph(sc, 0x36, bank)?;
+            ph(sc, 0x38, frame)?;
+        }
+        if bank == 0 || frame == 0 {
+            if tail {
+                arch.gpr[3] = 1;
+            }
+            continue;
+        }
+        let flags = byte(r, a + 0x19)?;
+        if tail {
+            put(sc, 0x58, flags as u32)?;
+        }
+        if flags & 0x80 != 0 {
+            let counter = w(r, 0x8003c998)?;
+            if tail {
+                arch.gpr[3] = counter;
+            }
+            if (slot as u32 ^ counter) & 1 != 0 {
+                continue;
+            }
+        }
+        let x = h(r, a + 2)?.wrapping_add(h(r, 0x8006c39c)?);
+        let raw_y = h(r, a + 6)? as u32 + h(r, 0x8006c3a0)? as u32;
+        let y = raw_y as u16;
+        if tail {
+            put(sc, 0x54, (h(r, a + 0x14)? as u32) << 1)?;
+            ph(sc, 0x3e, x)?;
+            ph(sc, 0x40, y)?;
+            arch.gpr[3] = h(r, 0x8006c3a0)? as u32;
+            arch.gpr[4] = raw_y;
+        }
+        if x.wrapping_add(512) > 1024 || y.wrapping_add(512) > 1024 {
+            continue;
+        }
+        if tail {
+            arch.gpr[4] = (frame & 0x7fff) as u32;
+        }
+        if frame & 0x7fff == 0 {
+            continue;
+        }
+        let (fd, n) = frame_head(r, a)?;
+        if n & 0x8000 == 0 {
+            ordinary_count = n as u32;
+        }
+        if tail {
+            if n != 0 {
+                return Err("尾段有未封閉的可繪製幀".into());
+            }
+            if bank & 0x8000 == 0 {
+                arch.gpr[1] = 0x800a0000 + bank as u32 * 4;
+            }
+            arch.gpr[10] = fd + 2;
+            arch.gpr[3] = 0;
+            put(sc, 0x50, 0)?;
+        }
+    }
+    put(sc, 0x4c, ordinary_count)
 }

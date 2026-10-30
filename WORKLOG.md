@@ -2852,3 +2852,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 唯一正式批次162例、1738720量子及完整CPU／RAM／scratch同，82組零上傳、98組含hidden與八個未封閉端點拒絕通過。±512邊界仍保留，±513裁掉。唯一正常原片前綴一個自然基準續跑8383、完整Machine及原音同；另八個獨立剔除／空幀診斷全Machine／成本／排隊音訊同，原控制組87096指令。兩個無上傳保持非預設idle DMA2，原卡／原片保持，注入不當正常玩家覆蓋。
 
 026 §16.7.11僅ordinary末物件之前的略過分支CONFORMED。最後略過、全空、packed末尾略過前態、其餘bank／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包不改；無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27與總表#1。來源與限定收據由assets-catalog的actor-skips-v1進入，有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust末尾掃描與完全無圖元批次
+
+沿READY路由以原IDA9.4 prologue／幀表／末尾分支，直接推導無圖元的必要ABI、AT／volatile／scratch與最後ordinary counter。先128候選完整資料／時鐘首次全同，只補八個普通末物件可見奇偶幀，未重跑原128；凍結026 §16.7.12 READY後才安裝typed掃描結果與空批次資料。Clock與核心API不改，無原ISA／SDK／GP0或保存PC足跡回播；最後沒有圖元仍保留原生副作用。
+
+唯一正式批次140例、1292325量子及完整CPU／RAM／scratch同，含四個packed可見奇偶新邊界、28完全無圖元、82零上傳與八個來源／容量／未知分支拒絕。唯一正常原片前綴一個自然基準續跑8383、完整Machine及原音同；另十個獨立末尾／全空診斷全Machine／成本／排隊音訊同，原控制組93421指令。四個全空案例保留非預設idle DMA2，原片／原卡保持，注入不當正常玩家覆蓋。
+
+本節限定CONFORMED，其餘bank／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包不改；無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源、READY、補項及限定收據由assets-catalog的actor-endpoints-v1進入，有界--rm容器、原始資料唯讀，不動共享資源。

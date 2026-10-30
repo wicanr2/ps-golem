@@ -702,3 +702,23 @@ EC1B8–1C8對ordinary部件數零跳EC958，delay slot仍清scratch+4C，不設
 唯一正常原片前綴到8382自然入口，一個未注入基準、續跑8383與所取原音同原版。另八個獨立奇偶／X界線／Y裁掉／frame低位零／空ordinary／多重剔除診斷，完整Machine、全部成本與排隊音訊同原CPU，共87096控制指令。兩個無上傳案例保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401。原卡／原片保持，注入不回正常路線，不當自然玩家覆蓋。
 
 本節只封閉已完整ordinary末物件之前的略過分支；最後active被略過、全空、略過後packed末尾、其餘bank／SDK／rotation／bank15、文字／HUD／特效／3D與正式整場GUI仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包保持，新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、正式版本及局部／整機收據由私人actor-skips-v1索引追溯。
+
+
+#### 16.7.12 末尾掃描結果與完全無圖元批次
+
+狀態：CONFORMED，沿16.7.1–16.7.11來源與原子交易，擴充最後圖元之後的隱藏／裁掉／frame低位零／空ordinary，以及完全無圖元批次；接入末物件bit7的可見幀。bank／旋轉／bank15／SDK及容量限制沿舊範圍，正式整場仍DRAFT。原DRA／boot／DB、PS1 KSEG0 RAM與DRA offset EA-0x800A0000沿前節，原IDA9.4 prologue、幀表及末尾分支／SHA由私人actor-endpoints-v1/evidence.json追溯，不重開DB或美術。
+
+已證實無圖元仍有prologue及256槽掃描。EB9D8、EBA04、BA0C、BA3C／44的pseudo寫入使AT=1F800000，設定scratch+3=12、+7=3C、+48最後256、+5C及+60緩衝指標，未寫的packet／尺寸／offset沿輸入。callee-save及frame+18最後entity指標仍寫，A0／A1／A2／A3／T0／T2與HI／LO只在其原分支實際寫入時改；無SDK、無transform時其框架保持，不偽造GPU或DMA完成。
+
+末圖元後按原輸入產生typed掃描結果：inactive槽僅改bank／frame半字與V1=1；奇偶隱藏改flags及V1=完整8003C998，不改座標／幀指標。通過奇偶後更新flip／XY，V1為global Y的lhu值，A0保留未截斷的Y兩半字加總；XY剔除或frame低位零按原先後停止，frame檢查另把A0設低15位。可見空ordinary在EBB84把T2設fd+2、scratch+50／4C設0、V1=0；正bank的EBB38 pseudo-lw使AT=800A0000+bank*4，負bank保留先前AT。prefix中的每個可見ordinary header也推導最後counter，讓packed末尾在先前空ordinary後保留0，頁低位仍沿最後實際ordinary圖元或輸入。
+
+資料由typed metadata及既有ActorPlan生成，無圖元只提交必要ABI／scratch／架構資料與裝置時間；不執行MIPS／SDK／GP0或回播PC足跡。Clock及核心API不改。末可繪製物件的bit7只控制入口奇偶，座標／縮放／色彩分支沿既有低位旗標；保留rotation bit2拒絕。第一批128完整資料／CPU／成本首次全同，僅補八個普通末物件可見奇偶案例也首次全同，沒有重跑原128。非零scratch全域與volatile1至12、S6／S7／HI／LO作診斷前態，不假設未寫欄位為零。
+
+集中驗收：正式140組完整CPU／RAM／scratch及全部成本，包括前述136組及四個packed cache來源0／3的末尾可見奇偶邊界。兩保存態各驗rotation、bank15、非零起始圖元計數及全空仍核對SDK來源，共八個拒絕。只開一次正常原片前綴至8382，一個自然未注入基準續跑8383，同入口十個獨立末尾／全空診斷核對完整Machine、成本及排隊音訊；四個無圖元案例保留非預設idle DMA2。原卡／原片保持，注入不回正常路線、不當自然玩家覆蓋，舊GPU／美術矩陣不重跑。CPU／GPU、海報及定案素材保持，正式GUI／整場HD／速度仍未完成。
+
+
+16.7.12限定結果：正式140組局部原CPU對照、1292325個量子及完整CPU State／RAM／scratch同原版；82組零圖像工作、28組完全無圖元，八個rotation／bank15／起始計數／全空仍核對SDK來源的拒絕通過。先128組候選首次全同，只補八個新普通末物件可見奇偶幀也全同，原128未重跑；READY後唯一正式批次再納入四個packed來源0／3可見奇偶幀。非零整張scratch、volatile1至12、S6／S7與HI／LO驗證保留值；相對Y加總未截斷、正bank AT與空ordinary後packed counter0同原版。Clock／核心API未改，資料由typed metadata直接推導，不回播原ISA／GP0或PC足跡。
+
+唯一正常原片前綴到8382自然入口，一個未注入基準、續跑8383及所取原音同。另十個獨立末尾隱藏／可見奇偶／X裁掉／正bank空幀／空幀後packed／完全無圖元診斷，完整Machine、全部成本及排隊音訊同原CPU，共93421控制指令。四個完全無圖元案例保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401；原片／原卡保持，注入不回正常路線、不當自然玩家覆蓋。
+
+本節封閉所列末尾／空批次與奇偶端點；其他bank／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場GUI仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術與Go包不改，新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、候選補項、正式版本與局部／整機收據由私人actor-endpoints-v1索引追溯。
