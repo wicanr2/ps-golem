@@ -602,3 +602,23 @@ packed末尾的GPR4由EC194為原global計數位址0x80097930；GPR5由EC110最�
 唯一正常原片前綴取得8382自然入口，一個未注入人物基準與原版同並續跑8383，所取原音同。另在同入口獨立副本移動packed來源0／3至254／255、關閉舊槽，八組朝向／縮放與負XY的全Machine、所有成本及排隊音訊同原CPU控制組，共103360控制指令。原片／卡片保持，八組注入不當自然玩家覆蓋，副本不回正式路線。來源與測試版本、READY、準備停止、局部及完整機器收據由私人actor-packed-tail-v1的tested-source、verification、machine-verification及acceptance追溯。
 
 這只封閉本節packed末尾分支，全packed前態、其他bank／跳過上傳、未知色彩／SDK／旋轉、page／order、文字／特效／3D及正式整場仍待。正式GUI未註冊，後續原生相容光柵仍在，不稱全人物、整場HD或速度完成。原版、CPU／GPU、海報、影片、定案美術及Go包保持；新美術／GUI／硬體GPU／打包0，沒有新速度倍率。
+
+
+#### 16.7.7 部分／全部packed圖像重用
+
+狀態：CONFORMED，沿16.7.1–16.7.6支援資料分支，允許packed entity frame半字bit15表示本次不再上傳；與packed header的bit15型別標記不同。仍限bank1、強制CLUT、朝向／縮放既有範圍、至少一個packed圖元及已封閉的最後ordinary或有ordinary前態的packed末尾。全packed前態、無packed的純ordinary、其他bank／未知色彩／SDK／rotation等保持拒絕。原DRA／boot／DB及KSEG0 RAM空間沿前節，DRA offset為EA-0x800A0000；只讀既有IDA9.4原bytes／邊界，不重開DB。來源SHA、分組證據與候選由私人actor-reuse-v1/evidence.json追溯。
+
+已證實原分支0x800EBCC4／EBCC8檢查frame bit15，delay slot EBCCC仍設定V1資源，跳至EBD90，略過EBCD0–EBD8C的cache尺寸／兩矩形更新、三次SDK／DMA及暫存框架。型別圖元、來源及幀尺寸仍按原資料產生；跳過的圖像不生成TextureJob，也不改cache+4至+23的上傳效果。混合呼叫只由最後實際上傳推導SDK工作區／timeout與leaf frames；全部重用時這些RAM全部沿前態保持，由後續已證實的outer／transform ABI覆寫其實際位置。HI／LO在無上傳且無後續縮放時沿前態，有縮放仍依最後乘積，時鐘保留或推導相應完成期限。
+
+正式高階Clock只依frame bit決定是否加入既有上傳／清邊工作，新增共用段為EBC48–EBCCC及EBD90起；不解碼原指令或回播PC。ActorClockPlan有TextureJob時沿16.7.3同步顯存提交；零工作時沿16.5已驗commit_cpu_data_phase，只更新資料／scratch／CPU與逐量子裝置時間，不改GPU、DMA2、readback或顯存。核心既有API與原版路徑不改；source／stale／IRQ／跨場／BIU／cache等守門保持。
+
+候選先以兩保存態×16個跳過遮罩×ordinary／packed末尾，加16個正負縮放packed末尾，共80局部原CPU完整RAM／scratch／Architecture對照首次全同。測試oracle只從原始輸入bank／frame／cache獨立選擇上下文回覆：原每個cache的21筆SDK讀取由原EBCDC寫入邊界分組；全部重用時0筆，混合只取仍上傳的group。這些回覆只供局部oracle，不當完整裝置或正常玩家證據，也不在正式程式使用。
+
+集中驗收：80組正式全CPU State、完整RAM／scratch及逐成本量子，一個無packed前態拒絕；再只新跑一條真BIOS／原片／同卡正常前綴到8382，一個自然基準續跑8383，同入口八個獨立部分／全部重用與末尾縮放RAM診斷比較全Machine／所有成本／排隊原音。全部重用的診斷另給DMA2非預設idle MADR／BCR，必須保留，不能偽造完成端點。原卡／原片保持，八組注入不當自然玩家覆蓋。舊ordinary／GPU／美術矩陣不重跑，正式整場／GUI／速度仍未完成。
+
+
+16.7.7限定結果：80局部原CPU案例共886162量子，完整CPU State／RAM／scratch及逐成本相同，其中八組為0個TextureJob。原SDK group只在測試按原輸入選擇回覆，全部重用原CPU的MMIO讀取0，正式程式不讀此group／事件。無packed的純ordinary前態拒絕，原有全packed／未知bank／color／SDK等限制保持。
+
+唯一正常原片前綴取得8382入口，一個自然基準續跑8383同原版及所取原音；另八個獨立部分／全部重用診斷的全Machine／成本／排隊音訊同原CPU，共81951控制指令。四個全重用診斷確認0個顯存工作，DMA2 idle MADR=0x135790、BCR=0x2468、CHCR=0x401保持，GPU／VRAM等完整欄位也相同，沒有偽造上傳完成。原片／原卡保持，八個注入不當自然玩家覆蓋。SDK／cache寫入只取實際Upload工作，0工作用既有commit_cpu_data_phase，核心API未改。
+
+只封閉本節frame bit15混合／全重用分支，無packed純ordinary、全packed前態、其他bank／未知color／SDK／rotation、page／order與正式整場GUI仍待，後續原生相容光柵仍在。原版、CPU／GPU、海報、影片、定案美術與Go包保持；新美術／GUI／硬體GPU／打包0，未量穩態速度，不把少傳送工作換算成倍率。來源、READY、受測原碼及verification／machine-verification／acceptance由私人actor-reuse-v1索引追溯。

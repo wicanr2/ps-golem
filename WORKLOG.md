@@ -2807,3 +2807,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 正式測試器首編譯因fs::read的Result漏傳播停止，執行案例0；保存日誌與原碼後修測試器，未改繪圖。唯一完成正式批次72例、945332個成本量子與完整CPU／RAM／scratch全同，三個全packed／跳過上傳／CLUT守門通過。唯一真BIOS／原片／同卡正常前綴的一個自然基準續跑8383，完整Machine及原音同；另八個同入口移動packed實體至末槽的獨立RAM診斷，全Machine／成本／排隊音訊同原參考，原參考103360指令。移動關閉舊槽、保持上傳數，注入不當正常玩家覆蓋，原片／原卡保持。
 
 本節限定CONFORMED，其他bank／skip upload、全packed前態、未知color／SDK／rotation、文字／特效／3D與正式整場仍待，後續原生相容光柵保持。沒有新GUI、硬體GPU、美術、包或速度聲明，已過ordinary／GPU／美術矩陣不重跑。沿公開#17／#19、私人#13／#27與總表#1記錄，不開重複Issue。來源、READY、測試器準備停止、局部及完整機器收據由素材assets-catalog的actor-packed-tail-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust部分／全部圖像重用
+
+沿READY路由只讀既有IDA9.4的EBCC4／EBCC8至EBD90分支與兩保存態，確認entity frame bit15跳過上傳／兩清邊／SDK框架，並區分packed header的型別bit。候選按最後實際Upload產生SDK終值，全重用則保留SDK RAM、由outer／transform覆寫必要ABI，80資料案例首次全同後凍結026 §16.7.7 READY。正式高階Clock依frame bit選擇工作，無原ISA／GP0／事件回播；0個TextureJob走既有commit_cpu_data_phase，核心API未改，原版及未知分支守門保持。
+
+唯一正式批次80例、886162量子及完整CPU／RAM／scratch全同，含八個無顯存工作案例與無packed拒絕。局部oracle的21筆SDK context group由原寫cache尺寸邊界定位，依原輸入bank／frame／cache選取，不由ActorPlan工作或原輸出驅動；只供測試，全部重用MMIO讀取0。唯一真BIOS／原片／同卡前綴的一個自然基準續跑8383，完整Machine及原音同；另八個獨立重用診斷全Machine／成本／排隊原音相同，原控制組81951指令。四個全重用診斷DMA2非預設idle MADR／BCR／CHCR保持，沒有偽造DMA完成或GPU變更；注入不當自然玩家覆蓋，原卡／原片保持。
+
+本節限定CONFORMED，其他bank／全packed／純ordinary、未知color／SDK／rotation、文字／特效／3D與正式整場仍待，後續原生相容光柵保持。無新美術／GUI／硬體GPU／包或穩態速度驗收，已過ordinary／GPU／美術矩陣不重跑。有效工作沿公開#17／#19、私人#13／#27與總表#1。來源、READY、受測原碼、局部／完整機器證據由assets-catalog的actor-reuse-v1進入，Docker為有界--rm容器，原始資料唯讀，不動共享資源。

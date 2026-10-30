@@ -435,20 +435,23 @@ impl Clock {
     fn packed(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let a = 0x800733d8 + slot as u32 * 188;
         if h(r, a + 0x54) != 1
-            || h(r, a + 0x56) & 0x8000 != 0
             || h(r, a + 0x16) & 0x8000 == 0
             || !matches!(p.flip, 0 | 2)
             || h(r, a + 0x14) > 1
         {
             return Err("packed時鐘分支不在已驗範圍".into());
         }
-        self.ranges(&[(0xebb94, 0xebbe4), (0xebc20, 0xebc30), (0xebc48, 0xebcf8)])?;
-        self.upload(p.width / 4, p.height)?;
-        self.run(0xebcfc, 0xebd3c)?;
-        self.clear(h(r, p.cache) + p.width / 4)?;
-        self.run(0xebd40, 0xebd80)?;
-        self.clear(h(r, p.cache) - 1)?;
-        self.run(0xebd84, 0xebda0)?;
+        self.ranges(&[(0xebb94, 0xebbe4), (0xebc20, 0xebc30), (0xebc48, 0xebccc)])?;
+        if h(r, a + 0x56) & 0x8000 == 0 {
+            self.run(0xebcd0, 0xebcf8)?;
+            self.upload(p.width / 4, p.height)?;
+            self.run(0xebcfc, 0xebd3c)?;
+            self.clear(h(r, p.cache) + p.width / 4)?;
+            self.run(0xebd40, 0xebd80)?;
+            self.clear(h(r, p.cache) - 1)?;
+            self.run(0xebd84, 0xebd8c)?;
+        }
+        self.run(0xebd90, 0xebda0)?;
         if p.flip & 2 == 0 {
             self.run(0xebdb4, 0xebdc0)?;
         } else {
@@ -707,6 +710,15 @@ impl ActorClockPlan {
             .iter()
             .map(|j| j.job.clone())
             .collect();
+        if jobs.is_empty() {
+            return m.commit_cpu_data_phase(
+                &self.endpoint,
+                &patches,
+                &self.data.scratch,
+                &self.costs,
+                100000,
+            );
+        }
         m.commit_texture_data_phase(
             &self.endpoint,
             &patches,

@@ -414,7 +414,6 @@ impl ActorDataPlan {
         if last.packed {
             let a = entity(last_q.entity);
             if h(input, a + 0x54)? != 1
-                || h(input, a + 0x56)? & 0x8000 != 0
                 || h(input, a + 0x16)? & 0x8000 == 0
                 || h(input, a + 0x14)? > 1
             {
@@ -469,67 +468,69 @@ impl ActorDataPlan {
                 _ => (),
             }
         }
-        let (upload_slot, cache, source, _) = last_upload.ok_or("未上傳的物件ABI尚未支援")?;
-        let packed = Part::read(input, upload_slot, 0)?;
-        let last_clear = Rect {
-            x: sub(h(input, cache)?, 1),
-            y: add(h(input, cache + 2)?, packed.height),
-            width: packed.width / 4 + 2,
-            height: 4,
-        };
-        let xy = last_clear.x as u32 | (last_clear.y as u32) << 16;
-        let wh = last_clear.width as u32 | (last_clear.height as u32) << 16;
-        let area0 = context.area_start[0] as u32 | (context.area_start[1] as u32) << 10;
-        let area1 = context.area_end[0] as u32 | (context.area_end[1] as u32) << 10;
-        let offset = (context.offset[0] as u32 & 2047) | ((context.offset[1] as u32 & 2047) << 11);
-        let sdk = [
-            0x07037e40,
-            0xe3000000,
-            0xe4ffffff,
-            0xe5000000,
-            0xe6000000,
-            0x60000000,
-            xy,
-            wh,
-            0x03ffffff,
-            0xe3000000 | area0,
-            0xe4000000 | area1,
-            0xe5000000 | offset,
-        ];
-        for (i, v) in sdk.iter().enumerate() {
-            put(&mut ram, 0x80037e20 + i as u32 * 4, *v)?;
-        }
-        put(
-            &mut ram,
-            0x80039254,
-            w(input, 0x8002d374)?.wrapping_add(240),
-        )?;
-        put(&mut ram, 0x80039258, 0)?;
-        // Completed SDK leaf frames. Values are typed call arguments and
-        // the preserved IRQ mask, not values copied from the oracle stack.
-        for (delta, v) in [
-            (-256, cache),
-            (-252, source),
-            (-248, 0x80014f50),
-            (-224, 0x80013ff4),
-            (-200, xy),
-            (-196, wh),
-            (-192, 0),
-            (-188, cache + 16),
-            (-184, 0x80014770),
-            (-180, irq_mask),
-            (-176, source),
-            (-172, 0x80014770),
-            (-160, 0),
-            (-156, 0),
-            (-152, 0),
-            (-148, cache + 16),
-            (-144, packed.v0 as u32),
-            (-140, packed.v1 as u32),
-            (-136, 0x80012b04),
-            (-132, 0x80012ac8),
-        ] {
-            put(&mut ram, (sp as i64 + delta) as u32, v)?;
+        if let Some((upload_slot, cache, source, _)) = last_upload {
+            let packed = Part::read(input, upload_slot, 0)?;
+            let last_clear = Rect {
+                x: sub(h(input, cache)?, 1),
+                y: add(h(input, cache + 2)?, packed.height),
+                width: packed.width / 4 + 2,
+                height: 4,
+            };
+            let xy = last_clear.x as u32 | (last_clear.y as u32) << 16;
+            let wh = last_clear.width as u32 | (last_clear.height as u32) << 16;
+            let area0 = context.area_start[0] as u32 | (context.area_start[1] as u32) << 10;
+            let area1 = context.area_end[0] as u32 | (context.area_end[1] as u32) << 10;
+            let offset =
+                (context.offset[0] as u32 & 2047) | ((context.offset[1] as u32 & 2047) << 11);
+            let sdk = [
+                0x07037e40,
+                0xe3000000,
+                0xe4ffffff,
+                0xe5000000,
+                0xe6000000,
+                0x60000000,
+                xy,
+                wh,
+                0x03ffffff,
+                0xe3000000 | area0,
+                0xe4000000 | area1,
+                0xe5000000 | offset,
+            ];
+            for (i, v) in sdk.iter().enumerate() {
+                put(&mut ram, 0x80037e20 + i as u32 * 4, *v)?;
+            }
+            put(
+                &mut ram,
+                0x80039254,
+                w(input, 0x8002d374)?.wrapping_add(240),
+            )?;
+            put(&mut ram, 0x80039258, 0)?;
+            // Completed SDK leaf frames. Values are typed call arguments and
+            // the preserved IRQ mask, not values copied from the oracle stack.
+            for (delta, v) in [
+                (-256, cache),
+                (-252, source),
+                (-248, 0x80014f50),
+                (-224, 0x80013ff4),
+                (-200, xy),
+                (-196, wh),
+                (-192, 0),
+                (-188, cache + 16),
+                (-184, 0x80014770),
+                (-180, irq_mask),
+                (-176, source),
+                (-172, 0x80014770),
+                (-160, 0),
+                (-156, 0),
+                (-152, 0),
+                (-148, cache + 16),
+                (-144, packed.v0 as u32),
+                (-140, packed.v1 as u32),
+                (-136, 0x80012b04),
+                (-132, 0x80012ac8),
+            ] {
+                put(&mut ram, (sp as i64 + delta) as u32, v)?;
+            }
         }
         for (i, reg) in [16, 17, 18, 19, 20, 21, 22, 23, 30, 31].iter().enumerate() {
             put(&mut ram, frame + 0x30 + i as u32 * 4, state.gpr[*reg])?;
@@ -541,9 +542,11 @@ impl ActorDataPlan {
         working[1] = 0x1f800000;
         let mut product = ((state.hi as u64) << 32 | state.lo as u64) as i64;
         let mut last_transform = None;
+        let mut packed_seen = false;
         for q in &plan.quads {
             let p = Part::read(input, q.entity, q.part)?;
             if p.packed {
+                packed_seen = true;
                 working[2] = p.cache;
                 working[3] = p.u1 as u32;
                 working[4] = p.v0 as u32;
@@ -575,6 +578,9 @@ impl ActorDataPlan {
                 working[6] = p.u0 as u32;
                 working[7] = p.address + 42;
             }
+        }
+        if !packed_seen {
+            return Err("只有ordinary的資料前態尚未證實".into());
         }
         let (slot, t, regs) = last_transform.ok_or("無transform的ABI未證實")?;
         let transform_frame = frame - 0x38;
