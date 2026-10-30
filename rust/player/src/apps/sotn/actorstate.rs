@@ -399,12 +399,9 @@ impl ActorDataPlan {
                 h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
             })
             .last();
-        if last_active == Some(255) {
-            return Err("末槽活躍分支尚未支援".into());
-        }
         if last.packed
-            || last.flags != 0
-            || last.flip != 0
+            || last.flags & !3 != 0
+            || !matches!(last.flip, 0 | 2)
             || last_q.part + 1 != last.n as usize
             || last_active != Some(last_q.entity)
         {
@@ -622,7 +619,14 @@ impl ActorDataPlan {
             (0, 0),
             (1, 0x80040000 + palette as u32 * 2),
             (2, 0),
-            (3, 1),
+            (
+                3,
+                if last_q.entity == 255 {
+                    last.n as u32
+                } else {
+                    1
+                },
+            ),
             (4, plan.count_after),
             (5, last_q.address),
             (6, 0x1f800030),

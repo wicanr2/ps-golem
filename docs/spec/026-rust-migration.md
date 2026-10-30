@@ -562,3 +562,23 @@ BIU125320、無隔離／待處理IRQ／load／branch、快取valid低4位；16.7
 唯一正常真BIOS／原片／同卡路線在8383起正常按LEFT六場、8389起RIGHT二十場，自然進入16次人物呼叫，觀測朝向0及1，其中6次為翻轉朝向。全Machine逐欄及全部成本同原控制組，略去原參考208439指令，建立246個型別四邊形與192個圖像工作，續跑8400及所取原音SHA全同。原片／卡片保持，正常路線無PC／RAM／code注入。UV特殊組合仍只由局部診斷證明，沒有聲稱全部出現在這條正常路線。來源、有效按鍵與限定結果由私人actor-mirror-v1的tested-source、effective-input、normal-verification及acceptance追溯。
 
 本節只放寬已證實的未旋轉朝向／UV分支，最後物件端點仍沿16.7.1限制，其他bank／跳過上傳、旋轉、色彩／SDK、page／order及整場呈現仍待完成。正式GUI未註冊，原生後續相容光柵仍在，不把這段稱全人物、完整HD或速度完成。原版、CPU／GPU、海報、影片與定案美術保持；新美術／GUI／硬體GPU／包驗收0，舊矩陣不重跑。
+
+
+#### 16.7.5 最後普通部件與第255槽的終值
+
+狀態：CONFORMED，沿16.7.1–16.7.4支援上下文，放寬最後ordinary部件為朝向0／1、flip0／2、無旋轉的flags0至3，以及普通物件位於末槽255；packed末物件與其他未知色彩／SDK／bank仍拒絕。原DRA／boot／DB與KSEG0位址空間沿前節，DRA file offset為EA-0x800A0000。新研究只讀既有IDA9.4原bytes與邊界，不重開DB；來源SHA、候選及初停由私人actor-tail-v1/evidence.json、candidate-initial-evidence.json及initial-stop.json保存。
+
+末尾ordinary的座標／UV、scratch、圖元／排序／RAM與最後縮放HI／LO已由ActorDataPlan既有公式直接產生，不執行MIPS或回播事件。兩保存態×兩末槽98／255×朝向0／1×四縮放旗標×四UV共128組，加四個負X／Y縮放組，共132組局部原CPU診斷；完整RAM與scratch全部相同。66個槽98案例的Architecture也全同，槽255的66個案例只差GPR3。原候選尚未修改正式程式，不把初停改寫成全過。
+
+GPR3來源已證實：0x800EC940從scratch+0x1C載入最後幀的部件數，0x800EC94C比較部件迴圈終值；0x800EC958至0x800EC978與epilogue未改GPR3。若後面還有空槽，0x800EBA4C／0x800EBA5C／0x800EBA68依末槽bank/frame為零覆成1。因此普通最後活躍槽為255時GPR3=last.n，否則沿原限制的空末槽為1。保留原位址與原始operand，此公式不寫死保存值5。其他volatile、ABI、保留值與乘法終值仍由已有型別資料推導，時鐘沿現行高階掃描自然處理末槽，無新opcode／成本表或GPU作業改動。
+
+正式只調整ActorDataPlan末尾守門與GPR3來源；Clock、直接texture工作、原ISA與原版模式保持。參數接受範圍及來源身份沿前節，過期CPU／RAM／scratch／context與Device原子拒絕保持，不因末槽放寬IRQ／跨場。存檔及正式玩法不改，注入只在診斷副本。
+
+集中驗收：正式來源核對132組全CPU State／完整RAM／scratch與全部成本量子，再補末槽255的部件數1與2兩個界線，共134組；每次由局部原CPU獨立執行作oracle，正式資料不使用它。再只新跑一次正常真BIOS／原片／同卡前綴到8382，先對自然人物呼叫驗一個未注入基準，再在同一正常入口的獨立副本做8組末尾／末槽／縮放／UV診斷。每組完整Machine與全部成本／排隊原音同原參考，不改原卡／原媒體；正常基準續跑8383。末槽與縮放的新覆蓋只稱注入診斷，不宣稱它們由正常玩家自然出現。舊朝向／GPU／美術矩陣不重跑，通過只限本節，不稱正式GUI、全人物、整場HD或速度完成。
+
+
+16.7.5限定結果：一批134局部原CPU對照共1801679個量子，完整CPU State／2MiB RAM／scratch及每個成本相同；包含128個正縮放組合、四個負縮放及末槽部件數1／2兩界線。初候選132組全部RAM／scratch同、66個普通末槽Architecture同；另66個第255槽只差GPR3。保存候選／初停後由EC940與EBA4C／5C／68證實終值來源，READY後以last.n修正，不寫死5。正式批次只執行一次，沒有把初候選停止改成首次全過。
+
+唯一正常原片前綴到8382的自然人物基準同原版並續跑8383，完整Machine與所取原音同。另在同一自然入口的獨立副本做八組RAM注入，末尾朝向、X／Y／XY、負縮放／UV及第255槽完整Machine、全部成本與排隊音訊同原CPU控制組，注入控制組共105929指令；這八組明確不算正常玩家覆蓋。原片／卡片保持，未知玩法不猜補，副本不回正常路線。原始來源、有效診斷參數、受測原碼與限制由私人actor-tail-v1的initial-stop、READY、verification、machine-verification、tested-source及acceptance追溯。
+
+只放寬末尾ordinary的已列終值與末槽，packed末物件、其他bank／跳過上傳、色彩／SDK、旋轉、page／order與正式整場仍待。Clock／GPU工作／原ISA未改，正式GUI未註冊，後續原生相容光柵仍在，不稱全人物HD、完整接管或速度完成。原版、CPU／GPU、海報、影片、定案美術及Go包保持；新美術／GUI／硬體GPU／打包驗收0，舊矩陣不重跑。
