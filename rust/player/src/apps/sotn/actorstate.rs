@@ -399,13 +399,37 @@ impl ActorDataPlan {
                 h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
             })
             .last();
-        if last.packed
-            || last.flags & !3 != 0
+        if last.flags & !3 != 0
             || !matches!(last.flip, 0 | 2)
-            || last_q.part + 1 != last.n as usize
+            || if last.packed {
+                last_q.part != 0
+            } else {
+                last_q.part + 1 != last.n as usize
+            }
             || last_active != Some(last_q.entity)
         {
             return Err("最後物件／部件的終值分支尚未支援".into());
+        }
+        let mut previous_ordinary = None;
+        if last.packed {
+            let a = entity(last_q.entity);
+            if h(input, a + 0x54)? != 1
+                || h(input, a + 0x56)? & 0x8000 != 0
+                || h(input, a + 0x16)? & 0x8000 == 0
+                || h(input, a + 0x14)? > 1
+            {
+                return Err("packed末尾來源分支尚未證實".into());
+            }
+            for q in plan.quads.iter().rev() {
+                let p = Part::read(input, q.entity, q.part)?;
+                if !p.packed {
+                    previous_ordinary = Some(p);
+                    break;
+                }
+            }
+        }
+        if last.packed && previous_ordinary.is_none() {
+            return Err("packed末尾尚需已證實的ordinary前態".into());
         }
         let mut ram = plan.ram.clone();
         let mut sc = scratch.to_vec();
@@ -549,6 +573,7 @@ impl ActorDataPlan {
                 working[4] = p.v0 as u32;
                 working[5] = p.v1 as u32;
                 working[6] = p.u0 as u32;
+                working[7] = p.address + 42;
             }
         }
         let (slot, t, regs) = last_transform.ok_or("無transform的ABI未證實")?;
@@ -581,7 +606,14 @@ impl ActorDataPlan {
             put(&mut sc, 4 + i as u32 * 4, *v)?;
         }
         for (a, v) in [
-            (0x34, last.page_low),
+            (
+                0x34,
+                if last.packed {
+                    previous_ordinary.as_ref().unwrap().page_low
+                } else {
+                    last.page_low
+                },
+            ),
             (0x36, h(input, entity(255) + 0x54)?),
             (0x38, h(input, entity(255) + 0x56)?),
             (0x3a, last.width),
@@ -595,8 +627,22 @@ impl ActorDataPlan {
         }
         for (a, v) in [
             (0x48, 256),
-            (0x4c, last.n as u32),
-            (0x50, last.n as u32),
+            (
+                0x4c,
+                if last.packed {
+                    previous_ordinary.as_ref().unwrap().n as u32
+                } else {
+                    last.n as u32
+                },
+            ),
+            (
+                0x50,
+                if last.packed {
+                    (last.n & 0x7fff) as u32
+                } else {
+                    last.n as u32
+                },
+            ),
             (0x54, last.flip),
             (0x58, last.flags as u32),
             (0x5c, buffer + 0x474),
@@ -622,18 +668,43 @@ impl ActorDataPlan {
             (
                 3,
                 if last_q.entity == 255 {
-                    last.n as u32
+                    if last.packed {
+                        plan.count_after
+                    } else {
+                        last.n as u32
+                    }
                 } else {
                     1
                 },
             ),
-            (4, plan.count_after),
-            (5, last_q.address),
+            (
+                4,
+                if last.packed {
+                    0x80097930
+                } else {
+                    plan.count_after
+                },
+            ),
+            (
+                5,
+                if last.packed {
+                    last_q.words[10]
+                } else {
+                    last_q.address
+                },
+            ),
             (6, 0x1f800030),
             (7, last_q.address + 48),
             (8, 0x1f800030),
             (9, 128),
-            (10, last.address + 22),
+            (
+                10,
+                if last.packed {
+                    last.address
+                } else {
+                    last.address + 22
+                },
+            ),
             (11, 0xffffff),
             (12, 0x800733d8 + 256 * 188),
         ] {

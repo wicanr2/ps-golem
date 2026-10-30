@@ -2798,3 +2798,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 先凍結026 §16.7.5 READY，再正式調整末尾守門與GPR3資料來源，Clock／GPU／ISA未改。唯一正式集中批次134案例、1801679個量子及完整CPU／RAM／scratch全同，包含部件數1及2，原CPU僅測試oracle。唯一真BIOS／原片／同卡正常前綴到8382，自然人物基準與原版同並續跑8383，原音同。另八個同入口獨立RAM注入核對全Machine、全部成本及排隊音訊皆同，注入控制組105929指令，注入明確不當正常玩家覆蓋；原卡／原片保持。
 
 本節限定CONFORMED，整段16仍DRAFT，packed最後物件、其他bank／色彩／SDK／旋轉、文字／特效／3D與正式整場接線尚待。沒有新GUI／硬體GPU／美術／打包或速度聲明，舊已過矩陣不重跑。有效工作仍沿公開#17／#19、私人#13／#27及HD總表#1，不新增重複Issue。受測原碼／初停、READY、局部及完整機器診斷由素材assets-catalog的actor-tail-v1進入。Docker為有界--rm容器，原始資料唯讀，不動其他專案資源。
+
+
+## 2026-10-30 Rust帶上傳的packed末物件
+
+沿READY路由讀既有IDA9.4原bytes／邊界與兩保存態，直接推導packed末尾保留的ordinary page／部件計數、packed圖像ID、ordinary完成後S7前進、GPR3／4／5／10及既有SDK／transform ABI。候選72個資料案例首次全同後凍結026 §16.7.6 READY，才正式接入，原MIPS／GP0／MMIO回覆僅作研究oracle，不在正式繪圖回播。Clock／GPU／ISA不改，未知來源與空ordinary等分支保留拒絕。
+
+正式測試器首編譯因fs::read的Result漏傳播停止，執行案例0；保存日誌與原碼後修測試器，未改繪圖。唯一完成正式批次72例、945332個成本量子與完整CPU／RAM／scratch全同，三個全packed／跳過上傳／CLUT守門通過。唯一真BIOS／原片／同卡正常前綴的一個自然基準續跑8383，完整Machine及原音同；另八個同入口移動packed實體至末槽的獨立RAM診斷，全Machine／成本／排隊音訊同原參考，原參考103360指令。移動關閉舊槽、保持上傳數，注入不當正常玩家覆蓋，原片／原卡保持。
+
+本節限定CONFORMED，其他bank／skip upload、全packed前態、未知color／SDK／rotation、文字／特效／3D與正式整場仍待，後續原生相容光柵保持。沒有新GUI、硬體GPU、美術、包或速度聲明，已過ordinary／GPU／美術矩陣不重跑。沿公開#17／#19、私人#13／#27與總表#1記錄，不開重複Issue。來源、READY、測試器準備停止、局部及完整機器收據由素材assets-catalog的actor-packed-tail-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。

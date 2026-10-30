@@ -582,3 +582,23 @@ GPR3來源已證實：0x800EC940從scratch+0x1C載入最後幀的部件數，0x8
 唯一正常原片前綴到8382的自然人物基準同原版並續跑8383，完整Machine與所取原音同。另在同一自然入口的獨立副本做八組RAM注入，末尾朝向、X／Y／XY、負縮放／UV及第255槽完整Machine、全部成本與排隊音訊同原CPU控制組，注入控制組共105929指令；這八組明確不算正常玩家覆蓋。原片／卡片保持，未知玩法不猜補，副本不回正常路線。原始來源、有效診斷參數、受測原碼與限制由私人actor-tail-v1的initial-stop、READY、verification、machine-verification、tested-source及acceptance追溯。
 
 只放寬末尾ordinary的已列終值與末槽，packed末物件、其他bank／跳過上傳、色彩／SDK、旋轉、page／order與正式整場仍待。Clock／GPU工作／原ISA未改，正式GUI未註冊，後續原生相容光柵仍在，不稱全人物HD、完整接管或速度完成。原版、CPU／GPU、海報、影片、定案美術及Go包保持；新美術／GUI／硬體GPU／打包驗收0，舊矩陣不重跑。
+
+
+#### 16.7.6 帶上傳的packed末物件
+
+狀態：CONFORMED，沿16.7.1–16.7.5上下文，只擴充packed bank1、frame含上傳、強制CLUT索引、entity朝向0／1、flip0／2及flags0至3的最後物件，允許末槽255。須有此前已完整處理的ordinary部件以封閉保留scratch／S7來源；全packed、跳過上傳、其他bank、未知color／SDK／rotation保持拒絕。原DRA／boot／DB及PS1 KSEG0 RAM空間沿前節，DRA file offset為EA-0x800A0000。只讀既有IDA9.4 sub_800EB998／sub_800EB544原bytes與邊界，不新開DB或改原名稱。來源SHA、隔離候選與72局部原CPU資料對照保存於私人actor-packed-tail-v1/evidence.json、actorstate-candidate.rs及candidate-evidence.json。
+
+已證實資料公式：packed的scratch+0x34與+0x4C分別保留前一ordinary部件的page低位及已完成部件數；EBB90／EBBC4將+0x50更新為packed header低15位圖像ID，不是ordinary部件數。其餘最後寬高、原點、offset、flip、flags及圖元由最後型別幀推導。ordinary在EC938將S7部件來源指標前進22，所以其後packed transform的保存S7為前部件address+42；ordinary本身transform仍保存前進前address+20。型別迴圈只在ordinary完成後更新這個資源，不改資料格式或模仿原ISA執行。
+
+packed末尾的GPR4由EC194為原global計數位址0x80097930；GPR5由EC110最後一次拷貝為最後圖元word10的XY3原字；GPR10保留EBB84後的frame_data+2。末槽255的GPR3由EC1A0／EC1A8為總圖元數，後面若有空槽則沿EBA4C／5C／68覆成1。普通末尾沿16.7.5保持。GPR1、其餘返回／ABI、最後上傳／精確清邊工作區及HI／LO沿已有型別資料推導，不讀保存輸出、不回播PC／MMIO或原GP0。
+
+證據涵蓋兩保存態、packed來源0／3、末槽254／255、左右朝向、四縮放旗標與正負XY共72組，含有／無cache頂點色來源，完整RAM／scratch／Architecture首次全同。移動原packed實體到末槽並關閉舊槽，保持上傳數；只在測試副本修改，局部oracle的MMIO回覆沿原上下文，不稱完整Machine或正常玩家覆蓋。正式實作只採已封閉型別終值與守門，Clock／GPU／ISA不改。
+
+集中驗收：72組正式完整CPU State、全部成本量子及完整RAM／scratch；新增全packed無ordinary前態、frame跳過上傳、非強制CLUT三種未支援拒絕。接著只新跑一次真BIOS／原片／同卡正常前綴到8382，一個自然未注入基準續跑8383；同入口獨立副本做八組packed末尾注入，核對全Machine、所有成本及排隊原音。新packed末尾覆蓋明列注入，不當作自然玩法或全角色完成。原媒體／原卡保持，舊美術／GPU／ordinary矩陣不重跑；正式GUI與整場HD仍未註冊，速度另沿Issue #9。
+
+
+16.7.6限定結果：72局部原CPU案例共945332量子、完整CPU State／RAM／scratch及每個成本相同；候選資料72例首次全同，READY後正式只接型別終值及來源守門。全packed無ordinary前態、frame跳過上傳與非強制CLUT三種拒絕通過，空ordinary等未知分支沿Clock既有拒絕。正式測試器首次因讀檔Result漏傳播在編譯停止、執行0例；保留原測試器／日誌後僅修測試器，唯一完成批次全過，不改繪圖公式。Clock／GPU工作／原ISA不改，未重跑舊矩陣。
+
+唯一正常原片前綴取得8382自然入口，一個未注入人物基準與原版同並續跑8383，所取原音同。另在同入口獨立副本移動packed來源0／3至254／255、關閉舊槽，八組朝向／縮放與負XY的全Machine、所有成本及排隊音訊同原CPU控制組，共103360控制指令。原片／卡片保持，八組注入不當自然玩家覆蓋，副本不回正式路線。來源與測試版本、READY、準備停止、局部及完整機器收據由私人actor-packed-tail-v1的tested-source、verification、machine-verification及acceptance追溯。
+
+這只封閉本節packed末尾分支，全packed前態、其他bank／跳過上傳、未知色彩／SDK／旋轉、page／order、文字／特效／3D及正式整場仍待。正式GUI未註冊，後續原生相容光柵仍在，不稱全人物、整場HD或速度完成。原版、CPU／GPU、海報、影片、定案美術及Go包保持；新美術／GUI／硬體GPU／打包0，沒有新速度倍率。
