@@ -21,3 +21,5 @@ pub mod mdec;
 
 pub mod input;
 pub mod cardfile;
+
+pub mod scene;

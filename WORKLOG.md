@@ -2705,3 +2705,23 @@ Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK�
 首次正常前綴180秒逾時，最後4800場、正式比較0；保留首份日誌。只延長未完成正常項目至600秒，沿同一binary／來源完成一次，294.918秒為蒐證耗時。已有公開測試／建置不重跑；正常啟動共2次、完整1次，沒有第三次。兩次索引錨點未匹配屬編輯準備，實讀尾端後修正；原資料未受影響。
 
 入口為素材assets-catalog的framecommit-v1：clock-evidence.json、READY.json、comparison-overlay.json、execution-initial-timeout.json、execution.json、normal-verification.json、tested-source.json、acceptance.json與publication.json。026 §16.3.3限定CONFORMED，完整場景／人物／文字／3D與直接顯存、正式玩家HD及速度仍未完成；後續承接這段初始化，轉向場景資料生成。提交／推送、Issue及Docker清理見publication；不清理共用資源。
+
+
+## 2026-10-30 使用者要求先清理空間
+
+暫停未提交的Rust場景工作，僅清理八個本專案可重建快取：engine/workplace/gocache，以及素材direct-go-v1的coffee-target、rust-target、rust-window-target、rust-hd-window-target、rust-poster-target、rust-textures-target、rust-frameprep-target。保留空的掛載根目錄及UID1000，保留Go／Cargo離線依賴、全部原版與HD素材、存檔、現行與歷史完整版、研究收據及未提交原碼。依inode與外部硬連結排除後，共移除3533348864 bytes配置量，約3.29GiB。
+
+本機收據為素材workplace/workspace-cleanup-20261030-cache.json，記錄刪除範圍、擁有權、原碼SHA與保留路徑。期間其他專案也在清理共用磁碟，整體可用空間增加不歸因於本輪。沒有Docker prune／rmi、刪除其他專案容器或清理共享映像。
+
+HD接續點保持：026 §16.4仍READY，三個畫布與八個素材單元案例已過；保存場景比較尚未進入像素驗收，第二次停在測試器由/output推導父目錄的路徑假設，待修測試來源路徑。已保存兩次準備停止與未提交程式，不重跑已過案例或美術。本輪只清理，沒有繼續HD實作或宣稱完整場景通過。
+
+
+## 2026-10-30 Rust直接場景與HD材質畫布
+
+承接既有NO3房15原RAM／VRAM、F_NO3與獨立原圖層、已驗Go直接合成及定案美術。先保存scene-evidence與16.4 READY，再實作通用rust/src/scene.rs、apps/sotn/scene.rs及共用選定解碼。直接從場景資料建立圖塊／材質，核對原顯存來源及完整色盤，按順序寫HD色字；HD不先畫原生畫布，不執行Machine、MIPS、SDK或GP0。正式玩家未註冊這個尚未完整的HD流程。
+
+三個畫布與八個圖像合成案例通過；兩個保存畫布的所有型別資料相同，294／342格各19材質。143520原生像素同獨立兩圖層及Go合成；2296320個HD4 RGB555／STP字同Go官方LoadTexturePack的19組同格式子集及直接CPU繪圖，完整RGBA亦同既有Go PNG。六個來源守門通過。圖像helper驗全部metadata，只解碼選定來源；不是完整TexturePack、全包PNG／sprite-runs或512MiB程序峰值驗收。
+
+Go準備第一次寫到唯讀/materials alias，在建置前停止；只改/output後一次參考成功。Rust保存測試第一次以舊baseline hash核新原碼、第二次從/output推導原圖父目錄，均像素比較0；保留舊測試／日誌後只改測試來源定位。清理後續接，第三次啟動才完成唯一一次像素驗證。正式繪圖實作一版；已過11個公開案例不重跑，遊戲／GPU／GUI／美術與7387條全包重驗0。原圖及輸入SHA保持，未生成新美術或改現行完整包／海報／存檔。
+
+026 §16.4只對保存NO3的CPU畫布CONFORMED，完整場景正常提交／相容效果、人物／文字／3D、GPU、1080p GUI、熱切換與速度仍未完成。研究圖不稱正式遊戲截圖，不加入公開引擎或發行包。來源與全部準備停止由素材assets-catalog的scene-v1/scene-evidence.json、READY.json、preparation-stop.json、fixture-baseline-stop.json、fixture-mount-stop.json、rust-verification.json、tested-source.json、acceptance.json及publication.json追溯。提交／推送、Issue、擁有權與只清本輪暫存產物的結果見publication。

@@ -1,4 +1,4 @@
-//! 026 §15: bounded, read-only image audit. This is not a renderable pack.
+//! 026 §15 image audit and §16.4 selected scene decoding; no full TexturePack.
 //! Format/quantization: ps-golem render/hd/texture_pack.go at
 //! 4778ac7d88e3873ccc5ead50ebcd8cf53a621854 (GPL-3.0-or-later).
 use serde::{
@@ -104,7 +104,7 @@ fn digest(s: &str) -> Result<()> {
     }
     Ok(())
 }
-fn file(root: &Path, name: &str, limit: u64) -> Result<PathBuf> {
+fn relative_name(name: &str) -> Result<()> {
     if name.is_empty()
         || name.contains(['\\', ':'])
         || name
@@ -113,6 +113,10 @@ fn file(root: &Path, name: &str, limit: u64) -> Result<PathBuf> {
     {
         return Err(format!("不合法的包內相對路徑 {name:?}"));
     }
+    Ok(())
+}
+fn file(root: &Path, name: &str, limit: u64) -> Result<PathBuf> {
+    relative_name(name)?;
     let p = root
         .join(name)
         .canonicalize()
@@ -265,6 +269,13 @@ fn color_word(c: [u8; 4], m: [u8; 4]) -> Result<u16> {
     Ok(v)
 }
 pub fn run(directory: &Path) -> Result<Value> {
+    visit(directory, None, |_, _, _, _, _, _, _| Ok(()))
+}
+fn visit(
+    directory: &Path,
+    selection: Option<&Selection>,
+    mut receive: impl FnMut(&str, &str, u64, u64, u64, u64, Decoded) -> Result<()>,
+) -> Result<Value> {
     let root = directory.canonicalize().map_err(|e| e.to_string())?;
     if !root.is_dir() {
         return Err("素材根路徑須為目錄".into());
@@ -311,14 +322,18 @@ pub fn run(directory: &Path) -> Result<Value> {
             let (w,h)=(ww*(if depth==4 {4} else if depth==8 {2} else {1})*scale,hh*scale);
             if w*h>PIXELS { return Err("PNG 超過 16 Mi 貼素".into()); }
             let name=string(s,"image")?;
+            let stp_name=if indexed {None}else {Some(string(s,"stp")?)};
+            relative_name(name)?; if let Some(p)=stp_name {relative_name(p)?;}
+            if selection.is_some_and(|v|!v.contains(&(upload.to_owned(),depth,clut.to_owned()))) {return Ok(Value::Null);}
             let image=png_read(&root,name,w as u32,h as u32,indexed)?;
             let mut hash=Sha256::new();
-            if indexed {
+            let decoded=if indexed {
                 debug_assert_ne!(image.depth,png::BitDepth::Sixteen);
                 if image.data.iter().any(|&v|u64::from(v)>=(1u64<<depth)) { return Err(format!("{name} 索引超過 {depth}bpp")); }
                 hash.update(&image.data);
+                Decoded::Indexed(image.data)
             } else {
-                let stp_name=string(s,"stp")?;
+                let stp_name=stp_name.unwrap();
                 let stp=png_read(&root,stp_name,w as u32,h as u32,false)?;
                 // Batch hashing avoids a SHA call for every two-byte word.
                 let mut words=Vec::with_capacity(w as usize*h as usize*2);
@@ -326,15 +341,17 @@ pub fn run(directory: &Path) -> Result<Value> {
                     let word=color_word(image.rgba(n),stp.rgba(n)).map_err(|e|format!("{name} / {stp_name} ({},{}): {e}",n%w as usize,n/w as usize))?;
                     words.extend_from_slice(&word.to_le_bytes());
                 }
-                hash.update(words);
-            }
+                hash.update(&words);
+                Decoded::Colors(words)
+            };
+            receive(upload,clut,depth,w,h,scale,decoded)?;
             pixels+=w*h; bytes+=w*h*(if indexed {1} else {2});
             Ok(json!({"upload_sha256":upload,"depth":depth,"kind":kind,"clut_sha256":clut,"width":w,"height":h,"scale":scale,"decoded_sha256":format!("{:x}",hash.finalize())}))
         })().map_err(|e|format!("entries[{i}]: {e}"))?;
         entries.push(row);
     }
     Ok(
-        json!({"scope":"019 image data only; not a renderable pack","manifest_sha256":format!("{:x}",Sha256::digest(&b)),"entry_count":entries.len(),"upload_keys":sizes.len(),"decoded_pixels":pixels,"decoded_bytes_total_not_resident":bytes,"sprite_runs_present":root.join("sprite-runs.json").try_exists().map_err(|e|e.to_string())?,"sprite_runs_validated":false,"gameplay_HD_enabled":false,"entries":entries}),
+        json!({"scope":if selection.is_some(){"selected images only; other PNG contents not validated"}else{"019 image data only; not a renderable pack"},"manifest_sha256":format!("{:x}",Sha256::digest(&b)),"entry_count":entries.len(),"upload_keys":sizes.len(),"decoded_pixels":pixels,"decoded_bytes_total_not_resident":bytes,"sprite_runs_present":root.join("sprite-runs.json").try_exists().map_err(|e|e.to_string())?,"sprite_runs_validated":false,"gameplay_HD_enabled":false,"entries":entries}),
     )
 }
 
@@ -586,6 +603,34 @@ mod tests {
         assert!(run(&d.0).unwrap_err().contains("索引超過"));
     }
     #[test]
+    fn selected_images_validate_metadata_without_loading_other_pngs() {
+        let d = Dir::new();
+        valid(&d);
+        let key = psgolem_core::scene::MaterialKey {
+            upload: [0; 32],
+            clut: [0x11; 32],
+        };
+        let mut other = spec();
+        other["upload_sha256"] = "2".repeat(64).into();
+        other["image"] = "missing.png".into();
+        d.manifest(&json!({"version":1,"entries":[spec(),other.clone()]}));
+        let images = load_scene_images(&d.0, &[key]).unwrap();
+        assert_eq!(images.len(), 1);
+        assert!(run(&d.0).is_err());
+        other["image"] = "../escape.png".into();
+        d.manifest(&json!({"version":1,"entries":[spec(),other]}));
+        assert!(load_scene_images(&d.0, &[key]).is_err());
+        d.manifest(&manifest(spec()));
+        assert!(load_scene_images(
+            &d.0,
+            &[psgolem_core::scene::MaterialKey {
+                upload: [3; 32],
+                ..key
+            }]
+        )
+        .is_err());
+    }
+    #[test]
     fn canonical_paths_and_sprite_scope() {
         let d = Dir::new();
         valid(&d);
@@ -620,4 +665,80 @@ mod tests {
             assert!(file(&root, "inside", FILE_LIMIT).is_ok());
         }
     }
+}
+
+// 026 §16.4. Selected, predecoded scene images, not a full TexturePack.
+pub(crate) enum Decoded {
+    Indexed(Vec<u8>),
+    Colors(Vec<u8>),
+}
+type Selection = HashSet<(String, u64, String)>;
+pub(crate) fn load_scene_images(
+    directory: &Path,
+    keys: &[psgolem_core::scene::MaterialKey],
+) -> Result<Vec<psgolem_core::scene::Image>> {
+    use psgolem_core::scene::{Image, ImagePixels};
+    if keys.len() > 512 {
+        return Err("場景材質超過512".into());
+    }
+    let hex = |b: &[u8; 32]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+    let mut requested = Selection::new();
+    for key in keys {
+        let u = hex(&key.upload);
+        requested.insert((u.clone(), 4, hex(&key.clut)));
+        requested.insert((u, 4, String::new()));
+    }
+    let mut loaded = HashMap::new();
+    let mut bytes = 0usize;
+    visit(
+        directory,
+        Some(&requested),
+        |upload, clut, _depth, w, h, scale, data| {
+            let size = match &data {
+                Decoded::Indexed(v) | Decoded::Colors(v) => v.len(),
+            };
+            bytes = bytes.checked_add(size).ok_or("場景圖像容量溢位")?;
+            if bytes > 512 << 20 {
+                return Err("場景圖像超過512MiB".into());
+            }
+            let pixels = match data {
+                Decoded::Indexed(v) => ImagePixels::Indexed(v),
+                Decoded::Colors(v) => ImagePixels::Colors(
+                    v.chunks_exact(2)
+                        .map(|p| u16::from_le_bytes([p[0], p[1]]))
+                        .collect(),
+                ),
+            };
+            loaded.insert(
+                (upload.to_owned(), clut.to_owned()),
+                Image {
+                    width: w as usize,
+                    height: h as usize,
+                    scale: scale as usize,
+                    pixels,
+                },
+            );
+            Ok(())
+        },
+    )?;
+    let mut out = Vec::new();
+    let mut resident = 0usize;
+    for key in keys {
+        let upload = hex(&key.upload);
+        let clut = hex(&key.clut);
+        let im = loaded
+            .get(&(upload.clone(), clut))
+            .or_else(|| loaded.get(&(upload, String::new())))
+            .ok_or("場景HD材質缺少")?;
+        let size = match &im.pixels {
+            ImagePixels::Indexed(v) => v.len(),
+            ImagePixels::Colors(v) => v.len() * 2,
+        };
+        resident = resident.checked_add(size).ok_or("場景圖像容量溢位")?;
+        if resident > 512 << 20 {
+            return Err("場景圖像超過512MiB".into());
+        }
+        out.push(im.clone());
+    }
+    Ok(out)
 }
