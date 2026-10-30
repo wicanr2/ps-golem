@@ -5,6 +5,7 @@
 //! Project license: GPL-3.0-or-later. Video scheduler and HD are separate.
 mod polygon;
 mod primitives;
+pub mod transfer;
 mod video;
 pub use video::Frame;
 mod raster;

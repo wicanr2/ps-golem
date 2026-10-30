@@ -460,3 +460,26 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 16.5限定驗收：六份保存態完整2MiB RAM／1024-byte scratch／CPU與42321個成本量子逐筆相同，每份59271週期，72個來源／過期拒絕通過；七個通用資料提交案例通過，舊RAM-only的HI／LO守門保持。真BIOS／原片／同卡／固定按鍵只新開機一次，自然抵達入口後連續八次Rust提交，完整Machine逐欄與原路相同，續跑8390場及所取音訊相同。原控制組合計338568個指令，Rust提交guest step為0。每次提交前由場景／定案素材直接準備1024×960 HD4圖層畫布，成功才接受摘要；不輸出成假遊戲截圖。沒有先畫原生圖層再放大HD，後續原生相容DMA／GPU仍保留，因此完整舊光柵化尚未移除。
 
 第二緩衝位址的準備轉錄0x800543FC由六份原態訂正為0x800542FC，READY原始快照保留；另兩次編譯準備停止分別為缺少Bus匯入及測試器JSON表達式，均未啟動正常遊戲。來源／停止／完整欄位比較與收據由私人素材assets-catalog的no3-call-v1入口追溯；美術／GUI／硬體GPU／舊矩陣／全素材重驗0。本節不代表人物、文字、特效、3D、正式GUI或完整HD已完成，沒有新速度聲明。
+
+
+### 16.6 Rust物件幾何及直接圖像搬移
+
+狀態：CONFORMED，限256筆物件資料解析、普通／packed幀、無旋轉固定8位縮放、型別四邊形及必要相容封包，另含同步GPU圖像上傳／精確清邊。整段物件的CPU／scratch／stack／裝置時間與正式玩家接管仍DRAFT，不因局部GPU完成而跳過未知效果。
+
+來源沿025 §12.18：IDA Pro 9.4的DRA-map.i64及原bytes／xref，PS1 KSEG0 sub_800EB998在0x800EB998..0x800EC9AF，4120 bytes SHA5345790c96491fc6f21610d3ff975bc7311c46515f660dea3e0d1a96c66c39d7；sub_800EB544提供固定8位縮放，旋轉及bank15複製仍未知。來源原DRA SHA c37e2e6d80a91952cd29e6581d3346f05acf4e53038cb8345deb03ef92b2c308。型別模型承接素材tools/sotn_actor_plan_research.go及既有12次正常原態，已證實181四邊形及144圖像工作。完整SHA、原位址、工具與原始存取由私人actor-v1/evidence.json指回既有收據；GPL-3.0-or-later自有Go來源，不移植非自由外碼。
+
+遊戲層讀2MiB RAM及1024-byte scratch，核對原routine身份與已證實緩衝。物件為0x800733D8起256筆188-byte，普通幀22-byte部件；packed幀由來源header及40-byte cache記錄給寬高、偏移、翻轉、頁及色彩。先驗全部來源、幀數、768 quad及512排序bucket；未知旋轉／bank15或越界回錯，不交出半個計畫。以高階格子／子圖計算頂點、UV、裁邊、固定8位縮放、CLUT、混色、Gouraud／raw旗標與排序，再序列化必要52-byte相容資料；主輸入不是原GP0封包，不執行MIPS。回傳型別圖元及圖像工作，未註冊正式玩家，不修改存檔或原資料。
+
+通用GPU新增有界型別TextureJob::Upload及Clear。Upload擁有來源word及Rect，直接寫顯存，保留遮罩、完整framebuffer cursor／尺寸與SDK快取失效、FIFO殘值及DMA方向。Clear直接清精確矩形，沿原line-skip，保留原繪圖區／偏移；SDK原流程清遮罩，保留資訊讀回及FIFO殘值。不是02h fill向16字外擴，不呼叫GP0／GP1 parser或任何原光柵重播。入口須完整命令邊界，Rect非空且不跨顯存，最多768工作／524288來源字；含Clear時只接已觀測資訊高位為0的上下文。所有工作先驗，再在候選GPU上一次成功提交；任何錯誤原GPU全部欄位保持。這是同步GPU資料契約，不自行更新Machine DMA／IRQ或虛擬時間。
+
+驗證一次集中使用12保存態：完整型別資料、相容封包／512排序表／計數及144工作同Go與保留原版；Rust測試端從原CPU存取依序還原RAM寫入、GP0／GP1及DMA2 block／linked-list，與型別直接作業比較全部GPU欄位及完整VRAM。參考端才用GP0解析，Rust作業路徑不使用它；使用同一保留原VRAM種子，明示這是局部事件oracle，非正常新開機或整段Machine等價。公開合成案例驗遮罩、精確清邊、快取／游標、未完成FIFO、長度／預算及原子拒絕。注入邊界案例另標diagnostic，不當正常玩家通過。已過場景、美術、GUI／GPU硬體與全素材不重跑；完整人物HD呈現及其餘CPU／時間效果仍待接，不稱完整HD或速度通過。
+
+
+### 16.7 物件呼叫完整CPU與裝置時間接續
+
+狀態：DRAFT。承接16.6已備的幾何及直接GPU資料作業，先由保存12態的原CPU／存取序列定位剩餘RAM、scratch、ABI與逐量子時間。原CPU僅在私人研究oracle執行，不是正式接管實作，也不由原輸出或存取序列回播生成正式結果。只有資料來源、全部必要效果與途中SDK事件／DMA／IRQ／時間都封閉後才升READY；目前不註冊正式玩家、不跳過整段物件routine。記憶體／切場可作使用者已授權的診斷，另標注入來源，不把局部注入當正常可玩完成。
+
+
+16.6限定驗收：三個通用上傳／精確清邊／原子拒絕案例通過，人物模組編譯通過。唯一12態資料／GPU批次的181個完整型別四邊形、封包／512排序表／計數及144個工作同保留Go／原版；原CPU存取還原的GPU事件參考與直接型別工作之完整GPU逐欄及VRAM全同。參考種子為既有原VRAM，加原存取已觀測的繪圖區／偏移；不稱正常新開機或Machine整段已替換。直接路徑不呼叫GP0／GP1 parser，參考端才用原命令／DMA；正式玩家仍未註冊，未新畫／重審美術或重跑已過矩陣。
+
+16.7接續證據：一次12保存態局部Rust原CPU oracle，完整RAM／scratch／CPU與所有原存取逐筆相同，保存成本量子、原PC資源足跡及I/O發生步數。這些原指令只用於研究，不能拿輸出或事件回播當正式Rust實作。幾何計畫與完整原RAM仍差46–52個word、121–127個byte，scratch差23–23個word；具體差異依每例收據，不能把GPU相同稱整段呼叫相同。動畫cache兩個邊框矩形、最後48-byte圖元scratch、掃描終值及排序／下一封包指標等來源方程已由12態驗證，SDK工作區／ABI、其餘scratch、完整CPU與時間／DMA／IRQ仍待實作，16.7維持DRAFT。原始位址與未解欄位保持，不推測性改名。工具／來源由私人素材索引actor-v1進入verification、effect-oracle、effect-gap-ledger、tested-source及acceptance。
