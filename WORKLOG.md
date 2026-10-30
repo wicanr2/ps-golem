@@ -2747,3 +2747,14 @@ Go準備第一次寫到唯讀/materials alias，在建置前停止；只改/outp
 接著一次12態局部原CPU研究，RAM／scratch／CPU及全部存取皆同原版，匯出逐量子成本、原PC足跡及I/O步數；此程式只作研究，不作繪圖實作。剩餘RAM46–52個word、121–127個byte及scratch23–23個word的最後寫入端可查。補驗來源方程確認cache邊框、最後圖元scratch與掃描終值／指標；SDK工作區／ABI、其餘scratch、完整CPU與裝置時間仍未實作，026 §16.7維持DRAFT。數值範圍以每例effect-oracle為準，不用局部GPU相同掩蓋差異。
 
 最初閱讀存取JSON把陣列當物件及技能符號連結掛載未解析，均為唯讀準備停止；修正讀取位置後沿既有證據繼續，未重跑已過產品案例。IDA技能實際位於ida_94_official/skills/use-ida-pro-9-4，本批只讀既有匯出，未啟新IDA或修改原DB。資料／GPU批次及CPU研究批次皆首跑通過，舊原型未重驗，美術審查0。所有原資料／圖片／卡片／現行完整包保持。來源、READY、逐欄覆蓋、差異與結果沿素材assets-catalog的actor-v1；提交／推送與Docker清理見publication。沒有速度或完整HD通過聲明。
+
+
+## 2026-10-30 Rust人物完整資料與架構結果
+
+承接16.6十二態及actor-v1的完整原CPU／存取證據，IDA9.4既有映像只對一次性DB副本新增七個SDK／helper匯出，936函式、原boot bytes及DRA／原DB雜湊保持。原始位址／operand／函式名未改，標註仍為原bytes與已證實資料公式。先保存16.7.1 READY，再實作actorstate.rs的高階資料及ABI計畫，輸入為原RAM／scratch／CPU與唯讀GPU context／IRQ mask；不執行MIPS、SDK或GP0生成結果。補cache兩清邊矩形、SDK linked-list／timeout、堆疊、最後圖元scratch、掃描終值及GPR／HI／LO。Architecture獨立於完整CPU State，時鐘／快取／期限保留未接。
+
+首次case0完整RAM及scratch同原版，架構GPR1／GPR10不同，完整案例0。保存初版原碼／日誌／最初READY後回RE，核對CLUT假指令的LUI／ADDU／LHU原字及EC954部件增量，訂正暫存基址與掃描末指標後回READY。再只完成尚未過資料批次，12普通保存態、72過期原子拒絕、4上下文拒絕及case0／11兩個注入原CPU對照皆過。保留非零RAM、未寫scratch半字與S0／S7變值也同，沒有照抄保存堆疊值。共兩次資料啟動，沒有第三次或重新開遊戲。
+
+SDK新證據亦揭出16.6泛用端點的兩個邊界：x及width同時64字對齊用02h快速清除，不改readback；短上傳ceil(width*height/2)不足16個32-bit字時方向保持0，不設DMA2。先補契約後修正，新增對齊清邊、30／31／32個16-bit字界線及一項受影響遮罩案例皆過。舊144工作不在新邊界，原收據保持，不重跑GPU／美術矩陣。唯讀texture_context只提供原繪圖區／偏移與資訊高位，原native GP0路徑未變。
+
+16.7.1資料限定CONFORMED，25165824 bytes RAM及12288 bytes scratch全同，全部Architecture及COP0保持。16.7整段仍DRAFT，尚缺快取／時鐘／乘除期限與Machine DMA／IRQ／音訊等裝置原子提交，正式GUI未註冊此半完成操作。沒有正常新開機、全HD、硬體GPU、速度、三平台或美術新驗收；原版、卡片、素材、影片、海報及Go完整包保持。來源、IDA／原始SHA、首停、READY訂正、最終測試及publication由素材assets-catalog的actor-state-v1追溯。只清本輪容器與暫存DB，不碰共享資源。

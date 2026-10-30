@@ -483,3 +483,32 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 16.6限定驗收：三個通用上傳／精確清邊／原子拒絕案例通過，人物模組編譯通過。唯一12態資料／GPU批次的181個完整型別四邊形、封包／512排序表／計數及144個工作同保留Go／原版；原CPU存取還原的GPU事件參考與直接型別工作之完整GPU逐欄及VRAM全同。參考種子為既有原VRAM，加原存取已觀測的繪圖區／偏移；不稱正常新開機或Machine整段已替換。直接路徑不呼叫GP0／GP1 parser，參考端才用原命令／DMA；正式玩家仍未註冊，未新畫／重審美術或重跑已過矩陣。
 
 16.7接續證據：一次12保存態局部Rust原CPU oracle，完整RAM／scratch／CPU與所有原存取逐筆相同，保存成本量子、原PC資源足跡及I/O發生步數。這些原指令只用於研究，不能拿輸出或事件回播當正式Rust實作。幾何計畫與完整原RAM仍差46–52個word、121–127個byte，scratch差23–23個word；具體差異依每例收據，不能把GPU相同稱整段呼叫相同。動畫cache兩個邊框矩形、最後48-byte圖元scratch、掃描終值及排序／下一封包指標等來源方程已由12態驗證，SDK工作區／ABI、其餘scratch、完整CPU與時間／DMA／IRQ仍待實作，16.7維持DRAFT。原始位址與未解欄位保持，不推測性改名。工具／來源由私人素材索引actor-v1進入verification、effect-oracle、effect-gap-ledger、tested-source及acceptance。
+
+
+#### 16.7.1 物件RAM／scratch與架構資料
+
+狀態：CONFORMED，僅資料計畫，不含快取／時鐘／乘除完成期限、Machine提交或正式接管。來源為16.6十二態及新增IDA9.4原SDK bytes／邊界／xref，原函式名與PS1 KSEG0位址保持：sub_80012978、sub_80013D80、sub_80013FCC、sub_80014670、sub_80014F40、sub_80015308、sub_800EB544。每段範圍及SHA由私人actor-state-v1/SDK-functions.json保存，低位址bytes已對原boot檔offset EA-0x80010000+2048相同；DRA及正式DB原SHA沿16.6。程式為自有GPL-3.0-or-later資料實作，不執行或逐指令翻寫原MIPS。
+
+型別輸入包含入口RAM／scratch／CPU及明確GPU繪圖區／偏移、IRQ mask。GPU提供唯讀型別context，不經GP0查詢。普通入口PC0x800EB998、RA0x800E3C34、SP0x801FFFC0、完整load／branch邊界、初始quad0。沿16.6來源／緩衝／圖元守門；限無hidden、至少一個packed上傳、最後活躍物件為完整無縮放／翻轉的普通幀、未滿768圖元，SDK未開debug／extended、queue idle、callback關閉，所有本批清邊走非64字整齊的精確矩形。其餘分支回錯，不回播保存結果或猜填。
+
+資料直接從ActorPlan及原幀表推導：packed cache+8／+16兩個清邊矩形、最後圖元48-byte scratch、掃描末bank／frame、寬高／物件原點／裁後offset／page低位／部件計數／flags／flip及OT／下一封包。未寫的scratch高位保留。RAM亦建立SDK最後精確清邊linked-list、VBlank timeout=原global+240及零計數，保留原SDK／外層／最後transform的ABI框架。transform前callee-saved資源由前一子圖UV、當前cache／partflags及幀表位置推導，包含原call return位址；不是把oracle stack抄回。
+
+架構結果用獨立型別表示GPR、HI／LO及return/load/branch，不冒充完整CPU State。volatile由最後圖元、CLUT索引、幀表及掃描尾端推導，callee-saved沿原入口；HI／LO取最後實際乘積，packed上傳尺寸後可能由後續X／Y固定小數縮放覆寫。快取、now／cost、muldiv_done與gte_done保持待接，不用前態時間標成CPU完整等價。資料apply先驗完整RAM／scratch摘要、CPU及context，過期整筆拒絕；沒有Machine或裝置推進。正式玩家不得直接使用此半完成資料apply跳過原routine。
+
+驗證只載十二份保存態，完整2MiB RAM、1024-byte scratch與全部已描述架構欄位同原版；原CPU／SDK不重跑。另改前態保留區、callee-saved及scratch未寫半字做診斷，若需原CPU僅在測試作oracle，不能擴稱正常路線。集中驗來源／context與過期輸入的原子拒絕。16.6已過幾何／GPU及美術不重驗，完整Machine與時間仍沿16.7 DRAFT。
+
+16.6清邊契約追加訂正：新增SDK證據sub_80013D80表明x與width同時64字對齊時走02h快速清除，不查／改read_buffer，FIFO末command為02h；其他矩形維持精確60h路徑、恢復環境與資訊讀回。兩者像素範圍皆同型別Rect，mask清0、line-skip保持。原144工作全非此對齊分支，舊限定收據保持；新增對齊邊界只做一個針對案例，不重開既有美術／矩陣。
+
+
+16.7.1首次資料比較停止：case0完整RAM及scratch相同，架構GPR1／GPR10不同，尚無完整案例通過。原碼、日誌與最初READY快照保留於actor-state-v1。回到原始bytes確認0x800EC480的CLUT假指令包含LUI 0x8004、ADDU及LHU帶符號offset0xC104，因此GPR1保留0x80040000+palette*2，並非有效位址0x8003C104+palette*2；0x800EC954每次部件推進T2 22 bytes，結束值為最後part address+22，transform保存值則為當前part address。依此明確訂正架構資料契約後回READY，其餘RAM／scratch公式保持；不重跑舊GPU／美術／正常路線。
+
+16.7.1訂正後READY：保留初版及第一次停止。入口另核對SDK靜態函式／MMIO綁定，表在actor-state-v1/SDK-bindings.json；末槽須無活躍圖元，使最後掃描skip的架構終值有證據。這是已描述普通分支的守門，不採用保存輸出生成資料。
+
+16.6短上傳邊界訂正READY：新增SDK原bytes 0x800140D0..0x80014108及0x800141E4..0x80014230表明ceil(width*height/2)不足16個32-bit字時，全部經CPU寫入，沒有GP1 DMA方向2；方向保持起始寫入的0。達一個16字區塊才設方向2並啟DMA。原144工作上傳皆達此界線，舊GPU收據保持。更新錯把短上傳也設2的泛用端點與原合成測試參考，僅補30／31／32個16-bit字的邊界及受影響遮罩案例，不重跑全部素材或舊資料批次。
+
+
+16.7.1限定集中結果：12保存態共25165824 bytes完整RAM、12288 bytes scratch及全部Architecture欄位同原版，COP0保留且同原版。72個過期RAM／scratch／CPU／時間／context／IRQ mask原子拒絕與4個隔離／IRQ／context範圍拒絕通過；case0與11各一個局部原CPU注入對照亦同，包含RAM保留欄0x80097948非零、scratch未寫半字0x1F800046非零及S0／S7改值。兩個注入只用於診斷，不代表新正常玩家路線。原CPU只在這兩個測試執行，12普通態承接既有原結果，不再開機或重跑原routine。
+
+首次停止在case0架構GPR1／GPR10，當時RAM及scratch已同、完整案例0；保留初版原碼／日誌／READY後回RE，由原CLUT假指令三個原字及0x800EC954推進端訂正。第二次只完成未過資料批次，12普通態／兩注入及拒絕皆過，沒有第三次。不可將兩次啟動改稱首次全過。16.6新增對齊清邊、短上傳30／31／32個16-bit字邊界及受影響遮罩案例通過；既有144工作皆非新邊界，未重跑其GPU／美術矩陣。
+
+已封閉的是資料與架構結果，尚未封閉快取、now／cost、乘除期限及Machine裝置時間／DMA／IRQ原子提交。Architecture是獨立型別；apply_data保持原時鐘／快取，不得在正式Machine使用它跳過整段人物routine。16.7整體仍DRAFT。原版模式、原卡／原片、定案素材、海報、影片及Go完整包保持；新正常GUI／硬體GPU／速度／跨平台驗收0。來源與原始位址／SHA、原DB保持、首停及最終收據沿私人素材索引actor-state-v1。

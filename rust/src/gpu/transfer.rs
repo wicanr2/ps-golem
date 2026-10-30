@@ -37,7 +37,23 @@ impl TextureJob {
         }
     }
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextureContext {
+    pub area_start: [u16; 2],
+    pub area_end: [u16; 2],
+    pub offset: [i16; 2],
+    pub information_high: u32,
+}
 impl Gpu {
+    pub fn texture_context(&self) -> TextureContext {
+        TextureContext {
+            area_start: [self.clip_x0 as u16, self.clip_y0 as u16],
+            area_end: [self.clip_x1 as u16, self.clip_y1 as u16],
+            offset: [self.off_x as i16, self.off_y as i16],
+            information_high: self.read_buffer & 0xffc00000,
+        }
+    }
+
     /// A synchronous data operation only. Machine DMA/IRQ and timing are
     /// caller contracts. Success retains all GPU transfer/cache/ABI effects;
     /// rejection leaves every GPU field unchanged, including warm caches.
@@ -95,7 +111,7 @@ impl Gpu {
                     candidate.buf[0] = 0xa0000000;
                     candidate.buf[1] = rect.xy();
                     candidate.buf[2] = rect.wh();
-                    candidate.dma = 2;
+                    candidate.dma = if words.len().div_ceil(2) >= 16 { 2 } else { 0 };
                 }
                 TextureJob::Clear { rect } => {
                     // SDK temporarily uses full area/zero offset and clears
@@ -111,8 +127,12 @@ impl Gpu {
                     candidate.mask_and = 0;
                     let off =
                         (candidate.off_x as u32 & 2047) | ((candidate.off_y as u32 & 2047) << 11);
-                    candidate.read_buffer = off;
-                    candidate.buf[0] = 0xe5000000 | off;
+                    if rect.x & 63 == 0 && rect.width & 63 == 0 {
+                        candidate.buf[0] = 0x02000000;
+                    } else {
+                        candidate.read_buffer = off;
+                        candidate.buf[0] = 0xe5000000 | off;
+                    }
                     candidate.buf[1] = rect.xy();
                     candidate.buf[2] = rect.wh();
                     candidate.dma = 2;
@@ -144,7 +164,9 @@ mod tests {
         for v in w.chunks(2) {
             g.gp0(v[0] as u32 | ((v.get(1).copied().unwrap_or(0) as u32) << 16));
         }
-        g.gp1(0x04000002);
+        if w.len().div_ceil(2) >= 16 {
+            g.gp1(0x04000002);
+        }
     }
     #[test]
     fn direct_upload_preserves_mask_cursor_and_cache_contract() {
@@ -185,6 +207,56 @@ mod tests {
         );
         assert_eq!(g.read_buffer, 256);
         assert_eq!(g.buf[..3], [0xe5000100, 12 << 16 | 20, 2 << 16 | 3]);
+    }
+    #[test]
+    fn short_sdk_upload_has_a_cpu_only_dma_boundary() {
+        for (count, expected_dma) in [(30, 0), (31, 2), (32, 2)] {
+            let mut a = Gpu::new();
+            let mut b = a.clone();
+            let r = Rect {
+                x: 5,
+                y: 5,
+                width: count,
+                height: 1,
+            };
+            let words = vec![0x1234; count as usize];
+            a.apply_texture_jobs(&[TextureJob::Upload {
+                rect: r,
+                words: words.clone(),
+            }])
+            .unwrap();
+            upload(&mut b, r, &words);
+            assert_eq!(a.dma, expected_dma);
+            assert_eq!(a.dma, b.dma);
+            assert_eq!(a.pixels, b.pixels);
+            assert_eq!(a.buf, b.buf);
+        }
+    }
+    #[test]
+    fn aligned_sdk_clear_keeps_readback_and_uses_fill_endpoint() {
+        let mut a = Gpu::new();
+        a.pixels.fill(0xffff);
+        a.gp1(0x10000007);
+        let ctx = a.texture_context();
+        let mut b = a.clone();
+        let r = Rect {
+            x: 64,
+            y: 10,
+            width: 64,
+            height: 5,
+        };
+        a.apply_texture_jobs(&[TextureJob::Clear { rect: r }])
+            .unwrap();
+        b.gp0(0xe6000000);
+        b.gp0(0x02000000);
+        b.gp0(r.xy());
+        b.gp0(r.wh());
+        b.gp1(0x04000002);
+        assert_eq!(a.pixels, b.pixels);
+        assert_eq!(a.buf, b.buf);
+        assert_eq!(a.read_buffer, 2);
+        assert_eq!(a.read_buffer, b.read_buffer);
+        assert_eq!(a.texture_context(), ctx);
     }
     #[test]
     fn bad_later_job_and_active_fifo_do_not_mutate_gpu() {
