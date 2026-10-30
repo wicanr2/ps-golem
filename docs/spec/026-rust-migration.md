@@ -722,3 +722,23 @@ EC1B8–1C8對ordinary部件數零跳EC958，delay slot仍清scratch+4C，不設
 唯一正常原片前綴到8382自然入口，一個未注入基準、續跑8383及所取原音同。另十個獨立末尾隱藏／可見奇偶／X裁掉／正bank空幀／空幀後packed／完全無圖元診斷，完整Machine、全部成本及排隊音訊同原CPU，共93421控制指令。四個完全無圖元案例保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401；原片／原卡保持，注入不回正常路線、不當自然玩家覆蓋。
 
 本節封閉所列末尾／空批次與奇偶端點；其他bank／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場GUI仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術與Go包不改，新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、候選補項、正式版本與局部／整機收據由私人actor-endpoints-v1索引追溯。
+
+
+#### 16.7.13 Packed圖像池的bank選擇
+
+狀態：CONFORMED，沿16.7.1–16.7.12支援的幀／色彩／縮放／重用與交易範圍，擴充packed圖像池的完整原選擇樹；bank15特殊複製、rotation、其他SDK及正式整場仍未封閉。原DRA／boot／DB、PS1 KSEG0 RAM及DRA offset EA-0x800A0000沿前節，原IDA9.4 EBB94–EBC48原bytes／邊界與SHA由私人actor-banks-v1/evidence.json追溯。資料表、來源與payload仍須通過既有RAM範圍／來源／容量守門，不因bank放寬IRQ／stale／跨場限制。
+
+已證實正bank13由EBBE8／F4取8013C004所指圖像池，其餘正bank取固定8013C020。負bank低15位1由EBC08–14取8003C7A0；低15位16在EBC18比較相等後落入EBC20固定8013C020；其他負bank跳EBC34，取8003C7A4後於EBC44載入圖像。新RAM成本位置為EBBEC／EBC0C／EBC38／EBC44，各4；其餘新資源為ALU／分支。
+
+因此先前Rust型別初稿對8010與其餘負bank的來源選擇要訂正：8010走固定池，其他負bank除8001走3C7A4。這些非bank1分支當時被Clock／末物件守門拒絕，未當作正式已驗能力，不以舊Go模型當新oracle。ActorPlan與Part採同一原分支規則，Clock由高階bank分類生成資源區段，不解碼原ISA或回播PC／GP0，SDK／核心交易API不改。
+
+兩保存態240候選完整RAM／scratch／CPU State及全部成本相同：bank2／13／8001／8010／8002分別代表五路，搭配cache來源0／3、中途4／末槽255、上傳／重用及flags0／3／78。診斷只在副本把真實幀表／圖像複製到1F0000／1F0400／1F1000，selected pool在1E0000；未選池為無效指標，clone的origin xor1作路由辨識，像素payload逐位元組保持。每組都用原MIPS獨立執行；這是來源路由診斷，不代表相應角色／關卡自然啟用已驗。測試器首停把header誤當payload，尚未執行CPU對照；以原EBCE4的A1+4訂正斷言後，唯一完成候選全過，候選邏輯未改，首版／日誌保留。
+
+集中驗收：240正式完整CPU／RAM／scratch與每個成本；兩保存態各驗selected pool失效、rotation、bank15及原主routine身份破壞，共八拒絕。只開一次正常原片前綴到8382，一個未注入bank1自然基準續跑8383，同入口十個五路×上傳／重用診斷核對完整Machine、成本及排隊音訊，五個無上傳保留非預設idle DMA2。原卡／原片保持，診斷不回正常路線、不當自然bank覆蓋；舊GPU／美術矩陣不重跑，README最終畫面仍待完整HD接入後更新。
+
+
+16.7.13限定結果：240正式局部原CPU案例、2086800個量子及完整CPU State／RAM／scratch同原版；120組無上傳，八個selected pool失效／rotation／bank15／原routine身份拒絕通過。正bank13、正bank預設、負bank1、負bank16預設及其他負bank五路皆同原分支，8010／其他負bank的舊型別選擇已訂正。測試器首停把payload位址誤寫成header，CPU比較0；原EBCE4確認+4後只修斷言，保留首版／日誌，唯一完成候選及正式批次全過，未改候選邏輯。
+
+唯一正常原片前綴到8382，一個未注入bank1自然基準、續跑8383及所取原音同。另十個五路×上傳／重用的獨立表映射診斷，完整Machine、全部成本及排隊音訊同原CPU，共84849控制指令；五個重用案例保持非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401。幀表／source clone與origin sentinel只在診斷副本，像素payload保持；原卡／原片保持，副本不回正常路線，不稱自然非bank1或角色／關卡覆蓋。
+
+本節只封閉原bank來源選擇與已驗資料／時間路徑；自然來源載入生命週期、其餘幀／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包不改；新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、準備停止、正式版本與局部／整機收據由私人actor-banks-v1索引追溯。

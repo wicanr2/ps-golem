@@ -189,7 +189,7 @@ impl ActorPlan {
                     let sources = match bank {
                         13 => r.pointer(0x8013c004)?,
                         0x8001 => r.pointer(0x8003c7a0)?,
-                        0x8010 => r.pointer(0x8003c7a4)?,
+                        b if b & 0x8000 != 0 && b != 0x8010 => r.pointer(0x8003c7a4)?,
                         _ => 0x8013c020,
                     };
                     r.at(sources, (id as usize + 1) * 4)?;

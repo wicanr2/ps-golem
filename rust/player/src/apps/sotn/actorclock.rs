@@ -147,7 +147,11 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xebb80, 4),
     (0xebb94, 4),
     (0xebbb8, 4),
+    (0xebbec, 4),
+    (0xebc0c, 4),
     (0xebc28, 4),
+    (0xebc38, 4),
+    (0xebc44, 4),
     (0xebc4c, 4),
     (0xebc50, 4),
     (0xebc60, 4),
@@ -438,10 +442,34 @@ impl Clock {
     }
     fn packed(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let a = 0x800733d8 + slot as u32 * 188;
-        if h(r, a + 0x54) != 1 || !matches!(p.flip, 0 | 2) || h(r, a + 0x14) > 1 {
+        if !matches!(p.flip, 0 | 2) || h(r, a + 0x14) > 1 {
             return Err("packed時鐘分支不在已驗範圍".into());
         }
-        self.ranges(&[(0xebb94, 0xebbe4), (0xebc20, 0xebc30), (0xebc48, 0xebccc)])?;
+        let bank = h(r, a + 0x54);
+        self.run(0xebb94, 0xebbdc)?;
+        if bank & 0x8000 == 0 {
+            self.run(0xebbe0, 0xebbe4)?;
+            if bank == 13 {
+                self.run(0xebbe8, 0xebbf4)?;
+                self.run(0xebc44, 0xebc44)?;
+            } else {
+                self.run(0xebc20, 0xebc30)?;
+            }
+        } else {
+            self.run(0xebbf8, 0xebc04)?;
+            if bank & 0x7fff == 1 {
+                self.run(0xebc08, 0xebc14)?;
+                self.run(0xebc3c, 0xebc44)?;
+            } else {
+                self.run(0xebc18, 0xebc1c)?;
+                if bank & 0x7fff == 16 {
+                    self.run(0xebc20, 0xebc30)?;
+                } else {
+                    self.run(0xebc34, 0xebc44)?;
+                }
+            }
+        }
+        self.run(0xebc48, 0xebccc)?;
         if h(r, a + 0x56) & 0x8000 == 0 {
             self.run(0xebcd0, 0xebcf8)?;
             self.upload(p.width / 4, p.height)?;

@@ -153,7 +153,7 @@ impl Part {
             let sources = match bank {
                 13 => w(r, 0x8013c004)?,
                 0x8001 => w(r, 0x8003c7a0)?,
-                0x8010 => w(r, 0x8003c7a4)?,
+                b if b & 0x8000 != 0 && b != 0x8010 => w(r, 0x8003c7a4)?,
                 _ => 0x8013c020,
             };
             let src = w(r, sources + (n as u32 & 0x7fff) * 4)?;
@@ -464,7 +464,7 @@ impl ActorDataPlan {
         let mut previous_ordinary = None;
         if last.packed {
             let a = entity(last_q.entity);
-            if h(input, a + 0x54)? != 1 || h(input, a + 0x14)? > 1 {
+            if h(input, a + 0x14)? > 1 {
                 return Err("packed末尾來源分支尚未證實".into());
             }
             for q in plan.quads.iter().rev() {

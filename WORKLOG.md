@@ -2861,3 +2861,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 唯一正式批次140例、1292325量子及完整CPU／RAM／scratch同，含四個packed可見奇偶新邊界、28完全無圖元、82零上傳與八個來源／容量／未知分支拒絕。唯一正常原片前綴一個自然基準續跑8383、完整Machine及原音同；另十個獨立末尾／全空診斷全Machine／成本／排隊音訊同，原控制組93421指令。四個全空案例保留非預設idle DMA2，原片／原卡保持，注入不當正常玩家覆蓋。
 
 本節限定CONFORMED，其餘bank／SDK／rotation／bank15、文字／HUD／特效／3D及正式整場仍待，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包不改；無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源、READY、補項及限定收據由assets-catalog的actor-endpoints-v1進入，有界--rm容器、原始資料唯讀，不動共享資源。
+
+
+## 2026-10-30 Rust packed bank圖像池
+
+沿READY路由讀原IDA9.4 EBB94–EBC48，確認正13／負1特例、負16走固定池、其他負bank走3C7A4，訂正先前被Clock／末尾守門擋住的Rust型別初稿。五類bank×來源0／3×中途／末槽×上傳／重用×三flags共240候選首次完整資料／時鐘同後凍結026 §16.7.13 READY，才改ActorPlan／Part來源及高階Clock資源分支；核心API與原版路徑不改，無原ISA／GP0／PC足跡回播。
+
+測試器先把圖像header誤作payload而停止，CPU比較0；保留原碼／日誌，以EBCE4的A1+4訂正斷言，候選邏輯未改。唯一正式240例、2086800量子及完整CPU／RAM／scratch同，120組零上傳與八拒絕通過。唯一正常原片前綴一個bank1自然基準續跑8383、完整Machine及原音同；另十個獨立來源表映射的全Machine／成本／排隊音訊同，控制組84849指令，五個重用保留非預設idle DMA2。clone原資料並以origin作路由辨識，payload保持；原片／原卡保持，注入不當自然非1 bank或全關卡覆蓋。
+
+本節限定CONFORMED，自然來源啟用、其他幀／SDK／rotation／bank15、文字／HUD／特效／3D與正式整場仍待，後續原生相容光柵保持。README歷程已另封存至WORKLOG，HUD及城堡完整範圍更新既有#11／#5，最終截圖待完整HD正常驗證。CPU／GPU、海報、影片、定案美術與Go包保持，無新美術／GUI／硬體GPU／包或速度驗收。有效工作沿公開#17／#19、私人#13／#27及總表#1。來源與收據由assets-catalog的actor-banks-v1進入；有界--rm容器、原始資料唯讀，不動共享資源。
