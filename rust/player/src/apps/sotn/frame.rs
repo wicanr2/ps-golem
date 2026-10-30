@@ -173,6 +173,12 @@ impl FramePrepPlan {
             writes,
         })
     }
+    pub fn validate(&self, ram: &[u8], entry: EntryRegisters) -> Result<()> {
+        if read_inputs(ram, entry)? != self.input {
+            return Err("計畫已過期，RAM或入口暫存器已改變".into());
+        }
+        Ok(())
+    }
     pub fn resources(&self) -> FrameResources {
         self.resources
     }
@@ -183,9 +189,7 @@ impl FramePrepPlan {
     /// Checks the entire read set first. Rejection leaves the RAM unchanged.
     /// This does not commit CPU, clock, devices, GPU, or a player frame.
     pub fn apply_ram(&self, ram: &mut [u8], entry: EntryRegisters) -> Result<()> {
-        if read_inputs(ram, entry)? != self.input {
-            return Err("計畫已過期，RAM或入口暫存器已改變".into());
-        }
+        self.validate(ram, entry)?;
         // Every output was bounded and checked for aliases during prepare.
         for w in &self.writes {
             let at = (w.address - BASE) as usize;

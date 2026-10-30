@@ -6,6 +6,7 @@ use crate::{
     gpu::Gpu,
 };
 mod dma;
+pub mod phase;
 mod timers;
 use dma::Dma;
 use timers::Timers;

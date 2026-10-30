@@ -2692,3 +2692,16 @@ Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK�
 初版32個快取案例全過後，寫入足跡檢視發現舊16.3.1多清一個計數：0x800E3BE8才寫的S1+28不在結束0x800E3BE4前，八份舊快照該欄原為0，故舊九計數／528字對照未揭錯。先保存初版來源、測試及邊界READY，再改八計數／527字，加入0xDEADBEEF局部診斷；最終40例一次通過。舊歷史保留，本段為追加勘誤，沒有為錯誤補跑正常路線或重審美術。
 
 16.3.1修正及16.3.2限定CONFORMED；裝置推進／途中IRQ／音訊、完整場景與直接顯存、正常HD入口仍DRAFT，不以一次總bus.advance猜補時序。後續回此閘門，不重開已驗資料案例。現行Go包、海報、素材、卡片與設定保持。來源／完整RAM收據只留本機，公開程式沒有原資料或原bytes。入口為素材assets-catalog的framecpu-v1/evidence.json、CPU-plan-READY.json、counter-correction-READY.json、rust-verification.json及publication.json；來源UID1000:1000，Docker與推送狀態由publication記錄，未打包或Release。
+
+
+## 2026-10-30 Rust初始化裝置提交
+
+先由保存八態／原IDA匯出建立逐量子時間證據，026 §16.3.3 READY後實作通用rust/src/machine/phase.rs與apps/sotn/frameclock.rs。通用API檢查CPU端點、RAM patch、量子與預算，在候選Machine依原順序推進裝置，跨field／IRQ或活動DMA／MDEC即拒絕；成功才一次提交RAM／CPU及裝置。遊戲資料先重檢來源／完整CPU／BIU；不執行原MIPS、SDK或GP0。正式玩家沒有註冊未完成HD，原版模式、CPU／GPU、影片、海報及Go完整包保持。
+
+五通用合成案例、七資料案例通過；兩個原版語料預設ignored。新時間元件另加入獨立測試，只編譯、不重跑已過案例。正常真BIOS／原片／同卡／原固定按鍵自然抵達8382，兩路連續八次初始化完整Machine逐欄相同，包括GPU掃描／顯存／快取、CPU／GTE、RAM／scratch、timer／DMA、CD／SPU／MDEC／SIO、原卡及音訊緩衝；取出音訊序列相同，續跑8390場仍全同。八份完整RAM亦同保存Go態。原控制組共41288指令，Rust提交沒有guest step；局部初始化不能稱完整HD或速度通過。
+
+獨立診斷的途中IRQ、跨field與過期CPU拒絕後，完整機器皆保持。完整狀態比較僅在一次性來源副本加逐欄Eq，CD採同一唯讀Disc Arc、不比較檔案游標，runtime原邏輯保持。來源／原媒體SHA核對；新美術／素材／GUI／硬體GPU／舊核心矩陣重驗0，沒有打包或Release。副本配置成本尚未優化。
+
+首次正常前綴180秒逾時，最後4800場、正式比較0；保留首份日誌。只延長未完成正常項目至600秒，沿同一binary／來源完成一次，294.918秒為蒐證耗時。已有公開測試／建置不重跑；正常啟動共2次、完整1次，沒有第三次。兩次索引錨點未匹配屬編輯準備，實讀尾端後修正；原資料未受影響。
+
+入口為素材assets-catalog的framecommit-v1：clock-evidence.json、READY.json、comparison-overlay.json、execution-initial-timeout.json、execution.json、normal-verification.json、tested-source.json、acceptance.json與publication.json。026 §16.3.3限定CONFORMED，完整場景／人物／文字／3D與直接顯存、正式玩家HD及速度仍未完成；後續承接這段初始化，轉向場景資料生成。提交／推送、Issue及Docker清理見publication；不清理共用資源。

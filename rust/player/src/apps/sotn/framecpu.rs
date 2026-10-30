@@ -121,6 +121,15 @@ impl FrameCpuPlan {
             cycles,
         })
     }
+    pub fn validate(&self, ram: &[u8], state: &State, biu: u32) -> Result<()> {
+        if *state != self.before || biu != self.biu {
+            return Err("CPU計畫已過期".into());
+        }
+        self.ram.validate(ram, entry(state))
+    }
+    pub fn writes(&self) -> &[super::frame::WordWrite] {
+        self.ram.writes()
+    }
     pub fn cycles(&self) -> u64 {
         self.cycles
     }
@@ -130,9 +139,7 @@ impl FrameCpuPlan {
 
     /// Atomic RAM + CPU data commit; does not advance a Machine or its devices.
     pub fn apply_data(&self, ram: &mut [u8], state: &mut State, biu: u32) -> Result<()> {
-        if *state != self.before || biu != self.biu {
-            return Err("CPU計畫已過期".into());
-        }
+        self.validate(ram, state, biu)?;
         self.ram.apply_ram(ram, entry(state))?;
         *state = self.after.clone();
         Ok(())

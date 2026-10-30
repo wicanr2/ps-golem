@@ -4,3 +4,6 @@ mod frame;
 
 #[path = "../src/apps/sotn/framecpu.rs"]
 mod framecpu;
+
+#[path = "../src/apps/sotn/frameclock.rs"]
+mod frameclock;
