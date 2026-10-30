@@ -111,6 +111,7 @@ const READ_SITES: &[(u32, u32)] = &[
     (0x15684, 2),
     (0xeb548, 4),
     (0xeb550, 4),
+    (0xeb57c, 4),
     (0xeb588, 4),
     (0xeb594, 4),
     (0xeb5b0, 4),
@@ -411,11 +412,17 @@ impl Clock {
         self.submit_leave()?;
         self.run(0x12b04, 0x12b20)
     }
-    fn transform(&mut self, r: &[u8], slot: usize, flags: u8) -> Result<()> {
+    fn transform(&mut self, r: &[u8], slot: usize, flags: u8, flip: u32) -> Result<()> {
         let a = 0x800733d8 + slot as u32 * 188;
         self.scale_x = h(r, a + 0x1a) as i16 as i32 as u32;
         self.scale_y = h(r, a + 0x1c) as i16 as i32 as u32;
-        self.ranges(&[(0xeb544, 0xeb578), (0xeb588, 0xeb5a8)])?;
+        self.run(0xeb544, 0xeb578)?;
+        if flip == 0 {
+            self.run(0xeb588, 0xeb590)?;
+        } else {
+            self.run(0xeb57c, 0xeb584)?;
+        }
+        self.run(0xeb594, 0xeb5a8)?;
         if flags & 1 != 0 {
             self.run(0xeb5ac, 0xeb60c)?;
         }
@@ -430,7 +437,8 @@ impl Clock {
         if h(r, a + 0x54) != 1
             || h(r, a + 0x56) & 0x8000 != 0
             || h(r, a + 0x16) & 0x8000 == 0
-            || p.flip != 0
+            || !matches!(p.flip, 0 | 2)
+            || h(r, a + 0x14) > 1
         {
             return Err("packed時鐘分支不在已驗範圍".into());
         }
@@ -440,13 +448,26 @@ impl Clock {
         self.clear(h(r, p.cache) + p.width / 4)?;
         self.run(0xebd40, 0xebd80)?;
         self.clear(h(r, p.cache) - 1)?;
-        self.ranges(&[
-            (0xebd84, 0xebda0),
-            (0xebdb4, 0xebde4),
-            (0xebe34, 0xebe80),
-            (0xebea8, 0xebef8),
-        ])?;
-        self.transform(r, slot, p.flags)?;
+        self.run(0xebd84, 0xebda0)?;
+        if p.flip & 2 == 0 {
+            self.run(0xebdb4, 0xebdc0)?;
+        } else {
+            self.run(0xebda4, 0xebdb0)?;
+        }
+        self.run(0xebdc4, 0xebde4)?;
+        if p.flip == 0 {
+            self.run(0xebe34, 0xebe6c)?;
+        } else {
+            self.run(0xebde8, 0xebe30)?;
+        }
+        self.run(0xebe70, 0xebe80)?;
+        if p.flip == 0 {
+            self.run(0xebea8, 0xebec0)?;
+        } else {
+            self.run(0xebe84, 0xebea4)?;
+        }
+        self.run(0xebec4, 0xebef8)?;
+        self.transform(r, slot, p.flags, p.flip)?;
         self.ranges(&[(0xebefc, 0xebf14), (0xebf24, 0xebf48)])?;
         if byte(r, a + 0x18) != 0 {
             self.run(0xebf4c, 0xebf70)?;
@@ -472,7 +493,12 @@ impl Clock {
     fn ordinary(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let f = p.part_flags;
         let a = 0x800733d8 + slot as u32 * 188;
-        if p.flip != 0 || p.page_low != 0 || f & 0x101 != 0 || p.flags & 8 != 0 {
+        if !matches!(p.flip, 0 | 2)
+            || h(r, a + 0x14) > 1
+            || p.page_low != 0
+            || f & 0x100 != 0
+            || p.flags & 8 != 0
+        {
             return Err("普通部件時鐘分支不在已驗範圍".into());
         }
         self.run(0xec1d0, 0xec250)?;
@@ -503,10 +529,22 @@ impl Clock {
                 self.run(0xec318, 0xec324)?;
             }
         }
-        self.ranges(&[(0xec328, 0xec334), (0xec348, 0xec378), (0xec3c8, 0xec418)])?;
+        self.run(0xec328, 0xec334)?;
+        if h(r, a + 0x14) == 0 {
+            self.run(0xec348, 0xec354)?;
+        } else {
+            self.run(0xec338, 0xec344)?;
+        }
+        self.run(0xec358, 0xec378)?;
+        if p.flip == 0 {
+            self.run(0xec3c8, 0xec400)?;
+        } else {
+            self.run(0xec37c, 0xec3c4)?;
+        }
+        self.run(0xec404, 0xec418)?;
         if p.flags & 3 != 0 {
             self.run(0xec41c, 0xec44c)?;
-            self.transform(r, slot, p.flags)?;
+            self.transform(r, slot, p.flags, p.flip)?;
             self.run(0xec450, 0xec458)?;
         }
         self.run(0xec45c, 0xec46c)?;
@@ -530,10 +568,21 @@ impl Clock {
             self.run(0xec4f8, 0xec4f8)?;
         }
         self.run(0xec4fc, 0xec50c)?;
-        if f & 2 == 0 {
-            self.run(0xec510, 0xec538)?;
+        if (f as u32 & 2) ^ p.flip == 0 {
+            self.run(0xec510, 0xec514)?;
+            if f & 1 == 0 {
+                self.run(0xec518, 0xec538)?;
+            } else {
+                self.run(0xec53c, 0xec55c)?;
+                self.run(0xec5bc, 0xec5bc)?;
+            }
         } else {
-            self.run(0xec560, 0xec590)?;
+            self.run(0xec560, 0xec564)?;
+            if f & 1 == 0 {
+                self.run(0xec568, 0xec590)?;
+            } else {
+                self.run(0xec594, 0xec5bc)?;
+            }
         }
         self.run(0xec5c0, 0xec5cc)?;
         if byte(r, a + 0x18) != 0 {

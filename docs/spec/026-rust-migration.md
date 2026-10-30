@@ -542,3 +542,23 @@ BIU125320、無隔離／待處理IRQ／load／branch、快取valid低4位；16.7
 一次真BIOS／原片／同卡／固定按鍵自然開機，8382起八次人物呼叫不執行原MIPS或GP0／GP1，直接提交typed texture jobs、RAM／scratch、CPU及逐量子裝置時間。八次完整Machine逐欄同原控制組，包含VRAM／快取／DMA／timers／CD／SPU／SIO／MDEC及排隊原音，續跑8390仍全同，所取原音SHA相同、原片與卡片保持。IRQ途中、跨場、過期CPU、DICR force、DMA2 IRQ及DPCR關閉六種獨立診斷全機器原子保持；注入副本不回正常路線。輸入／版本、每次指令數及工作量沿私人actor-clock-v1的normal-verification.json、tested-source.json及acceptance.json，原始來源與DB沿既有IDA索引。
 
 這封閉已列普通人物呼叫的同狀態提交，16.7整體與16整段仍DRAFT，尚需其他人物分支、其餘圖元／文字／特效／3D及完整場呈現交易。正式GUI未註冊本切片，後續原生相容DMA／光柵仍存在，不稱完整舊光柵移除或遊戲HD完成。CPU／GPU、海報、影片、已定案素材與原版模式保持；新美術、GUI、硬體GPU、三平台包驗收0，沒有新FPS或加速倍率聲明。
+
+
+#### 16.7.4 未旋轉人物朝向與UV翻轉
+
+狀態：CONFORMED，限定沿16.7.1–16.7.3上下文與最後普通未翻轉部件端點，只擴充中途packed／ordinary的左右朝向及ordinary部件UV bit0／bit1。輸入、原DRA／boot／DB與來源SHA沿前節；新證據直接讀既有IDA9.4的sub_800EB998與sub_800EB544完整函式匯出，bytes及邊界同原保存RAM。原始KSEG0位址／運算元未改，DRA file offset為EA-0x800A0000。actor-mirror-v1/evidence.json及new-resource-sites.json保存原始來源雜湊、分支與83個新增資源位置，不重開原DB或美術。
+
+已證實朝向欄在entity+0x14，packed以其左移一位xor cache+0x23；此切片只接受entity朝向0／1及最終flip0／2。packed座標基準由EBD98 bit2分支選x±dx；翻轉後兩側為base-width+1及base+1，U兩端為u1-1／u0-1，固定8位縮放的X支點亦隨flip改成x-anchor。ordinary以原entity朝向選x±dx、以flip決定頂點排列；U翻轉條件為(part_flags&2) xor flip，V翻轉條件為part_flags&1，V兩端為v1-1／v0-1。混色、裁邊、縮放、圖像上傳／清邊及遊戲時序保持，不新增鏡頭或玩法修改。
+
+沿既有ActorDataPlan即可生成完整資料，17組局部原CPU注入已核對完整2MiB RAM、scratch及Architecture相同，涵蓋兩保存態的第一／最後packed、普通及多部件、V／UV合翻、朝向與UV組合及scaled-XY。這是診斷證據，不稱正常Machine。正式繪圖仍由高階ActorDataPlan建立，不解碼／逐指令執行原碼或回播保存輸出。
+
+時鐘新增高階朝向／UV工作分支，沿16.7.2快取資源模型生成逐量子成本。新增load中只有0x800EB57C由a2指向entity RAM、成本+4；其餘13個由s0指向scratch、成本0。原型資料與IDA寄存器來源互證；不以opcode或保存PC向量驅動正式執行。來源完整SHA、未知分支／BIU／cache／溢位／stale與原子Machine守門保留。仍拒絕旋轉、page低位、order+4、未知color／SDK及未封閉最後物件端點。
+
+集中驗收：17個新注入加兩個原朝向控制，核對全CPU State及每個成本量子；原CPU只作獨立測試oracle。再只新跑一條真BIOS／原片／同卡正常路線，8383至8388改為正常LEFT、8389起RIGHT，在自然人物入口連續16次比較全Machine與原音，正常觀測須同時含朝向0及1，續跑8400。正常路線不注入RAM／PC／code；UV特殊組合只由前述診斷證明，不冒稱全在正常路線出現。舊GPU／美術矩陣與完整包不重跑；驗收只限本切片，不宣稱正式GUI、全人物、整場HD或速度完成。
+
+
+16.7.4限定結果：一批17個新朝向／UV注入與兩個原朝向控制，共249354個時間量子、完整CPU／RAM／scratch同局部原CPU。17個新資料分支在實作前先有完整資料證據，READY後只補高階朝向與UV的時間資源分支，沒有改ActorDataPlan、圖像工作、原ISA或GP0路徑。83個新資源PC皆由原IDA9.4匯出覆蓋；14個新增load只有EB57C讀entity RAM成本4，另外13個讀scratch成本0。正式路徑不讀opcode或原PC足跡，注入只在測試oracle。
+
+唯一正常真BIOS／原片／同卡路線在8383起正常按LEFT六場、8389起RIGHT二十場，自然進入16次人物呼叫，觀測朝向0及1，其中6次為翻轉朝向。全Machine逐欄及全部成本同原控制組，略去原參考208439指令，建立246個型別四邊形與192個圖像工作，續跑8400及所取原音SHA全同。原片／卡片保持，正常路線無PC／RAM／code注入。UV特殊組合仍只由局部診斷證明，沒有聲稱全部出現在這條正常路線。來源、有效按鍵與限定結果由私人actor-mirror-v1的tested-source、effective-input、normal-verification及acceptance追溯。
+
+本節只放寬已證實的未旋轉朝向／UV分支，最後物件端點仍沿16.7.1限制，其他bank／跳過上傳、旋轉、色彩／SDK、page／order及整場呈現仍待完成。正式GUI未註冊，原生後續相容光柵仍在，不把這段稱全人物、完整HD或速度完成。原版、CPU／GPU、海報、影片與定案美術保持；新美術／GUI／硬體GPU／包驗收0，舊矩陣不重跑。

@@ -2780,3 +2780,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 公開 ps-golem #17 整理有效 Rust 待辦，分開已過初始化、普通NO3及普通人物提交，列出其他分支、文字／HUD、特效／3D、常駐素材、CPU／GPU、整場提交／原版切換與正式GUI。舊 Go 研究及舊待辦保留在歷史區，取消歷史項目的活動勾選格式，避免重開已完成切片。完整HD及速度仍未完成，美術不重審，沒有新程式或遊戲驗證。
 
 遠端四項全文及OPEN狀態均回讀一致。入口：https://github.com/wicanr2/castlevinia_x/issues/1 、 https://github.com/wicanr2/castlevinia_x/issues/27 、 https://github.com/wicanr2/castlevinia_x/issues/28 、 https://github.com/wicanr2/ps-golem/issues/17 。使用主機gh處理Issue，容器只做唯讀盤點、文字整理與工作紀錄編輯；均為有界--rm工作，未動其他專案容器／映像或原始資料。
+
+
+## 2026-10-30 Rust人物朝向與UV翻轉
+
+沿逆向進入READY路由，讀既有IDA9.4的sub_800EB998／sub_800EB544原始位址、bytes及控制流，與兩份保存RAM身份相同，不重開DB。先用兩原態做17個朝向／UV注入，完整資料與Architecture全同既有ActorDataPlan；注入只作局部原CPU診斷，原指令／MMIO回覆不在正式繪圖回播。凍結026 §16.7.4 READY後實作高階朝向、頂點／UV分支及縮放支點的時間資源，只有EB57C新增RAM讀成本4，另外13個新讀取均為scratch成本0。來源映射83個新PC沿原匯出，保留原函式與運算元。ActorDataPlan、GPU工作及核心ISA未改。
+
+唯一集中批次17新變體及兩原朝向控制，249354個量子與完整CPU／RAM／scratch全同。接著唯一真BIOS／原片／同卡正常路線，原RIGHT於8383停止、LEFT六場、8389起RIGHT二十場，自然觀測左右朝向並連續16次Rust提交；6次為翻轉朝向。完整Machine、所有成本與原參考相同，原參考208439個指令被高階Rust提交略去，產生246個四邊形與192個圖像工作。續跑8400、原音SHA及原卡／原片保持。正常無PC／RAM／code注入；UV特殊組合只沿診斷證據，不外推正常覆蓋。
+
+16.7.4限定CONFORMED，整段16仍DRAFT，其他人物／最後物件端點、bank／色彩／SDK／旋轉、文字／特效／3D及正式整場接線仍待完成，後續原生相容光柵保持。沒有新GUI、硬體GPU、美術、封包或速度聲明，不重跑已過矩陣。工作列管GitHub ps-golem #17／#19、私人 #13／#27與總表 #1；不重新開同類Issue。來源、READY、受測原碼、局部對照與正常有效按鍵／逐欄收據由素材assets-catalog的actor-mirror-v1進入。Docker只用有界--rm容器，原始資料唯讀，未動共享資源。
