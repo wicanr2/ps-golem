@@ -381,7 +381,6 @@ impl ActorDataPlan {
         }
 
         if plan.count_before != 0
-            || plan.hidden != 0
             || plan.count_after >= 768
             || plan.quads.is_empty()
             || w(input, 0x8002c268)? != 0
@@ -399,6 +398,14 @@ impl ActorDataPlan {
                 h(input, entity(i) + 0x54).unwrap() != 0 && h(input, entity(i) + 0x56).unwrap() != 0
             })
             .last();
+        let drawable_entities = 1 + plan
+            .quads
+            .windows(2)
+            .filter(|q| q[0].entity != q[1].entity)
+            .count();
+        if last.packed && plan.active != drawable_entities {
+            return Err("含無圖元物件的packed末尾尚未封閉".into());
+        }
         let supported_flags = if last.flags & 8 == 0 { 3 } else { 0x7b };
         if last.flags & !supported_flags != 0
             || !matches!(last.flip, 0 | 2)

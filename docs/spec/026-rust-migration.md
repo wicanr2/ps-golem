@@ -682,3 +682,23 @@ EBF84–C02C的既有cache色彩優先序保持：cache+1B非零直接取四頂�
 唯一正常原片前綴到8382自然入口，一個未注入基準、續跑8383與所取原音同原版。另八個獨立packed材質診斷的全Machine、全部成本及排隊音訊同原CPU，共93735控制指令；兩個全部重用案例保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401。原卡／原片保持，注入不回正式路線，不當自然玩家覆蓋。
 
 本節只封閉bank1的packed色彩與相對CLUT；其餘bank／SDK／旋轉、空幀／隱藏／裁掉物件、bank15特殊複製、文字／HUD／特效／3D及正式整場GUI仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵仍在。原版、CPU／GPU、海報、影片、定案美術與Go包保持；新美術／GUI／硬體GPU／打包0，未量速度。來源、READY、受測版本及局部／整機收據由私人actor-packed-material-v1索引追溯。
+
+
+#### 16.7.11 普通末物件之前的隱藏、裁掉與空幀
+
+狀態：CONFORMED，沿16.7.1–16.7.10來源／資料與交易，只擴充最後活躍物件仍為已完整產生圖元的ordinary時，中途entity bit7奇偶隱藏、XY超出原範圍、frame低15位零及ordinary header部件數零。最後活躍物件被略過、全部無圖元、或有無圖元物件而最後為packed仍拒絕；其他bank／SDK／rotation／bank15與正式整場不外推。原DRA／boot／DB、PS1 KSEG0 RAM及DRA offset EA-0x800A0000沿前節，原IDA9.4 bytes／邊界及SHA由私人actor-skips-v1/evidence.json追溯，不重開DB或美術。
+
+已證實EBA74–88保存flags，bit7開啟才走EBA8C–AA8，以slot xor RAM8003C998低bit決定是否跳至EC958；隱藏時不讀座標、幀表或SDK。IDA EBA90的8-byte pseudo-lw包含EBA94實際RAM讀，成本4；EBA8C讀scratch成本0。未隱藏才於EBAAC–AF4求X與Y並寫scratch，X+512以16-bit截斷後大於1024即跳過，否則EBAF8–BB08檢查Y。原範圍包含正負512，正負513裁掉；X剔除的delay slot仍寫Y。EBB0C–1C檢查frame低15位為零時，略過幀表及圖像工作，與frame半字全零在入口就略過的情況不同。
+
+EC1B8–1C8對ordinary部件數零跳EC958，delay slot仍清scratch+4C，不設定S7或呼叫transform／ordinary圖元。既有ActorPlan已略過這些物件；後續完整ordinary會覆寫已封閉的scratch與終值，原架構／SDK資料公式保持。為封閉保留值來源，若typed active數大於產生圖元的不同entity數且末圖元為packed，資料計畫明確拒絕；最後active必須仍等於最後圖元來源，整批無圖元沿舊守門拒絕。空幀Clock只在可安全讀取既有Part範圍的保存來源驗證，不宣稱任意RAM邊界header皆可接受。
+
+高階Clock按原輸入先後執行奇偶、X、Y、frame低位與空部件判定，再生成現有資源區段及一次共同掃描尾段；沒有原ISA／GP0／PC足跡回播。首次162候選完整RAM／scratch／CPU State及全部成本相同，含156個packed來源0／3或ordinary67的奇偶／XY界線／frame低位零與上傳／重用組、四個空ordinary、兩個多重剔除組，非零SDK／scratch／stack／S6／S7／HI／LO保持。測試oracle按原始輸入獨立選可見packed的SDK context group，只供測試，不由ActorPlan輸出選取。
+
+集中驗收：162組正式完整CPU／RAM／scratch與逐成本；兩保存態各驗最後裁掉、最後空ordinary、有略過物件的packed末尾及全空批次拒絕，共八個。只開一次正常原片前綴至8382，一個自然未注入基準續跑8383，同入口八個獨立剔除／空幀診斷核對完整Machine、全部成本及排隊音訊；兩個無上傳案例保留非預設idle DMA2。原卡／原片保持，注入不回正常路線、不當自然玩家覆蓋，舊GPU／美術矩陣不重跑。原版、CPU／GPU、海報及定案美術保持，正式GUI／完整HD／其餘圖元與速度仍未完成。
+
+
+16.7.11限定結果：162組局部原CPU對照、1738720個量子及完整CPU State／RAM／scratch相同，82組零顯存工作，98組含hidden物件。48組XY正負512界線仍產生圖元，正負513與奇偶隱藏、frame低位零正確略過；四個空ordinary及兩個多重剔除同批通過。候選首次完整全同，READY後唯一正式批次全過；最後裁掉／最後空幀、有略過物件的packed末尾及全空批次共八個拒絕通過。正式只增加高階Clock分支與EBA94 RAM成本4，保留typed資料公式與核心交易API。
+
+唯一正常原片前綴到8382自然入口，一個未注入基準、續跑8383與所取原音同原版。另八個獨立奇偶／X界線／Y裁掉／frame低位零／空ordinary／多重剔除診斷，完整Machine、全部成本與排隊音訊同原CPU，共87096控制指令。兩個無上傳案例保留非預設idle DMA2 MADR=0x135790、BCR=0x2468、CHCR=0x401。原卡／原片保持，注入不回正常路線，不當自然玩家覆蓋。
+
+本節只封閉已完整ordinary末物件之前的略過分支；最後active被略過、全空、略過後packed末尾、其餘bank／SDK／rotation／bank15、文字／HUD／特效／3D與正式整場GUI仍待。026 §16／16.7整體仍DRAFT，後續原生相容光柵保持。CPU／GPU、海報、影片、定案美術及Go包保持，新美術／GUI／硬體GPU／打包0，速度未量。來源、READY、正式版本及局部／整機收據由私人actor-skips-v1索引追溯。

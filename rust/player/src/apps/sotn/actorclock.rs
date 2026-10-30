@@ -133,6 +133,7 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xeba4c, 4),
     (0xeba58, 4),
     (0xeba74, 4),
+    (0xeba94, 4),
     (0xebaac, 4),
     (0xebab4, 4),
     (0xebac0, 4),
@@ -642,6 +643,10 @@ impl Clock {
         self.ranges(&[(0xec728, 0xec7a8), (0xec938, 0xec954)])
     }
     fn scene(&mut self, r: &[u8]) -> Result<()> {
+        let word = |a: u32| {
+            let i = (a & 0x1fffff) as usize;
+            u32::from_le_bytes(r[i..i + 4].try_into().unwrap())
+        };
         self.run(0xeb998, 0xeba48)?;
         for slot in 0..256 {
             let a = 0x800733d8 + slot as u32 * 188;
@@ -653,8 +658,29 @@ impl Clock {
                 self.run(0xeba74, 0xeba88)?;
                 if flags & 0x80 != 0 {
                     self.run(0xeba8c, 0xebaa8)?;
+                    if (slot as u32 ^ word(0x8003c998)) & 1 != 0 {
+                        self.run(0xec958, 0xec978)?;
+                        continue;
+                    }
                 }
-                self.run(0xebaac, 0xebb34)?;
+                self.run(0xebaac, 0xebaf4)?;
+                let x = h(r, a + 2).wrapping_add(h(r, 0x8006c39c));
+                if x.wrapping_add(512) > 1024 {
+                    self.run(0xec958, 0xec978)?;
+                    continue;
+                }
+                self.run(0xebaf8, 0xebb08)?;
+                let y = h(r, a + 6).wrapping_add(h(r, 0x8006c3a0));
+                if y.wrapping_add(512) > 1024 {
+                    self.run(0xec958, 0xec978)?;
+                    continue;
+                }
+                self.run(0xebb0c, 0xebb1c)?;
+                if frame & 0x7fff == 0 {
+                    self.run(0xec958, 0xec978)?;
+                    continue;
+                }
+                self.run(0xebb20, 0xebb34)?;
                 if bank & 0x8000 == 0 {
                     self.run(0xebb38, 0xebb54)?;
                 } else {
@@ -665,13 +691,13 @@ impl Clock {
                 if p.packed {
                     self.packed(r, slot, &p)?;
                 } else {
-                    if p.n == 0 {
-                        return Err("空幀時鐘尚未驗證".into());
-                    }
-                    self.run(0xec1b8, 0xec1cc)?;
-                    for part in 0..p.n as usize {
-                        let p = Part::read(r, slot, part)?;
-                        self.ordinary(r, slot, &p)?;
+                    self.run(0xec1b8, 0xec1c8)?;
+                    if p.n != 0 {
+                        self.run(0xec1cc, 0xec1cc)?;
+                        for part in 0..p.n as usize {
+                            let p = Part::read(r, slot, part)?;
+                            self.ordinary(r, slot, &p)?;
+                        }
                     }
                 }
             }
