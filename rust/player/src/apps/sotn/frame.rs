@@ -137,7 +137,7 @@ impl FramePrepPlan {
             ordering_words: OT_WORDS,
             frame_counter: input.counter.wrapping_add(1),
         };
-        let mut writes = Vec::with_capacity(528);
+        let mut writes = Vec::with_capacity(527);
         for (address, value) in [
             (PREVIOUS, input.previous),
             (BUFFER, input.next),
@@ -160,9 +160,10 @@ impl FramePrepPlan {
                 },
             });
         }
-        for i in 0..9 {
+        // The +28 counter belongs to the next call delay slot (0x800E3BE8).
+        for offset in [0, 32, 4, 8, 12, 16, 20, 24] {
             writes.push(WordWrite {
-                address: COUNTERS + i * 4,
+                address: COUNTERS + offset,
                 value: 0,
             });
         }
@@ -215,7 +216,8 @@ mod tests {
     fn counter_wrap_and_stack_abi_are_explicit() {
         let p = FramePrepPlan::from_inputs(input()).unwrap();
         assert_eq!(p.resources().frame_counter, 0);
-        assert_eq!(p.writes().len(), 528);
+        assert_eq!(p.writes().len(), 527);
+        assert!(!p.writes().iter().any(|w| w.address == COUNTERS + 28));
         assert!(p.writes().contains(&WordWrite {
             address: 0x801f_ffb0,
             value: 123

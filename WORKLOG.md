@@ -2681,3 +2681,14 @@ Go同圖shader參考13配置首次通過；RunGame須main goroutine，核對SDK�
 初次離線分析誤用GPR而非gpr，在第0例比較前停止；修正schema只分析已保存資料，無原版重播。首版Rust五公開／八態通過後，依原S1相對儲存與八態常值先回填READY，再補S1=0x8009792C守門；原來源／初收據保留，最終改動案例／八態及受共用輸入影響的五公開皆通過。實作兩版、保存態Rust核對兩次；正常遊戲始終1次，美術／素材／舊矩陣重驗0。測試未用自製代用品冒充原版輸入，缺原版語料的正常公開測試預設ignored。
 
 入口：素材docs/assets-catalog.md的frameprep-v1，inputs.json／plan.json／capture.json／effects-evidence.json／data-plan-READY.json／S1-guard-evidence.json／rust-results/rust-verification.json／acceptance.json／publication.json。原始ROM與資料庫不入Git。擁有權、原始DB與原檔雜湊、一次性DB／研究binary清理及提交推送由publication.json記錄；未改現行Go包、素材、設定、卡片、影片或海報，沒有新Release。
+
+
+## 2026-10-30 Rust初始化CPU端點與資料邊界勘誤
+
+026 §16.3.2先由既有正常八態及IDA匯出建立READY，再實作apps/sotn/framecpu.rs。型別化計畫直接產生CPU端點、快取效果與週期資料，不解碼／執行MIPS、不送GP0；依5161基礎成本、518次RAM讀取及快取填入計費，無固定7351。RAM／完整CPU／BIU先全檢再原子套用；隔離、可受理IRQ、未完成load／branch、無快取及溢位拒絕。正式玩家未宣告模組，不動Machine或裝置。
+
+七公開案例通過；私人八態原CPU所有欄位及RAM同Go，另三種快取與非零保留欄位共40個局部原CPU比較精確，200次原子拒絕及八個溢位拒絕通過。全熱7233、普通7351週期只證明CPU成本資料，非遊戲速度。無遊戲重播／新畫面／美術／GPU／GUI或舊核心矩陣。
+
+初版32個快取案例全過後，寫入足跡檢視發現舊16.3.1多清一個計數：0x800E3BE8才寫的S1+28不在結束0x800E3BE4前，八份舊快照該欄原為0，故舊九計數／528字對照未揭錯。先保存初版來源、測試及邊界READY，再改八計數／527字，加入0xDEADBEEF局部診斷；最終40例一次通過。舊歷史保留，本段為追加勘誤，沒有為錯誤補跑正常路線或重審美術。
+
+16.3.1修正及16.3.2限定CONFORMED；裝置推進／途中IRQ／音訊、完整場景與直接顯存、正常HD入口仍DRAFT，不以一次總bus.advance猜補時序。後續回此閘門，不重開已驗資料案例。現行Go包、海報、素材、卡片與設定保持。來源／完整RAM收據只留本機，公開程式沒有原資料或原bytes。入口為素材assets-catalog的framecpu-v1/evidence.json、CPU-plan-READY.json、counter-correction-READY.json、rust-verification.json及publication.json；來源UID1000:1000，Docker與推送狀態由publication記錄，未打包或Release。
