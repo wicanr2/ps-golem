@@ -262,11 +262,14 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
     }
     let v: Value = serde_json::from_slice(&b).map_err(|e| e.to_string())?;
     let obj = v.as_object().ok_or("預覽描述須為物件")?;
+    let has_hud = obj.contains_key("hud_source");
     let allowed = [
         "version", "ram", "vram", "scratch", "graphics", "textures", "output", "sha256",
     ];
-    if obj.len() != allowed.len()
-        || obj.keys().any(|k| !allowed.contains(&k.as_str()))
+    if obj.len() != allowed.len() + usize::from(has_hud)
+        || obj
+            .keys()
+            .any(|k| !allowed.contains(&k.as_str()) && k != "hud_source")
         || v["version"] != 1
     {
         return Err("預覽描述欄位或版本不符".into());
@@ -277,10 +280,11 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
         Ok(if p.is_absolute() { p } else { root.join(p) })
     };
     let hashes = v["sha256"].as_object().ok_or("預覽來源需要sha256")?;
-    if hashes.len() != 5
-        || hashes
-            .keys()
-            .any(|k| !["ram", "vram", "scratch", "graphics", "manifest"].contains(&k.as_str()))
+    if hashes.len() != 5 + usize::from(has_hud)
+        || hashes.keys().any(|k| {
+            !["ram", "vram", "scratch", "graphics", "manifest"].contains(&k.as_str())
+                && !(has_hud && k == "hud_source")
+        })
     {
         return Err("預覽來源SHA欄位不符".into());
     }
@@ -322,8 +326,36 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
         .collect();
     let actor = ActorPlan::prepare(&loaded["ram"], &loaded["scratch"])?;
     let view = View::prepare(&loaded["ram"], &vram, &loaded["graphics"], &actor, &pack)?;
-    let native = view.render(1)?;
-    let hd = view.render(4)?;
+    let hud = if has_hud {
+        let mut bytes = Vec::new();
+        fs::File::open(get("hud_source")?)
+            .map_err(|e| e.to_string())?
+            .take(270337)
+            .read_to_end(&mut bytes)
+            .map_err(|e| e.to_string())?;
+        let digest = format!("{:x}", Sha256::digest(&bytes));
+        if hashes["hud_source"].as_str() != Some(digest.as_str()) {
+            return Err("HUD來源SHA不符".into());
+        }
+        let source = super::hud::Hud::source(&bytes)?;
+        if actor.quads.iter().any(|q| q.order >= 496) {
+            return Err("HUD與人物跨層順序尚未支援".into());
+        }
+        Some(super::hud::Hud::prepare(
+            &loaded["ram"],
+            &vram,
+            source,
+            &pack,
+        )?)
+    } else {
+        None
+    };
+    let mut native = view.render(1)?;
+    let mut hd = view.render(4)?;
+    if let Some(hud) = &hud {
+        hud.paint(&mut native, 1)?;
+        hud.paint(&mut hd, 4)?;
+    }
     let prefix = get("output")?;
     if !prefix.parent().is_some_and(|p| p.is_dir()) {
         return Err("預覽輸出目錄不存在".into());
@@ -345,7 +377,7 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
             .write_image_data(&rgba)
             .map_err(|e| e.to_string())?;
     }
-    let report = json!({"scope":"saved-source direct HD preview; not gameplay","native_width":native.width,"native_height":native.height,"HD_width":hd.width,"HD_height":hd.height,"background_HD_materials":view.background_images.len(),"typed_actor_quads":view.draws.len(),"HD_actor_quads":view.hd_actor_quads,"native_actor_fallback_quads":view.native_actor_quads,"original_CPU_executed":false,"GP0_submitted":false,"native_framebuffer_input":false,"HUD_text_effects_complete":false,"full_HD_complete":false,"speed_pass":false});
+    let report = json!({"scope":"saved-source direct HD preview; not gameplay","native_width":native.width,"native_height":native.height,"HD_width":hd.width,"HD_height":hd.height,"background_HD_materials":view.background_images.len(),"typed_actor_quads":view.draws.len(),"HD_actor_quads":view.hd_actor_quads,"native_actor_fallback_quads":view.native_actor_quads,"original_CPU_executed":false,"GP0_submitted":false,"native_framebuffer_input":false,"HUD_text_effects_complete":false,"HD_HUD_quads":hud.as_ref().map(|h|h.draws.len()).unwrap_or(0),"HUD_clear_texels":hud.as_ref().map(|h|h.clear_texels).unwrap_or(0),"deferred_environment_records":hud.as_ref().map(|h|h.deferred_records),"full_HD_complete":false,"speed_pass":false});
     fs::write(
         prefix.with_extension("json"),
         serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,

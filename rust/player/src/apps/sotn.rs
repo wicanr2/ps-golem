@@ -323,3 +323,5 @@ mod tests {
 pub(crate) mod actor;
 pub(crate) mod scene;
 pub(crate) mod view;
+
+pub(crate) mod hud;

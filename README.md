@@ -65,4 +65,4 @@ psgolem-player -render-sotn-view INPUT.json
 psgolem-player -preview-sotn-view INPUT.json -posters DIR
 ```
 
-來源描述及限制見 [026 §16.7.20](docs/spec/026-rust-migration.md#16720-場景與人物的直接hd畫布接線)。這兩個入口直接畫型別資料與材質，不啟動遊戲；預覽為1920×1080，N比較原材質／HD、P切換海報、Esc關閉。HUD／文字／特效尚未包含，不能取代正式玩家模式。來源快照與遊戲素材由使用者本機提供，公開執行器不附。
+來源描述及限制見 [026 §16.7.20](docs/spec/026-rust-migration.md#16720-場景與人物的直接hd畫布接線)。這兩個入口直接畫型別資料與材質，不啟動遊戲；預覽為1920×1080，N比較原材質／HD、P切換海報、Esc關閉。可在描述檔成對指定 `hud_source` 與 `sha256.hud_source` 載入本機原F_GAME.BIN，加入已驗血量框／數字等七個HUD圖元，契約見026 §16.8.1。其餘HUD／文字／特效與連續遊玩仍待，不能取代正式玩家模式。來源快照與遊戲素材由使用者本機提供，公開執行器不附。
