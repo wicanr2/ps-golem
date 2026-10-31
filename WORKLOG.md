@@ -2966,3 +2966,14 @@ Rust直接從遊戲記錄產生七個HUD、兩個環境來源、排序及完整R
 原片正常開機一次，8382–8385四個原完整呼叫各15199指令／28560週期，CPU資料訪存無MMIO，GTE／VRAM保持。完整RAM／scratch與Rust同，另單一輸出區毒化、非零ABI暫存器的局部原CPU診斷同，五個拒絕通過。首次沿人物前counter0守門在資料案例0停止，保存來源後依真正入口prefix15補append；原路線未重開。候選及正式資料各一次通過；28560只留觀測，未寫死為Rust成本。
 
 IDA9.4只查新環境helper與五直接依賴，各一次副本，原DB／BOOT／DRA及原卡保持。相容資料包含裁切／位移設定，完整整場不能省略；正式原呼叫維持。後續補CPU／快取／資源時鐘及同步交易，不把資料相同或局部CPU診斷當正常Rust可玩HD。來源、READY、受測SHA與集中結果由素材索引field-state-v1追溯；GUI／硬體GPU／包／新美術0，沒有新速度通過聲明。
+
+
+## 2026-10-31：通用圖元CPU、資源時鐘與同步提交
+
+<!-- RUST-PRIMITIVE-CLOCK-20261031 -->
+
+Rust補齊原0x800EDC94所列七HUD／兩環境來源的CPU端點、cache／RAM讀成本與同步Machine提交；沿已驗完整RAM／scratch，不執行原ISA或讀保存PC序列。12正式局部完整CPU／逐成本同原版，共182388量子；正常／冷／稀疏cache為28560／28574／28567，七種prepare拒絕通過。CPU輸出由最後HUD、hidden flags、counter／copy cursor與ABI推導，HI／LO／COP0等保持。
+
+正常原片只開一次，兩條路線連續四呼叫由Rust提交，完整Machine逐欄同原CPU，原控制組共60796指令；續跑8390的整機與所取原音相同。四過期條件與途中timer IRQ獨立副本全回滾。原片／原卡、原DB／BOOT／DRA保持，核心phase API未改；候選、正式局部與正常批次各一次通過。
+
+026 §16.8.2.2限定CONFORMED，已回鏈較早16.8.1／16.8.2.1未知。PrimitiveClockPlan未註冊正式玩家，原生後續光柵仍在；其餘來源／SDK、完整場呈現與模式切換仍DRAFT，不當完整HD或新速度通過。新美術／GUI／硬體GPU／包0，既有畫布／海報／影片與Go包保持，來源及受測SHA由素材索引field-clock-v1追溯。

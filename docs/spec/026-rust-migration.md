@@ -945,6 +945,8 @@ READY證據：三個保存來源共21個型別HUD四邊形，全部欄位同局�
 原800EDC94仍有兩個draw-environment來源、其餘通用圖元、完整RAM／scratch／CPU／SDK／時間及整場交易待封閉，正式遊戲不跳過它。8010794C含其他SDK呼叫，不能依相鄰位置當純繪圖一起省略；其語意仍unknown，保留原流程，不擴大無關逆向。800E3754是排序鏈處理，另留必要相容資料階段。整場玩家、其他HUD／中文姓名／選單、特效／3D及GPU仍DRAFT；本段不冒充完整HUD或可玩HD。
 
 
+補註 `RUST-PRIMITIVE-CLOCK-20261031-HUD`：§16.8與16.8.1較早的原PS1 KSEG0 DRA 0x800EDC94完整副作用／時間未知，由§16.8.2.1–16.8.2.2限定解開七HUD／兩環境來源的資料、CPU／快取／時鐘與同步Machine。未列圖元及主畫布環境裁切、其餘SDK／整場仍未完成；舊HUD固定畫布像素收據不升格為完整遊戲畫面。
+
 #### 16.8.2 通用圖元的相容資料與環境設定
 
 狀態：DRAFT。承接16.8.1的七個HUD型別圖元，補800EDC94完整呼叫的資料與環境設定證據。原函式仍保留於正式遊戲，不以已驗HUD像素跳過其餘RAM／scratch／CPU／SDK／裝置時間。BOOT sub_80013648為此路徑的直接環境設定依賴，只查這一個新helper，既有原DB／BOOT／DRA身份沿16.8，來源與工具在私人field-state-v1/IDA-plan及evidence。
@@ -972,3 +974,28 @@ Rust依型別來源直接產生相容GT4欄位、CLUT表映射、512排序桶pre
 正常原片只開一次，8382–8385四個原完整呼叫各15199指令／28560週期，CPU資料訪存沒有MMIO、GTE及VRAM保持。原始逐成本、CPU快取與訪存證據保存，不把常數28560充當Rust時間公式。最早counter0假設在資料案例0拒絕；保存原候選後依真正人物後入口改為prefix15並append，不重啟原路線。候選與正式完整資料批次各一次通過，無新美術／GUI／GPU或包驗收，速度未量。
 
 原BOOT五個依賴只補一次IDA9.4直接查詢，原DB／BOOT／DRA與卡片保持。來源、首次範圍停止／修正、READY、受測版本、data-verification及acceptance由私人field-state-v1索引追溯；16.8.2的CPU端點／快取／資源成本／同步裝置及整場交易仍DRAFT，原遊戲呼叫維持。
+
+
+補註 `RUST-PRIMITIVE-CLOCK-20261031-DATA`：16.8.2.1的DataPlan仍是純資料元件；其外層CPU端點、快取／資源時鐘及同步Machine提交已由16.8.2.2封閉所列分支，原RAM／scratch來源及首次範圍停止保留。正式玩家整場及未列域仍DRAFT，不再重開本段已驗CPU分支。
+
+#### 16.8.2.2 通用圖元CPU端點與資源時鐘
+
+狀態：CONFORMED，限既有資料域的CPU／資源時鐘及同步提交。承接16.8.2.1完整RAM／scratch，依原1280筆資料分類、可見／隱藏、七HUD／兩環境來源與SDK標準編碼分支，建立CPU端點與逐成本。使用既有callclock／frameclock快取契約，資源ID只標原來源位址與快取／RAM讀取成本，不在正式路徑解碼或執行ISA，不讀保存PC序列。來源及工具沿field-state-v1正常四態與IDA9.4，新增受測SHA及無序讀取資源清單在私人field-clock-v1。
+
+入口沿16.8.2.1，另要求完整load／branch邊界、BIU125320、無可受理IRQ或隔離cache、cache valid低四位及時間不溢位。環境時鐘只接受標準GPU、正值範圍內剪裁、抖色關閉、顯示區繪製開啟；末可見圖元須HUD。其餘回錯不猜填。CPU返回值由最後可見HUD、後續hidden的flags、資料counter／copy cursor及ABI保存值推導，HI／LO／COP0／GTE期限與其餘架構欄保持。
+
+先用原保存四態核對完整CPU State／逐成本及資料，再對同來源做冷cache／稀疏cache與非零ABI的獨立局部原CPU診斷。候選足夠才READY安裝；正式集中驗證後，才以一次正常原片路線核對同步Machine提交、續跑及原音。同步提交沿既有commit_cpu_data_phase，先驗過期CPU／RAM／scratch／BIU，活動DMA、MDEC、IRQ或跨field沿核心守門；未驗前不註冊正式玩家。既有HD畫布／美術／GUI與GPU不重跑，原版、海報、影片與存檔保持，不作速度聲明。
+
+
+READY證據：四個正常保存態與各自冷cache／稀疏cache共12例，完整CPU State、RAM／scratch、GTE保持及逐成本全同原CPU。冷cache同時使用非零ABI保存暫存器及HI／LO，返回ldValue／gpr34由入口S0推導；正常／冷／稀疏成本為28560／28574／28567，皆15199個資源量子，不固定寫28560。七個BIU、時間溢位、隔離、IRQ、cache valid、nextPC與環境分支拒絕通過。資料來源與CPU／裝置契約沿16.8.2.1及既有phase API，核心邏輯不改。
+
+無序RAM讀取資源清單僅用於讀成本，每項先以原固定字證實load；執行資源先後及重複次數由1280筆資料分類、隱藏／可見及環境旗標建立，沒有讀取保存PC序列、解碼ISA或以原輸出回播。API先驗CPU／全RAM／scratch／BIU過期，再交既有commit_cpu_data_phase，保持活動DMA／MDEC／IRQ及跨場完整拒絕。無DMA時裝置不讀這些圖元／ABI中間RAM，來源傳送／GPU原字均保持；正常同步提交仍須正式批次證明。
+
+正式驗收同12局部例與七拒絕，再只正常開機一次，四個相繼原呼叫由Rust直接提交，對獨立原CPU控制組完整Machine／逐成本／排隊原音，續跑8390及所取音訊相同。四個過期條件與途中timer IRQ在獨立副本檢查完整回滾，副本不回正常路線。既有核心／畫布／美術／GUI不重驗，不宣稱整場HD、硬體GPU、正式玩家註冊或速度通過。
+
+
+16.8.2.2限定結果：正式12個完整CPU State／RAM／scratch及逐成本全部相同，共182388個資源量子；GTE保持。正常／冷cache／稀疏cache各15199量子，週期28560／28574／28567，反映實際cache補入；冷cache案例同時核對非零S0–S7／FP與HI／LO。七個BIU／時間溢位／隔離／IRQ／cache valid／nextPC／環境分支拒絕通過，沒有固定寫28560或執行原ISA建立輸出。
+
+唯一正常原片成對路線相繼四次直接Rust提交，每次15199量子，對應原控制組60796條指令。每次完整Machine逐欄與原CPU相同，包含CPU／GTE／RAM／scratch、GPU掃描／顯存／cache、CD／SPU／MDEC／SIO、timer／DMA、原卡與音訊佇列；兩條路線續跑8390的完整機器與所取原音SHA相同。四個過期CPU／RAM／scratch／BIU及途中timer IRQ的獨立副本拒絕後全狀態保持，副本不回正常路線。原片／原卡及原DB／BOOT／DRA保持。
+
+候選與正式局部各一次通過，正常路線只開一次；無新美術／GUI／硬體GPU／包或速度驗收。相容資料與時間直接由Rust推導，原CPU只作控制組；後續原生光柵仍保留，PrimitiveClockPlan未註冊正式玩家模式，不當完整HD。原版、CPU／GPU、海報、影片、存檔與既定畫質保持。來源、READY、受測SHA、完整Machine及回鏈由私人field-clock-v1追溯。
