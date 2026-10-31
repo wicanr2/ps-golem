@@ -5,11 +5,23 @@ type Result<T> = std::result::Result<T, String>;
 pub struct Tables<'a> {
     ram: &'a [u8],
 }
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Point {
+    pub dx: i16,
+    pub dy: i16,
+    pub lzcs: u32,
+    pub theta: i32,
+    pub cos_q8: i32,
+    pub sin_q8: i32,
+}
 #[derive(Clone, Copy, Debug)]
 pub struct Rotated {
     pub position: [u16; 2],
     /// Required GTE LZCS input. It is data only here; no GTE is mutated.
     pub lzcs: u32,
+    pub mantissa: Option<u32>,
+    pub product: i64,
+    pub point: Point,
 }
 const IDENTITIES: &[(usize, usize, &str)] = &[
     (
@@ -165,26 +177,43 @@ impl<'a> Tables<'a> {
             .wrapping_add((dy as i32).wrapping_mul(dy as i32));
         let lzcs = (squared as u32).wrapping_shl(12);
         let radius = self.root_q6(lzcs)? as i32;
+        let mantissa = if lzcs == 0 {
+            None
+        } else {
+            let even = lzcs.leading_zeros() & !1;
+            let n = if even >= 24 {
+                lzcs << (even - 24)
+            } else {
+                lzcs >> (24 - even)
+            };
+            Some(self.half(0x2dbe0 + (n as usize - 64) * 2) as u32)
+        };
         let theta = self.atan(dy, dx)
             + if mirrored {
                 -(angle as i32)
             } else {
                 angle as i32
             };
-        let x = (self.cos(theta) >> 4)
-            .wrapping_mul(radius)
-            .wrapping_add(0x80000)
-            >> 20;
-        let y = (self.sin(theta) >> 4)
-            .wrapping_mul(radius)
-            .wrapping_add(0x80000)
-            >> 20;
+        let cos_q8 = self.cos(theta) >> 4;
+        let sin_q8 = self.sin(theta) >> 4;
+        let x = cos_q8.wrapping_mul(radius).wrapping_add(0x80000) >> 20;
+        let y = sin_q8.wrapping_mul(radius).wrapping_add(0x80000) >> 20;
         Ok(Rotated {
             position: [
                 pivot[0].wrapping_add(x as u16),
                 pivot[1].wrapping_add(y as u16),
             ],
             lzcs,
+            mantissa,
+            product: sin_q8 as i64 * radius as i64,
+            point: Point {
+                dx,
+                dy,
+                lzcs,
+                theta,
+                cos_q8,
+                sin_q8,
+            },
         })
     }
 }

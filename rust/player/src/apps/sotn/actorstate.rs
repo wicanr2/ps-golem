@@ -321,6 +321,7 @@ pub struct ActorDataPlan {
     pub geometry: ActorPlan,
     pub scratch: Vec<u8>,
     pub architecture: Architecture,
+    pub rotation_lzcs: Option<u32>,
     before: State,
     ram_hash: [u8; 32],
     scratch_hash: [u8; 32],
@@ -375,6 +376,7 @@ impl ActorDataPlan {
             geometry: plan,
             scratch: sc,
             architecture: arch,
+            rotation_lzcs: None,
             before: state.clone(),
             ram_hash: hash(input),
             scratch_hash: hash(scratch),
@@ -411,8 +413,8 @@ impl ActorDataPlan {
             return Err("物件資料架構入口不在支援範圍".into());
         }
         let mut plan = ActorPlan::prepare(input, scratch)?;
-        if plan.rotations != 0 {
-            return Err("旋轉完整CPU／GTE／時鐘效果尚未封閉".into());
+        if !plan.rotation_effects.is_empty() && state.cop0[12] & (1 << 30) == 0 {
+            return Err("旋轉需要CU2".into());
         }
         for &(a, v) in &[
             (2147664480u32, 2147664416u32),
@@ -452,7 +454,7 @@ impl ActorDataPlan {
         }
         let last_q = plan.quads.last().unwrap().clone();
         let last = Part::read(input, last_q.entity, last_q.part)?;
-        let supported_flags = if last.flags & 8 == 0 { 0x83 } else { 0xfb };
+        let supported_flags = if last.flags & 8 == 0 { 0x87 } else { 0xff };
         if last.flags & !supported_flags != 0
             || !matches!(last.flip, 0 | 2)
             || if last.packed {
@@ -589,6 +591,9 @@ impl ActorDataPlan {
         working[1] = 0x1f800000;
         let mut product = ((state.hi as u64) << 32 | state.lo as u64) as i64;
         let mut last_transform = None;
+        let mut rotation_lzcs = None;
+        let mut last_rotation = None;
+        let mut root_register = state.gpr[13];
         for q in plan.quads.iter().filter(|q| !q.duplicate) {
             let p = Part::read(input, q.entity, q.part)?;
             if p.packed {
@@ -610,9 +615,20 @@ impl ActorDataPlan {
                 working[2] = p.part_flags as i16 as i32 as u32;
                 working[7] = p.address + 20;
             }
-            if p.packed || p.flags & 3 != 0 {
+            if p.packed || p.flags & 7 != 0 {
                 last_transform = Some((q.entity, p.clone(), working));
-                if let Some(v) = p.product(input, q.entity)? {
+                if let Some(e) = plan
+                    .rotation_effects
+                    .iter()
+                    .find(|e| e.entity == q.entity && e.part == q.part)
+                {
+                    product = e.product;
+                    rotation_lzcs = Some(e.lzcs);
+                    last_rotation = Some(e.entity);
+                    if let Some(v) = e.mantissa {
+                        root_register = v;
+                    }
+                } else if let Some(v) = p.product(input, q.entity)? {
                     product = v;
                 }
             }
@@ -648,6 +664,11 @@ impl ActorDataPlan {
                 (0x28, 0xffffff),
             ] {
                 put(&mut ram, frame + off, v)?;
+            }
+        }
+        if let Some(slot) = last_rotation {
+            if last_upload.map(|u| slot >= u.0).unwrap_or(true) {
+                put(&mut ram, sp - 0x98, 0x800eb904)?;
             }
         }
         sc[3] = 12;
@@ -777,6 +798,7 @@ impl ActorDataPlan {
         ] {
             arch.gpr[reg] = v;
         }
+        arch.gpr[13] = root_register;
         arch.gpr[34] = state.gpr[16];
         arch.hi = ((product as u64) >> 32) as u32;
         arch.lo = product as u32;
@@ -792,6 +814,7 @@ impl ActorDataPlan {
             geometry: plan,
             scratch: sc,
             architecture: arch,
+            rotation_lzcs,
             before: state.clone(),
             ram_hash: hash(input),
             scratch_hash: hash(scratch),
@@ -828,6 +851,9 @@ impl ActorDataPlan {
         context: TextureContext,
         irq_mask: u32,
     ) -> Result<()> {
+        if self.rotation_lzcs.is_some() {
+            return Err("旋轉需完整GTE交易，不能只套State".into());
+        }
         self.validate(ram, scratch, state, context, irq_mask)?;
         ram.copy_from_slice(&self.geometry.ram);
         scratch.copy_from_slice(&self.scratch);

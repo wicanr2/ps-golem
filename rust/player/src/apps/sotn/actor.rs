@@ -3,6 +3,15 @@
 //! Original KSEG0 sub_800EB998 is evidence only. No CPU or GP0 execution.
 #[path = "actormath.rs"]
 mod actormath;
+pub use actormath::Point as RotationPoint;
+pub struct RotationEffect {
+    pub entity: usize,
+    pub part: usize,
+    pub lzcs: u32,
+    pub mantissa: Option<u32>,
+    pub product: i64,
+    pub points: [RotationPoint; 4],
+}
 use psgolem_core::gpu::transfer::{Rect, TextureJob};
 use sha2::{Digest, Sha256};
 type Result<T> = std::result::Result<T, String>;
@@ -76,6 +85,7 @@ pub struct ActorPlan {
     pub active: usize,
     pub hidden: usize,
     pub rotations: usize,
+    pub rotation_effects: Vec<RotationEffect>,
     pub count_before: u32,
     pub count_after: u32,
 }
@@ -120,6 +130,7 @@ impl ActorPlan {
             active: 0,
             hidden: 0,
             rotations: 0,
+            rotation_effects: Vec::new(),
             count_before: before,
             count_after: before,
         };
@@ -372,16 +383,33 @@ impl ActorPlan {
                     if math.is_none() {
                         math = Some(actormath::Tables::new(input)?);
                     }
-                    for &p in &xy {
+                    let mut points = [RotationPoint::default(); 4];
+                    let mut mantissa = None;
+                    let mut last = None;
+                    for (i, &p) in xy.iter().enumerate() {
                         let rotated = math.as_ref().unwrap().rotate(
                             [half(&packet, p), half(&packet, p + 2)],
                             [px, py],
                             r.half(a + 0x1e)? as i16,
                             flip != 0,
                         )?;
+                        points[i] = rotated.point;
+                        if rotated.mantissa.is_some() {
+                            mantissa = rotated.mantissa;
+                        }
+                        last = Some(rotated);
                         put_half(&mut packet, p, rotated.position[0]);
                         put_half(&mut packet, p + 2, rotated.position[1]);
                     }
+                    let last = last.unwrap();
+                    plan.rotation_effects.push(RotationEffect {
+                        entity: slot,
+                        part,
+                        lzcs: last.lzcs,
+                        mantissa,
+                        product: last.product,
+                        points,
+                    });
                 }
                 let (x0, x1) = if (part_flags as u32 & 2) ^ flip != 0 {
                     (u1 - 1, u0 - 1)

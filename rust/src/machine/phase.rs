@@ -32,7 +32,7 @@ impl Machine {
         costs: &[u32],
         budget: u64,
     ) -> Result<(), String> {
-        self.commit_data_phase(endpoint, patches, None, costs, budget, None)
+        self.commit_data_phase(endpoint, patches, None, costs, budget, None, None)
     }
 
     /// Explicit completed arithmetic + scratch transport, spec026 §16.5.
@@ -50,7 +50,7 @@ impl Machine {
         if scratch.len() != self.bus.scratch.len() {
             return Err("scratch長度不符".into());
         }
-        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, None)
+        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, None, None)
     }
 
     /// Synchronous typed texture batch plus CPU data, spec026 §16.7.3.
@@ -70,7 +70,43 @@ impl Machine {
         {
             return Err("顯存交易需要完整scratch及末尾清除".into());
         }
-        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, Some(jobs))
+        self.commit_data_phase(
+            endpoint,
+            patches,
+            Some(scratch),
+            costs,
+            budget,
+            Some(jobs),
+            None,
+        )
+    }
+
+    /// Completed LZCS scalar effect, optional typed textures, spec026 16.7.17.
+    /// Caller proves the endpoint and invisible intermediate effects; no GTE command/ISA is executed.
+    pub fn commit_lzcs_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        scratch: &[u8],
+        costs: &[u32],
+        budget: u64,
+        jobs: &[TextureJob],
+        lzcs: u32,
+    ) -> Result<(), String> {
+        if scratch.len() != self.bus.scratch.len()
+            || !jobs.is_empty() && !matches!(jobs.last(), Some(TextureJob::Clear { .. }))
+        {
+            return Err("LZCS交易的scratch或顯存批次不符".into());
+        }
+        self.commit_data_phase(
+            endpoint,
+            patches,
+            Some(scratch),
+            costs,
+            budget,
+            if jobs.is_empty() { None } else { Some(jobs) },
+            Some(lzcs),
+        )
     }
 
     fn texture_phase_ready(&self) -> bool {
@@ -91,6 +127,7 @@ impl Machine {
         costs: &[u32],
         budget: u64,
         textures: Option<&[TextureJob]>,
+        lzcs: Option<u32>,
     ) -> Result<(), String> {
         if costs.is_empty() || costs.len() > 100_000 || patches.len() > 524_288 {
             return Err("資料階段大小不符".into());
@@ -126,6 +163,8 @@ impl Machine {
                     || endpoint.muldiv_done != before.muldiv_done
             }
             || endpoint.gte_done != before.gte_done
+            || (lzcs.is_some()
+                && (before.gte_done > before.now || before.cop0[12] & (1 << 30) == 0))
             || endpoint.icache.iter().any(|line| line.valid & !15 != 0)
             || !self.data_phase_idle()
             || (textures.is_some() && !self.texture_phase_ready())
@@ -176,6 +215,9 @@ impl Machine {
             candidate.bus.scratch.copy_from_slice(scratch);
         }
         candidate.cpu.state = endpoint.clone();
+        if let Some(value) = lzcs {
+            candidate.cpu.gte.write(30, value);
+        }
         *self = candidate;
         Ok(())
     }
@@ -443,5 +485,126 @@ mod texture_tests {
             );
             assert!(m.take_audio().is_empty());
         }
+    }
+}
+
+// New generic transport tests, not an original-game substitute.
+#[cfg(test)]
+mod lzcs_tests {
+    use super::*;
+    use crate::cpu::Bus;
+    fn machine() -> Machine {
+        let mut m = Machine::new(&vec![0; 0x80000]).unwrap();
+        m.cpu.state.cop0[12] |= 1 << 30;
+        m
+    }
+    fn endpoint(m: &Machine) -> State {
+        let mut s = m.cpu.state.clone();
+        s.pc = 0x80010000;
+        s.next_pc = s.pc + 4;
+        s.now += 7;
+        s.cost = 1;
+        s.hi = 12;
+        s.lo = 345;
+        s.muldiv_done = 6;
+        s
+    }
+    #[test]
+    fn completed_lzcs_changes_only_the_derived_pair() {
+        for value in [0, 0x1234, 0xff000123] {
+            let mut m = machine();
+            for reg in 0..64 {
+                m.cpu.gte.write(reg, 0x35110000 + reg as u32 * 257);
+            }
+            let mut expected = m.cpu.gte.clone();
+            expected.write(30, value);
+            let s = endpoint(&m);
+            m.commit_lzcs_data_phase(
+                &s,
+                &[RamWordPatch {
+                    offset: 16,
+                    value: 456,
+                }],
+                &[0x57; 1024],
+                &[1, 5, 1],
+                7,
+                &[],
+                value,
+            )
+            .unwrap();
+            assert_eq!(m.cpu.gte, expected);
+            assert_eq!(m.cpu.state, s);
+            assert_eq!(m.cycles(), 7);
+            assert_eq!(&m.bus.ram()[16..20], &456u32.to_le_bytes());
+            assert_eq!(m.bus.scratch(), &[0x57; 1024]);
+        }
+    }
+    #[test]
+    fn lzcs_rejects_busy_unusable_and_bad_payload_without_mutation() {
+        use crate::gpu::transfer::Rect;
+        for kind in 0..5 {
+            let mut m = machine();
+            if kind == 0 {
+                m.cpu.state.gte_done = 1;
+            }
+            if kind == 1 {
+                m.cpu.state.cop0[12] &= !(1 << 30);
+            }
+            let before = m.clone();
+            let s = endpoint(&m);
+            let sc = vec![0x57; if kind == 2 { 1023 } else { 1024 }];
+            let jobs = match kind {
+                3 => vec![TextureJob::Upload {
+                    rect: Rect {
+                        x: 0,
+                        y: 0,
+                        width: 1,
+                        height: 1,
+                    },
+                    words: vec![1],
+                }],
+                4 => vec![TextureJob::Clear {
+                    rect: Rect {
+                        x: 1023,
+                        y: 0,
+                        width: 2,
+                        height: 1,
+                    },
+                }],
+                _ => vec![],
+            };
+            assert!(m
+                .commit_lzcs_data_phase(&s, &[], &sc, &[1, 5, 1], 7, &jobs, 0x1234)
+                .is_err());
+            assert_eq!(m.cpu, before.cpu);
+            assert_eq!(m.cycles(), before.cycles());
+            assert_eq!(m.bus.ram(), before.bus.ram());
+            assert_eq!(m.bus.scratch(), before.bus.scratch());
+            assert!(m.take_audio().is_empty());
+        }
+    }
+    #[test]
+    fn lzcs_and_scratch_roll_back_when_timer_irq_arrives() {
+        let mut m = machine();
+        m.cpu.gte.write(30, 0x77550011);
+        m.bus.write32(0x1f801074, 1 << 4);
+        m.bus.write32(0x1f801108, 2);
+        m.bus.write32(0x1f801104, 1 << 4);
+        let before = m.clone();
+        let mut s = endpoint(&m);
+        s.now = 5;
+        s.cost = 5;
+        s.muldiv_done = 0;
+        assert!(m
+            .commit_lzcs_data_phase(&s, &[], &[0x57; 1024], &[5], 5, &[], 0x1234)
+            .is_err());
+        assert_eq!(m.cpu, before.cpu);
+        assert_eq!(m.cycles(), 0);
+        assert_eq!(m.bus.scratch(), before.bus.scratch());
+        assert_eq!(
+            m.bus.timers.peek(0x1f801100),
+            before.bus.timers.peek(0x1f801100)
+        );
+        assert!(m.take_audio().is_empty());
     }
 }

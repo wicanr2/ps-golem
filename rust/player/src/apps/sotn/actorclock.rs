@@ -1,6 +1,7 @@
 //! Ordinary actor resource clock, 026 §16.7.2, GPL-3.0-or-later.
 //! Own 008/026 CPU/cache model at 4e2fad8. Original PCs label resource
 //! footprints only: no opcode fetch, guest execution, or saved-trace replay.
+use super::actor::{RotationEffect, RotationPoint};
 use super::actorstate::{ActorDataPlan, Part};
 use psgolem_core::{cpu::State, gpu::transfer::TextureContext};
 use sha2::{Digest, Sha256};
@@ -109,6 +110,18 @@ const READ_SITES: &[(u32, u32)] = &[
     (0x15440, 4),
     (0x1567c, 4),
     (0x15684, 2),
+    (0x16cc8, 4),
+    (0x16cf4, 4),
+    (0x16d14, 4),
+    (0x16d40, 4),
+    (0x16d54, 4),
+    (0x16d9c, 4),
+    (0x16db4, 4),
+    (0x16dd8, 4),
+    (0x16df4, 4),
+    (0x17280, 4),
+    (0x19170, 4),
+    (0x191fc, 4),
     (0xeb548, 4),
     (0xeb550, 4),
     (0xeb57c, 4),
@@ -118,6 +131,8 @@ const READ_SITES: &[(u32, u32)] = &[
     (0xeb5ec, 4),
     (0xeb620, 4),
     (0xeb65c, 4),
+    (0xeb694, 4),
+    (0xeb6a0, 4),
     (0xeb928, 4),
     (0xeb92c, 4),
     (0xeb930, 4),
@@ -288,6 +303,7 @@ struct Clock {
     width: u32,
     scale_x: u32,
     scale_y: u32,
+    rotation: [RotationPoint; 4],
 }
 impl Clock {
     fn run(&mut self, first: u32, last: u32) -> Result<()> {
@@ -311,7 +327,7 @@ impl Clock {
             if let Ok(i) = READ_SITES.binary_search_by_key(&pc, |x| x.0) {
                 cost += READ_SITES[i].1 as u64;
             }
-            if [0x140d0, 0xeb5d4, 0xeb5f8, 0xeb644, 0xeb668].contains(&pc) {
+            if [0x140d0, 0xeb5d4, 0xeb5f8, 0xeb644, 0xeb668].contains(&pc) || rotation_mflo(pc) {
                 cost = cost.max(self.state.muldiv_done.saturating_sub(self.state.now));
             }
             if cost > 32 {
@@ -324,8 +340,11 @@ impl Clock {
                 0x140c8 => Some(self.width),
                 0xeb5c0 | 0xeb5f4 => Some(self.scale_x),
                 0xeb630 | 0xeb664 => Some(self.scale_y),
-                _ => None,
+                _ => self.rotation_mult_operand(pc),
             };
+            if [0x19134, 0x191c0].contains(&pc) {
+                self.state.muldiv_done = self.state.now + 37;
+            }
             if let Some(a) = operand {
                 let key = a ^ ((a as i32 >> 31) as u32);
                 self.state.muldiv_done = self
@@ -449,7 +468,11 @@ impl Clock {
         if flags & 2 != 0 {
             self.run(0xeb61c, 0xeb67c)?;
         }
-        self.ranges(&[(0xeb680, 0xeb688), (0xeb928, 0xeb958)])
+        self.run(0xeb680, 0xeb688)?;
+        if flags & 4 != 0 {
+            self.rotation_clock(flip)?;
+        }
+        self.run(0xeb928, 0xeb958)
     }
     fn packed(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
         let a = 0x800733d8 + slot as u32 * 188;
@@ -597,7 +620,7 @@ impl Clock {
             self.run(0xec37c, 0xec3c4)?;
         }
         self.run(0xec404, 0xec418)?;
-        if p.flags & 3 != 0 {
+        if p.flags & 7 != 0 {
             self.run(0xec41c, 0xec44c)?;
             self.transform(r, slot, p.flags, p.flip)?;
             self.run(0xec450, 0xec458)?;
@@ -703,7 +726,7 @@ impl Clock {
         }
         self.run(0xec938, 0xec954)
     }
-    fn scene(&mut self, r: &[u8]) -> Result<()> {
+    fn scene(&mut self, r: &[u8], effects: &[RotationEffect]) -> Result<()> {
         let word = |a: u32| {
             let i = (a & 0x1fffff) as usize;
             u32::from_le_bytes(r[i..i + 4].try_into().unwrap())
@@ -751,6 +774,9 @@ impl Clock {
                 self.run(0xebb7c, 0xebb90)?;
                 let p = Part::read(r, slot, 0)?;
                 if p.packed {
+                    if let Some(e) = effects.iter().find(|e| e.entity == slot && e.part == 0) {
+                        self.rotation = e.points;
+                    }
                     self.packed(r, slot, &p)?;
                     count += 1;
                 } else {
@@ -764,6 +790,11 @@ impl Clock {
                             }
                             let p = Part::read(r, slot, part)?;
                             let early = bank == 15 && count == 767;
+                            if let Some(e) =
+                                effects.iter().find(|e| e.entity == slot && e.part == part)
+                            {
+                                self.rotation = e.points;
+                            }
                             self.ordinary(r, slot, &p, count)?;
                             count += if bank == 15 && !early { 2 } else { 1 };
                             if early {
@@ -794,6 +825,9 @@ impl ActorClockPlan {
         biu: u32,
     ) -> Result<Self> {
         let data = ActorDataPlan::prepare(ram, scratch, before, context, irq)?;
+        if data.rotation_lzcs.is_some() && before.gte_done > before.now {
+            return Err("旋轉入口GTE仍忙碌".into());
+        }
         if biu != 125320 || before.icache.iter().any(|l| l.valid & !15 != 0) {
             return Err("物件BIU／cache不在支援範圍".into());
         }
@@ -808,8 +842,9 @@ impl ActorClockPlan {
             width: 0,
             scale_x: 0,
             scale_y: 0,
+            rotation: [RotationPoint::default(); 4],
         };
-        c.scene(ram)?;
+        c.scene(ram, &data.geometry.rotation_effects)?;
         data.architecture.apply(&mut c.state);
         Ok(Self {
             data,
@@ -850,6 +885,17 @@ impl ActorClockPlan {
             .iter()
             .map(|j| j.job.clone())
             .collect();
+        if let Some(lzcs) = self.data.rotation_lzcs {
+            return m.commit_lzcs_data_phase(
+                &self.endpoint,
+                &patches,
+                &self.data.scratch,
+                &self.costs,
+                100000,
+                &jobs,
+                lzcs,
+            );
+        }
         if jobs.is_empty() {
             return m.commit_cpu_data_phase(
                 &self.endpoint,
@@ -873,5 +919,194 @@ impl ActorClockPlan {
     }
     pub fn costs(&self) -> &[u32] {
         &self.costs
+    }
+}
+
+// Disposable high-level rotation resource clock, spec026 §16.7.17.
+// PCs identify cache/read resources. No opcode fetch or ISA/event replay.
+fn rotation_mflo(pc: u32) -> bool {
+    [
+        0xeb6c8, 0xeb6d8, 0xeb714, 0xeb738, 0xeb754, 0xeb77c, 0xeb7b4, 0xeb7d8, 0xeb7f4, 0xeb81c,
+        0xeb854, 0xeb878, 0xeb894, 0xeb8bc, 0xeb8f4, 0xeb914, 0x1915c, 0x191e8,
+    ]
+    .contains(&pc)
+}
+impl Clock {
+    fn rotation_mult_operand(&self, pc: u32) -> Option<u32> {
+        let (i, kind) = match pc {
+            0xeb6b8 => (0, 0),
+            0xeb6d4 => (0, 1),
+            0xeb708 => (0, 2),
+            0xeb728 => (0, 3),
+            0xeb744 => (1, 0),
+            0xeb760 => (1, 1),
+            0xeb7ac => (1, 2),
+            0xeb7c8 => (1, 3),
+            0xeb7e4 => (2, 0),
+            0xeb800 => (2, 1),
+            0xeb84c => (2, 2),
+            0xeb868 => (2, 3),
+            0xeb884 => (3, 0),
+            0xeb8a0 => (3, 1),
+            0xeb8ec => (3, 2),
+            0xeb908 => (3, 3),
+            _ => return None,
+        };
+        let p = self.rotation[i];
+        Some(match kind {
+            0 => p.dx as i32,
+            1 => p.dy as i32,
+            2 => p.cos_q8,
+            _ => p.sin_q8,
+        } as u32)
+    }
+    fn root_clock(&mut self, input: u32) -> Result<()> {
+        self.run(0x1721c, 0x17234)?;
+        if input == 0 {
+            return self.run(0x172a8, 0x172ac);
+        }
+        let even = input.leading_zeros() & !1;
+        self.run(0x17238, 0x17258)?;
+        if even >= 24 {
+            self.run(0x1725c, 0x17264)?;
+        } else {
+            self.run(0x17264, 0x1726c)?;
+        }
+        self.run(0x17270, 0x1728c)?;
+        if ((19 - even as i32) >> 1) >= 0 {
+            self.run(0x17290, 0x17298)
+        } else {
+            self.run(0x1729c, 0x172a4)
+        }
+    }
+    fn atan_clock(&mut self, y: i16, x: i16) -> Result<()> {
+        self.run(0x190ac, 0x190b4)?;
+        if x < 0 {
+            self.run(0x190b8, 0x190bc)?;
+        }
+        self.run(0x190c0, 0x190c4)?;
+        if y < 0 {
+            self.run(0x190c8, 0x190cc)?;
+        }
+        self.run(0x190d0, 0x190d4)?;
+        if x == 0 {
+            self.run(0x190d8, 0x190dc)?;
+            if y == 0 {
+                self.run(0x190e0, 0x190e4)?;
+                return self.run(0x19224, 0x19228);
+            }
+        }
+        self.run(0x190e8, 0x190ec)?;
+        if (y as i32).abs() < (x as i32).abs() {
+            self.run(0x190f0, 0x190f8)?;
+            self.run(0x19130, 0x1913c)?;
+            self.run(0x19144, 0x1914c)?;
+            self.run(0x1915c, 0x19178)?;
+        } else {
+            self.run(0x1917c, 0x19184)?;
+            self.run(0x191bc, 0x191c8)?;
+            self.run(0x191d0, 0x191d8)?;
+            self.run(0x191e8, 0x19204)?;
+        }
+        self.run(0x19208, 0x1920c)?;
+        if x < 0 {
+            self.run(0x19210, 0x19210)?;
+        }
+        self.run(0x19214, 0x19218)?;
+        if y < 0 {
+            self.run(0x1921c, 0x19220)?;
+        }
+        self.run(0x19224, 0x19228)
+    }
+    fn cos_clock(&mut self, angle: i32) -> Result<()> {
+        let a = angle.unsigned_abs() & 4095;
+        self.run(0x16d68, 0x16d6c)?;
+        if angle < 0 {
+            self.run(0x16d70, 0x16d70)?;
+        }
+        self.run(0x16d74, 0x16d80)?;
+        if a <= 2048 {
+            self.run(0x16d84, 0x16d88)?;
+            if a <= 1024 {
+                self.run(0x16d8c, 0x16da4)?;
+            } else {
+                self.run(0x16da8, 0x16dbc)?;
+            }
+        } else {
+            self.run(0x16dc0, 0x16dc8)?;
+            if a <= 3072 {
+                self.run(0x16de4, 0x16dfc)?;
+            } else {
+                self.run(0x16dcc, 0x16de0)?;
+            }
+        }
+        self.run(0x16e00, 0x16e04)
+    }
+    fn sin_clock(&mut self, angle: i32) -> Result<()> {
+        let a = angle.unsigned_abs() & 4095;
+        self.run(0x16c9c, 0x16ca4)?;
+        if angle < 0 {
+            self.run(0x16cb8, 0x16cc0)?;
+        } else {
+            self.run(0x16ca8, 0x16cac)?;
+        }
+        self.run(0x16cd8, 0x16ce0)?;
+        if a <= 2048 {
+            self.run(0x16ce4, 0x16ce8)?;
+            if a <= 1024 {
+                self.run(0x16cec, 0x16cfc)?;
+            } else {
+                self.run(0x16d00, 0x16d1c)?;
+            }
+        } else {
+            self.run(0x16d20, 0x16d28)?;
+            if a <= 3072 {
+                self.run(0x16d4c, 0x16d5c)?;
+            } else {
+                self.run(0x16d2c, 0x16d48)?;
+            }
+        }
+        self.run(0x16d60, 0x16d64)?;
+        if angle < 0 {
+            self.run(0x16cc4, 0x16cc4)?;
+        } else {
+            self.run(0x16cb0, 0x16cb4)?;
+        }
+        self.run(0x16cc8, 0x16cd4)
+    }
+    fn rotation_clock(&mut self, flip: u32) -> Result<()> {
+        self.run(0xeb68c, 0xeb690)?;
+        if flip != 0 {
+            self.run(0xeb694, 0xeb69c)?;
+        } else {
+            self.run(0xeb6a0, 0xeb6a0)?;
+        }
+        self.run(0xeb6a4, 0xeb6e4)?;
+        let returns = [
+            (
+                0xeb6e8, 0xeb6f4, 0xeb6f8, 0xeb700, 0xeb704, 0xeb720, 0xeb724, 0xeb788,
+            ),
+            (
+                0xeb78c, 0xeb798, 0xeb79c, 0xeb7a4, 0xeb7a8, 0xeb7c0, 0xeb7c4, 0xeb828,
+            ),
+            (
+                0xeb82c, 0xeb838, 0xeb83c, 0xeb844, 0xeb848, 0xeb860, 0xeb864, 0xeb8c8,
+            ),
+            (
+                0xeb8cc, 0xeb8d8, 0xeb8dc, 0xeb8e4, 0xeb8e8, 0xeb900, 0xeb904, 0xeb924,
+            ),
+        ];
+        for (i, &(a, b, c, d, e, f, g, h)) in returns.iter().enumerate() {
+            let p = self.rotation[i];
+            self.root_clock(p.lzcs)?;
+            self.run(a, b)?;
+            self.atan_clock(p.dy, p.dx)?;
+            self.run(c, d)?;
+            self.cos_clock(p.theta)?;
+            self.run(e, f)?;
+            self.sin_clock(p.theta)?;
+            self.run(g, h)?;
+        }
+        Ok(())
     }
 }

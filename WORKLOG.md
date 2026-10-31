@@ -2901,3 +2901,17 @@ DRAFT後46751數學、576幾何候選首次完整全同，READY凍結後安裝�
 準備首停漏複製原Clock，CPU比較0；保留首版probe／log後只補未改原檔，數學／幾何候選未調整。舊§16.6旋轉幾何拒絕由新576例與完整資料守門接替，舊正案例不重跑。025 Go拒絕保持，026舊幾何與新16.7.16加RUST-ROTATION-GEOMETRY-20261031回鏈，resolution-backlinks.json護欄通過。
 
 本節限定CONFORMED，整段旋轉及HD仍DRAFT。下一段為helper堆疊、HI／LO／volatile、GTE效果、快取／時間與原子提交；文字／HUD、城堡其餘HD、特效／3D及正式整場仍待。原DB／原資料／存檔、CPU／GPU、海報、影片與定案美術保持；新正常開機／美術／GUI／硬體GPU／包0，速度未量。README不追加歷程，最終截圖待完整HD正常驗證。公開#17／#19與私人#13／#27保持OPEN。工具及本機收據由assets-catalog的actor-rotation-v1進入；有界--rm容器、原始資料唯讀，不動共享Docker資源。
+
+
+## 2026-10-31 Rust旋轉完整狀態與原子提交
+
+026 §16.7.17沿既有IDA9.4原bytes／原表數學，直接推導四角資料、T5最後非零查表值、HI／LO、主SP-98h與後續SDK先後效果，並以原資源分支生成cache／乘除等待。核心commit_lzcs_data_phase接已完成LZCS30、衍生31與可選圖像工作；clone完成所有守門才替換Machine，舊API保持。沒有執行原ISA／SDK／GP0或PC足跡回播建立資料。
+
+588候選資料／GTE首次全同；Clock首版誤包含正常非零除數不走的BREAK7，依原19138→19144、191C4→191D0及delay slot只修資源區段。凍結資料／GTE來源後只補Clock588，全同後READY才安裝。唯一正式588例、6098752量子、完整RAM／scratch／CPU State／GTE與逐成本同；六個拒絕及三個新核心測試通過。一個正常原片基準續跑8383及原音同；十個獨立RAM旋轉診斷全Machine／成本／排隊音訊同，共113225原CPU控制指令，六組零上傳保持非預設DMA2。兩組零半徑及兩組先旋轉後上傳已驗，注入不當自然旋轉／角色／關卡。
+
+準備首停為Python變數覆蓋，CPU案例0；保留preparation-stop後修正同批續接。誤掛不存在來源的一個空操作曾建立root-owned空目錄，驗空後只移除該目錄，未更動原資料，mount-cleanup.json可追溯。原DB／BOOT／DRA／原片／原卡保持，新IDA／舊46751數學／美術／GUI／硬體GPU／打包0。歷史幾何probe移除過期完整旋轉拒絕斷言，原正案例／歷史收據不重跑或改寫；025／026回鏈RUST-ROTATION-STATE-20261031有自動護欄。
+
+限定CONFORMED，026 §16／16.7整體及正式整場仍DRAFT，後續相容光柵保留。剩餘來源生命週期、未列域、packed容量、其他SDK、文字／HUD、其餘城堡素材、特效／3D與整場接線待接，速度未量。CPU／GPU、原版、海報、影片及定案美術保持。README只留穩定入口，最終截圖待完整HD正常驗證。公開#17／#19與私人#13／#27保持OPEN；工具與收據由assets-catalog的actor-rotation-state-v1進入。有界--rm Docker、原始資料唯讀，不動共享資源。
+
+
+同批收據工具首次因把/output的父目錄當原研究路徑，在文件或正式來源修改前停止；改為/materials明確來源後續接成功，正式案例與整機不重跑。recording-stop.json保存範圍。

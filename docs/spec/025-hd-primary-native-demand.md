@@ -584,6 +584,8 @@ Go原型從入口RAM／scratch只讀推導型別頂點、UV、CLUT、頁面、�
 
 首次觀測準備漏HD附件，EnablePGXP在CPU執行前停止，正常路線與幾何案例0；保留binary／來源／日誌，只補既有HD2 shadow。首次正常12次擷取完成，第一次Go比較11次通過，第12次因槽63的flags3縮放被守門拒絕。根據已查詢0x800EB544的固定8位小數公式補縮放，第二次只用保存12態離線比較，全數通過；沒有重開遊戲或重驗美術。第一版來源／拒絕／日誌保留，不稱首次全過。旋轉及bank15複製仍拒絕。
 
+補註 `RUST-ROTATION-STATE-20261031`：Go拒絕保持；PS1 KSEG0 DRA 0x800EB544的Rust完整旋轉效果後續沿026 §16.7.17限域封閉，正式整場與未列域仍待。
+
 補註 `RUST-ROTATION-GEOMETRY-20261031`：本段Go拒絕契約保持。相同DRA 0x800EB544的Rust旋轉數學／型別幾何由026 §16.7.16限域接替，ordinary bank15沿026 §16.7.14；未把新Rust幾何當作Go能力或完整Rust效果，原收據保留。
 
 無新畫面、完整HD4／1080p GUI／硬體GPU或速度聲明。先完成全部Go接管，效能後續；CPU／GPU及海報保持。限定來源／收據由私人direct-go-v1/actor-summary-v1.json與actor-frozen-sources-v1.json索引，本節維持DRAFT。
