@@ -174,9 +174,6 @@ impl ActorPlan {
             let frame_data = r.pointer(table + (frame as u32 & 0x7fff) * 4)?;
             let n = r.half(frame_data)?;
             let packed = n & 0x8000 != 0;
-            if bank == 15 && packed {
-                return Err("packed bank15尚未證實".into());
-            }
             let parts = if packed { 1 } else { n as usize };
             if parts > 768 {
                 return Err("動畫部件數超界".into());
@@ -470,7 +467,7 @@ impl ActorPlan {
                 let primary_order = order;
                 for duplicate in [false, true]
                     .into_iter()
-                    .take(if bank == 15 { 2 } else { 1 })
+                    .take(if bank == 15 && !packed { 2 } else { 1 })
                 {
                     if count >= 768 {
                         break;

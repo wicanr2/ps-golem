@@ -750,6 +750,8 @@ EC1B8–1C8對ordinary部件數零跳EC958，delay slot仍清scratch+4C，不設
 
 #### 16.7.14 Ordinary bank15的額外圖元
 
+補註 `RUST-PACKED-BANK15-20261031`：本節為ordinary兩份圖元的歷史切片。PS1 KSEG0 DRA 0x800EBB8C／0x800EC1B0的packed bank15單圖元路徑已沿§16.7.18限域封閉，原packed拒絕只代表當時版本，不重開該負斷言；自然來源／正式整場仍待。
+
 狀態：CONFORMED。沿16.7.1–16.7.13的架構／SDK／同步交易範圍，接普通bank15每個部件的第二份圖元；packed bank15、rotation、容量耗盡、自然來源生命週期與正式整場不在本切片。來源DRA／boot／DB SHA與工具沿16.7.13；PS1 KSEG0 RAM、DRA offset EA-0x800A0000，原IDA9.4 EC788–EC954的原bytes與輸入SHA由私人actor-bank15-v1/evidence.json追溯。
 
 已證實EC7A4在普通bank15第一份圖元後進額外分支，容量未滿時將同一型別部件另作一份：X加20或44減entity0的X，分別依當前entity朝向非零／零；Y加24減entity0的Y，CLUT直接取8003C30C。第二份排序為當前entity排序加416減entity0排序，part_flags的100仍加4。頂點、UV、色彩、混色與材質頁沿第一份，只有列出的座標／CLUT／排序變化；scratch保留第二份資料，主routine正常推進部件與entity。
@@ -842,3 +844,24 @@ READY證據：588候選完整RAM／scratch／架構及全GTE首次全部同原CP
 候選資料／GTE一次全同，Clock只補一次未走BREAK7的資源分支；保留首版及差異，正式局部與整機各一次通過。準備工具變數覆蓋曾在CPU案例0停止，修正後沿同批續接；一個誤掛來源建立的空目錄已驗空並移除，詳mount-cleanup.json。原DB／BOOT／DRA與卡片保持，不新查IDA、不重跑46751舊數學或定案美術。完整呼叫以高階資料與資源成本建立，不執行原ISA／SDK／GP0或保存PC足跡回播；後續原生相容光柵仍在，正式玩家整場未註冊。
 
 026 §16／16.7整體仍DRAFT。剩餘來源生命週期、未列旋轉域／忙碌GTE、packed容量、其他SDK、文字／HUD、城堡其餘HD、特效／3D及完整呈現另接；不作完整HD／新GPU／速度聲明。CPU／GPU、海報、影片與原版模式保持。工具與READY／受測來源／集中驗收由私人actor-rotation-state-v1索引進入。
+
+
+#### 16.7.18 Packed bank15的單圖元路徑
+
+狀態：CONFORMED，限已列原packed幀與既有來源契約。沿16.7.13原packed來源路由及16.7.17旋轉／同步提交，補bank15的packed幀。原DRA 0x800EBB80–0x800EBB90依frame header的8000位元選packed，0x800EC1B0直接跳800EC958並由delay slot保存counter，完全略過ordinary的800EC7A4 bank15額外圖元檢查。因此packed bank15只生成一份Quad，不套ordinary第二份座標／CLUT／排序。圖像來源同既有default固定池8013C020，不能把普通bank15的兩份規則套在packed上。
+
+推論等級：以上控制流已由原IDA9.4 bytes／xref確認，完整輸出與狀態待候選原CPU／Machine比較。輸入DRA／BOOT／DB沿16.7.17，原routine SHA、原bytes與保存態及現行程式SHA由私人packed-bank15-v1/evidence.json追溯。位址為PS1 KSEG0 RAM，DRA file offset EA-0x800A0000。不新查IDA、不內嵌或公開原始表／圖片。
+
+候選只移除packed bank15未證實守門，將ordinary duplicate判定限定為非packed；資料／Clock／核心API沿既有契約。從兩保存態映射兩個真packed幀，涵蓋兩朝向、上傳／重用、中途／末槽、flags0／3／4／7／78／7C、正負角及counter2／767，共384個完整RAM／scratch／CPU State／GTE與逐成本比較，前綴保持、恰一新圖元。滿counter768、失效固定池／幀表／原routine仍拒絕。候選通過才READY安裝；正式來源同批比較及一次正常前綴、一自然基準加八個獨立診斷全Machine／原音相同後才限定CONFORMED。
+
+此為合法原RAM副本的診斷綁定，不當自然bank15、角色或關卡覆蓋，不改正式玩法／卡片。原版、CPU／GPU、海報、影片與定案美術保持；後續原生光柵及正式整場仍DRAFT，文字／HUD、其餘城堡、特效／3D及速度另接，不重跑舊美術或核心矩陣。
+
+
+READY證據：384隔離候選首次全部同原CPU，完整2MiB RAM／scratch／CPU State／全GTE及逐成本相同，共2329328量子。每組恰一新Quad，counter2／767均只加1，原前綴逐位元組保持。含兩幀／朝向／中途末槽、上傳重用、六flags及正負角。只需移除過期packed守門並限制duplicate僅普通幀；資料／Clock／核心API來源保持。不當自然bank15或完整HD。
+
+
+原始定位為PS1 KSEG0 DRA 0x800EBB8C分類、0x800EC1B0 packed尾端與0x800EC7A4 ordinary bank15檢查。以上支援域的單圖元與完整狀態已由原CPU／Machine比對證實，未列來源與自然玩家覆蓋保持未知。
+
+16.7.18限定結果：正式384例、2329328量子，完整2MiB RAM／scratch／CPU State／全GTE與逐成本同原CPU，每組一份Quad，前綴逐位元組保持。八個滿capacity768／固定池失效／frame指標失效／原routine身份破壞拒絕通過。唯一正常原片前綴的一個未注入基準續跑8383及原音同，八個獨立packed bank15 RAM診斷完整Machine／顯存／排隊音訊／成本同，共62027原CPU控制指令；四個重用案例保留非預設idle DMA2。只移除packed守門與限制ordinary duplicate，ActorDataPlan／Clock／核心API未改，沒有執行原ISA／SDK／GP0或保存PC回播生成資料。
+
+候選、正式局部與整機各一次通過。原BOOT／DRA／DB、原片／原卡保持；新IDA、美術審查、GUI／硬體GPU或包0，速度未量。注入不當自然bank15、角色或關卡覆蓋，正式玩家整場未註冊。後續原生相容光柵仍在，026 §16／16.7整體仍DRAFT，來源生命週期、未列域、其他SDK、文字／HUD、其餘城堡、特效／3D與完整呈現仍待。CPU／GPU、原版、海報、影片與定案美術保持。來源、READY、受測SHA、集中驗收與回鏈由私人packed-bank15-v1索引追溯。

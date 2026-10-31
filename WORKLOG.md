@@ -2915,3 +2915,12 @@ DRAFT後46751數學、576幾何候選首次完整全同，READY凍結後安裝�
 
 
 同批收據工具首次因把/output的父目錄當原研究路徑，在文件或正式來源修改前停止；改為/materials明確來源後續接成功，正式案例與整機不重跑。recording-stop.json保存範圍。
+
+
+## 2026-10-31 Rust packed bank15單圖元接管
+
+沿原IDA9.4匯出的EBB8C分類、EC1B0跳EC958及delay slot，證實packed bypass ordinary EC7A4額外圖元。只移除packed bank15守門並將duplicate限定非packed，直接建立一份Quad；資料／Clock／核心API不改，非原ISA／SDK／GP0或保存PC足跡回播。
+
+DRAFT後384候選首次完整全同，READY凍結後才安裝。唯一正式384例、2329328量子，完整RAM／scratch／CPU State／全GTE及逐成本同；counter2／767只加1、前綴保持，八個768／固定池／frame／原routine拒絕通過。唯一正常原片前綴的一個自然基準續跑8383及原音同，八個獨立packed bank15 RAM診斷全Machine／顯存／排隊音訊／成本同，共62027原CPU指令，四組重用保持非預設DMA2。診斷涵蓋兩原packed幀、朝向、縮放／色彩／旋轉、上傳／重用及末槽，非自然bank15角色／關卡覆蓋。
+
+原BOOT／DRA／DB、原片／原卡保持，未新查IDA或重跑舊美術／核心／GUI／硬體GPU／整包。舊§16.7.14及兩個歷史probe的packed拒絕已回鏈RUST-PACKED-BANK15-20261031，舊正案例與歷史收據不重跑／改寫。026 §16.7.18限定CONFORMED，正式整場與其餘來源／SDK、文字／HUD、城堡、特效／3D仍待，速度未量，後續原生光柵保留。原版、CPU／GPU、海報、影片與定案美術保持。README維持穩定入口，工作歷程沿本WORKLOG，最終遊戲截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27；本機工具／READY／受測來源／驗收／回鏈／清理由assets-catalog的packed-bank15-v1進入。有界--rm容器、原資料唯讀，不動共享Docker資源。
