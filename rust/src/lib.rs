@@ -25,3 +25,5 @@ pub mod cardfile;
 pub mod scene;
 
 pub mod paint;
+
+pub mod projection;

@@ -2,6 +2,7 @@ use crate::scene::{Canvas, Image, ImagePixels, Material};
 
 #[derive(Clone, Copy, Default)]
 struct Vertex {
+    z: f64,
     x: i32,
     y: i32,
     u: i32,
@@ -113,6 +114,7 @@ fn deltas(a: Vertex, b: Vertex, c: Vertex, f: Flags) -> Option<Delta> {
 }
 impl Painter<'_> {
     fn triangle_checked(&mut self, v: [Vertex; 3], f: Flags) {
+        self.perspective = Perspective::new(v);
         if (v[2].y - v[0].y).abs() >= 512 * self.scale
             || (v[2].y - v[1].y).abs() >= 512 * self.scale
             || (v[1].y - v[0].y).abs() >= 512 * self.scale
@@ -285,7 +287,10 @@ impl Painter<'_> {
         add_x(&mut ig, d, adj as u32, f);
         add_y(&mut ig, d, y as u32, f);
         while w > 0 {
-            let mut t = self.sample(ig.u, ig.v);
+            let uv = self
+                .perspective
+                .map_or([ig.u, ig.v], |p| p.sample(x, y, [ig.u, ig.v]));
+            let mut t = self.sample(uv[0], uv[1]);
             if t != 0 {
                 if f.modulate {
                     let colors = [ig.r >> 24, ig.g >> 24, ig.b >> 24];
@@ -359,6 +364,7 @@ pub struct Draw {
     pub blend: i32,
 }
 struct Painter<'a> {
+    perspective: Option<Perspective>,
     canvas: &'a mut Canvas,
     material: &'a Material,
     image: Option<&'a Image>,
@@ -390,7 +396,7 @@ impl Painter<'_> {
         }
     }
 }
-pub fn draw(
+fn validate(
     canvas: &mut Canvas,
     scale: usize,
     materials: &[Material],
@@ -447,10 +453,21 @@ pub fn draw(
             return Err("人物圖元來源超界".into());
         }
     }
+    Ok(())
+}
+pub fn draw(
+    canvas: &mut Canvas,
+    scale: usize,
+    materials: &[Material],
+    images: &[Option<Image>],
+    draws: &[Draw],
+) -> Result<(), String> {
+    validate(canvas, scale, materials, images, draws)?;
     for d in draws {
         let w = canvas.width;
         let h = canvas.height;
         let mut p = Painter {
+            perspective: None,
             canvas,
             material: &materials[d.material],
             image: if scale == 1 {
@@ -465,6 +482,7 @@ pub fn draw(
             clip_y1: h as i32 - 1,
         };
         let vs = d.points.map(|v| Vertex {
+            z: 0.0,
             x: v.x * scale as i32,
             y: v.y * scale as i32,
             u: v.u,
@@ -489,3 +507,96 @@ pub fn draw(
 #[cfg(test)]
 #[path = "paint_tests.rs"]
 mod tests;
+
+#[path = "perspective.rs"]
+mod perspective;
+use perspective::Perspective;
+/// Direct typed geometry. Position is logical screen space, depth zero is affine.
+#[derive(Clone, Copy, Debug)]
+pub struct ProjectedPoint {
+    pub position: [f64; 2],
+    pub depth: f64,
+    pub uv: [i32; 2],
+    pub color: [u8; 3],
+}
+pub struct ProjectedDraw {
+    pub material: usize,
+    pub points: [ProjectedPoint; 4],
+    pub raw: bool,
+    pub blend: i32,
+}
+/// No CPU, GP0 or native framebuffer. Validate the entire batch before writing.
+pub fn draw_projected(
+    canvas: &mut Canvas,
+    scale: usize,
+    materials: &[Material],
+    images: &[Option<Image>],
+    draws: &[ProjectedDraw],
+) -> Result<(), String> {
+    if draws.len() > 768
+        || draws.iter().flat_map(|d| &d.points).any(|p| {
+            !p.depth.is_finite()
+                || p.depth < 0.0
+                || p.position
+                    .iter()
+                    .any(|v| !v.is_finite() || !(-4096.0..=4096.0).contains(v))
+        })
+    {
+        return Err("3D投影來源超界或非有限值".into());
+    }
+    let validation: Vec<_> = draws
+        .iter()
+        .map(|d| Draw {
+            material: d.material,
+            raw: d.raw,
+            blend: d.blend,
+            points: d.points.map(|v| Point {
+                x: v.position[0].round() as i32,
+                y: v.position[1].round() as i32,
+                u: v.uv[0],
+                v: v.uv[1],
+                color: v.color,
+            }),
+        })
+        .collect();
+    validate(canvas, scale, materials, images, &validation)?;
+    for d in draws {
+        let w = canvas.width;
+        let h = canvas.height;
+        let mut p = Painter {
+            canvas,
+            material: &materials[d.material],
+            image: if scale == 1 {
+                None
+            } else {
+                images[d.material].as_ref()
+            },
+            perspective: None,
+            scale: scale as i32,
+            clip_x0: 0,
+            clip_y0: 0,
+            clip_x1: w as i32 - 1,
+            clip_y1: h as i32 - 1,
+        };
+        let vs = d.points.map(|v| Vertex {
+            x: (v.position[0] * scale as f64).round() as i32,
+            y: (v.position[1] * scale as f64).round() as i32,
+            z: v.depth,
+            u: v.uv[0],
+            v: v.uv[1],
+            r: v.color[0] as i32,
+            g: v.color[1] as i32,
+            b: v.color[2] as i32,
+        });
+        let f = Flags {
+            gouraud: true,
+            textured: true,
+            modulate: !d.raw,
+            mode: d.blend,
+            tm: 0,
+        };
+        p.triangle_checked([vs[0], vs[1], vs[2]], f);
+        p.triangle_checked([vs[1], vs[2], vs[3]], f);
+    }
+    Ok(())
+}
