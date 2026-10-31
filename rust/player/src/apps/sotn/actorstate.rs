@@ -411,6 +411,9 @@ impl ActorDataPlan {
             return Err("物件資料架構入口不在支援範圍".into());
         }
         let mut plan = ActorPlan::prepare(input, scratch)?;
+        if plan.rotations != 0 {
+            return Err("旋轉完整CPU／GTE／時鐘效果尚未封閉".into());
+        }
         for &(a, v) in &[
             (2147664480u32, 2147664416u32),
             (2147664424u32, 2147567216u32),

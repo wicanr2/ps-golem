@@ -1,6 +1,8 @@
 //! Typed SotN animation data, spec026 §16.6, GPL-3.0-or-later.
 //! Own Go model: material tools/sotn_actor_plan_research.go, 6c3911f.
 //! Original KSEG0 sub_800EB998 is evidence only. No CPU or GP0 execution.
+#[path = "actormath.rs"]
+mod actormath;
 use psgolem_core::gpu::transfer::{Rect, TextureJob};
 use sha2::{Digest, Sha256};
 type Result<T> = std::result::Result<T, String>;
@@ -73,6 +75,7 @@ pub struct ActorPlan {
     pub images: Vec<ImageJob>,
     pub active: usize,
     pub hidden: usize,
+    pub rotations: usize,
     pub count_before: u32,
     pub count_after: u32,
 }
@@ -116,9 +119,11 @@ impl ActorPlan {
             images: Vec::new(),
             active: 0,
             hidden: 0,
+            rotations: 0,
             count_before: before,
             count_after: before,
         };
+        let mut math = None;
         let mut packet = scratch[..52].to_vec();
         packet[3] = 12;
         packet[7] = 0x3c;
@@ -145,7 +150,7 @@ impl ActorPlan {
                 continue;
             }
             if flags & 4 != 0 {
-                return Err("旋轉或bank15複製尚未證實".into());
+                plan.rotations += 1;
             }
             let table = if bank & 0x8000 == 0 {
                 r.pointer(0x800a3b80 + bank as u32 * 4)?
@@ -361,6 +366,21 @@ impl ActorPlan {
                             p + 2,
                             (py as i32 + ((delta * r.half(a + 0x1c)? as i16 as i32) >> 8)) as u16,
                         );
+                    }
+                }
+                if flags & 4 != 0 {
+                    if math.is_none() {
+                        math = Some(actormath::Tables::new(input)?);
+                    }
+                    for &p in &xy {
+                        let rotated = math.as_ref().unwrap().rotate(
+                            [half(&packet, p), half(&packet, p + 2)],
+                            [px, py],
+                            r.half(a + 0x1e)? as i16,
+                            flip != 0,
+                        )?;
+                        put_half(&mut packet, p, rotated.position[0]);
+                        put_half(&mut packet, p + 2, rotated.position[1]);
                     }
                 }
                 let (x0, x1) = if (part_flags as u32 & 2) ^ flip != 0 {
