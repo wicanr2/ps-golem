@@ -318,3 +318,8 @@ mod tests {
         }
     }
 }
+
+// Staged source presentation, never registered as a game mode.
+pub(crate) mod actor;
+pub(crate) mod scene;
+pub(crate) mod view;

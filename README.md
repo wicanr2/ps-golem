@@ -12,7 +12,7 @@
 素材替換及可選 CPU／GPU 後端。完整遊戲 HD 美術、速度與通關仍待驗收；
 3D 貼圖透視校正可選用 `-hd 2 -pgxp -texture-perspective`，範圍見 [022](docs/spec/022-hd-texture-perspective.md) 與 [Issue #12](https://github.com/wicanr2/ps-golem/issues/12)。
 
-Rust改寫位於[`rust/`](rust/)，自有核心已能正常首存與重新讀檔。[玩家視窗](rust/player/)支援原版、LOGO／OPN的HD影片及A／B／C海報，提供柔和融合、安全放大與偏好保存。F1或滑鼠上緣顯示工具列，F2暫停續播；遊戲中央與原生狀態保持的範圍見[024 §6](docs/spec/024-poster-presentation.md#6-rust海報工具列與設定遷移)、[026](docs/spec/026-rust-migration.md)及[027](docs/spec/027-hd-movie-replacement.md)。完整手把設定、實體音訊／GPU、其餘影片、全遊戲HD與三平台Rust雙擊仍待完成；軟體視窗速度未過關。目前雙擊遊玩版本仍使用Go。 HD整段資料流程與2D／3D直接繪圖的目標見[026 §16](docs/spec/026-rust-migration.md#16-rust-整段繪圖流程接管)，目前DRAFT，尚未接入正式Rust場景。
+Rust改寫位於[`rust/`](rust/)，自有核心已能正常首存與重新讀檔。[玩家視窗](rust/player/)支援原版、LOGO／OPN的HD影片及A／B／C海報，提供柔和融合、安全放大與偏好保存。F1或滑鼠上緣顯示工具列，F2暫停續播；遊戲中央與原生狀態保持的範圍見[024 §6](docs/spec/024-poster-presentation.md#6-rust海報工具列與設定遷移)、[026](docs/spec/026-rust-migration.md)及[027](docs/spec/027-hd-movie-replacement.md)。完整手把設定、實體音訊／GPU、其餘影片、全遊戲HD與三平台Rust雙擊仍待完成；軟體視窗速度未過關。目前雙擊遊玩版本仍使用Go。 HD整段資料流程與2D／3D直接繪圖的目標見[026 §16](docs/spec/026-rust-migration.md#16-rust-整段繪圖流程接管)，整體仍DRAFT。場景／人物的直接CPU-HD畫布與1080p保存來源預覽已接入，正式遊戲整場仍待完成。
 
 ## 執行
 
@@ -56,3 +56,13 @@ HD 圖像格式診斷可用 `psgolem-player -check-textures DIR`。此入口不�
 不啟動 SDL、音訊或機器；全部圖像成功後輸出 JSON，保留索引與 RGB555／STP 逐值雜湊。
 來源為 [`rust/player/src/texture_audit.rs`](rust/player/src/texture_audit.rs)，契約見 `docs/spec/026-rust-migration.md` §15。
 這是離線圖像診斷，`sprite-runs.json` 明列未驗，不能當作全套 HD 已接入 Rust 遊戲。
+
+
+保存來源的場景／人物可直接輸出與預覽：
+
+```text
+psgolem-player -render-sotn-view INPUT.json
+psgolem-player -preview-sotn-view INPUT.json -posters DIR
+```
+
+來源描述及限制見 [026 §16.7.20](docs/spec/026-rust-migration.md#16720-場景與人物的直接hd畫布接線)。這兩個入口直接畫型別資料與材質，不啟動遊戲；預覽為1920×1080，N比較原材質／HD、P切換海報、Esc關閉。HUD／文字／特效尚未包含，不能取代正式玩家模式。來源快照與遊戲素材由使用者本機提供，公開執行器不附。

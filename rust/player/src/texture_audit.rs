@@ -742,3 +742,72 @@ pub(crate) fn load_scene_images(
     }
     Ok(out)
 }
+
+// Optional actor replacements. Original material fallback is explicit, never a framebuffer.
+pub(crate) fn load_optional_images(
+    directory: &Path,
+    keys: &[psgolem_core::scene::MaterialKey],
+) -> Result<Vec<Option<psgolem_core::scene::Image>>> {
+    use psgolem_core::scene::{Image, ImagePixels};
+    if keys.len() > 512 {
+        return Err("人物材質超過512".into());
+    }
+    let hex = |b: &[u8; 32]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+    let mut requested = Selection::new();
+    for k in keys {
+        let u = hex(&k.upload);
+        requested.insert((u.clone(), 4, hex(&k.clut)));
+        requested.insert((u, 4, String::new()));
+    }
+    let mut loaded = HashMap::new();
+    let mut bytes = 0usize;
+    visit(directory, Some(&requested), |u, c, _, w, h, scale, data| {
+        let size = match &data {
+            Decoded::Indexed(v) | Decoded::Colors(v) => v.len(),
+        };
+        bytes = bytes.checked_add(size).ok_or("人物圖像溢位")?;
+        if bytes > 512 << 20 {
+            return Err("人物圖像超過512MiB".into());
+        }
+        let pixels = match data {
+            Decoded::Indexed(v) => ImagePixels::Indexed(v),
+            Decoded::Colors(v) => ImagePixels::Colors(
+                v.chunks_exact(2)
+                    .map(|p| u16::from_le_bytes([p[0], p[1]]))
+                    .collect(),
+            ),
+        };
+        loaded.insert(
+            (u.to_owned(), c.to_owned()),
+            Image {
+                width: w as usize,
+                height: h as usize,
+                scale: scale as usize,
+                pixels,
+            },
+        );
+        Ok(())
+    })?;
+    let mut resident = 0usize;
+    let mut result = Vec::new();
+    for k in keys {
+        let u = hex(&k.upload);
+        let im = loaded
+            .get(&(u.clone(), hex(&k.clut)))
+            .or_else(|| loaded.get(&(u, String::new())))
+            .cloned();
+        if let Some(im) = &im {
+            resident = resident
+                .checked_add(match &im.pixels {
+                    ImagePixels::Indexed(v) => v.len(),
+                    ImagePixels::Colors(v) => v.len() * 2,
+                })
+                .ok_or("人物圖像溢位")?;
+            if resident > 512 << 20 {
+                return Err("人物圖像超過512MiB".into());
+            }
+        }
+        result.push(im);
+    }
+    Ok(result)
+}

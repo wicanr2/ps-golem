@@ -2,6 +2,7 @@
 //! SDL2 is a platform binding; CPU/GTE/GPU/SPU/CD/MDEC remain our Rust core.
 mod apps;
 mod display;
+mod hd_viewer;
 mod input;
 mod poster;
 mod preferences;
@@ -55,7 +56,7 @@ fn options() -> Result<Option<Options>> {
     let mut args = env::args().skip(1);
     while let Some(a) = args.next() {
         if a == "-h" || a == "--help" {
-            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
+            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n保存來源HD呈現：-render-sotn-view INPUT.json；1080p畫面預覽：-preview-sotn-view INPUT.json [-posters DIR] [-frames N] [-screenshot FILE]。這兩項不啟動遊戲。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
             return Ok(None);
         }
         if a == "-version" {
@@ -181,6 +182,27 @@ fn default_card(boot: &str) -> Result<PathBuf> {
 fn main() {
     // Explicit read-only operation: do not initialize a machine or SDL here.
     let args: Vec<_> = env::args_os().skip(1).collect();
+    if args.first().is_some_and(|a| a == "-render-sotn-view") {
+        if args.len() != 2 {
+            eprintln!("用法：psgolem-player -render-sotn-view INPUT.json");
+            std::process::exit(2);
+        }
+        match apps::sotn::view::render_file(std::path::Path::new(&args[1])) {
+            Ok((_, _, report)) => println!("{report}"),
+            Err(e) => {
+                eprintln!("HD來源呈現失敗：{e}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
+    if args.first().is_some_and(|a| a == "-preview-sotn-view") {
+        if let Err(e) = hd_viewer::run(&args[1..]) {
+            eprintln!("HD畫面預覽失敗：{e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if args.first().is_some_and(|a| a == "-check-textures") {
         if args.len() != 2 {
             eprintln!("用法：psgolem-player -check-textures DIR");
