@@ -550,7 +550,7 @@ impl Clock {
         }
         self.run(0xec130, 0xec1b4)
     }
-    fn ordinary(&mut self, r: &[u8], slot: usize, p: &Part) -> Result<()> {
+    fn ordinary(&mut self, r: &[u8], slot: usize, p: &Part, count: u32) -> Result<()> {
         let f = p.part_flags;
         let a = 0x800733d8 + slot as u32 * 188;
         if !matches!(p.flip, 0 | 2) || h(r, a + 0x14) > 1 {
@@ -681,7 +681,11 @@ impl Clock {
         }
         self.run(0xec728, 0xec7a8)?;
         if h(r, a + 0x54) == 15 {
-            self.run(0xec7ac, 0xec7c0)?;
+            self.run(0xec7ac, 0xec7b0)?;
+            if count + 1 >= 768 {
+                return Ok(());
+            }
+            self.run(0xec7b4, 0xec7c0)?;
             if h(r, a + 0x14) != 0 {
                 self.run(0xec7c4, 0xec7d0)?;
             } else {
@@ -704,6 +708,7 @@ impl Clock {
             let i = (a & 0x1fffff) as usize;
             u32::from_le_bytes(r[i..i + 4].try_into().unwrap())
         };
+        let mut count = word(0x80097930);
         self.run(0xeb998, 0xeba48)?;
         for slot in 0..256 {
             let a = 0x800733d8 + slot as u32 * 188;
@@ -747,13 +752,23 @@ impl Clock {
                 let p = Part::read(r, slot, 0)?;
                 if p.packed {
                     self.packed(r, slot, &p)?;
+                    count += 1;
                 } else {
                     self.run(0xec1b8, 0xec1c8)?;
                     if p.n != 0 {
                         self.run(0xec1cc, 0xec1cc)?;
                         for part in 0..p.n as usize {
+                            if count >= 768 {
+                                self.run(0xec1d0, 0xec1e4)?;
+                                break;
+                            }
                             let p = Part::read(r, slot, part)?;
-                            self.ordinary(r, slot, &p)?;
+                            let early = bank == 15 && count == 767;
+                            self.ordinary(r, slot, &p, count)?;
+                            count += if bank == 15 && !early { 2 } else { 1 };
+                            if early {
+                                break;
+                            }
                         }
                     }
                 }

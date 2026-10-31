@@ -168,6 +168,9 @@ impl ActorPlan {
             r.at(frame_data, if packed { 8 } else { 2 + parts * 22 })?;
             for part in 0..parts {
                 if count >= 768 {
+                    if packed {
+                        return Err("滿容量packed寫入尚未封閉".into());
+                    }
                     break;
                 }
                 let (

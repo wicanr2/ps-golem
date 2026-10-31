@@ -2881,3 +2881,12 @@ Machine::commit_texture_data_phase新增獨立typed工作傳輸，舊no-I/O兩AP
 環境停止：READY文件已寫，收據仍指向唯讀/materials；正式來源未安裝、正式案例0。改用明確可寫/output並保留收據後續接，候選不重跑。首個安裝隨缺少READY.json被拒絕，原檔未改。整機啟動前索引校準有無上傳各四，保留前後probe hash，非production修正。正式資料／時鐘與整機批次均一次通過。
 
 026 §16.7.14限定CONFORMED，整體接管仍DRAFT。packed bank15、rotation、容量、其他SDK與自然來源生命週期，文字／HUD、城堡其餘素材、特效／3D及正式GUI仍待；原生相容光柵保留，無完整HD／速度聲明。CPU／GPU、海報、影片、定案美術與Go包保持，不重跑舊美術／GPU矩陣。README只留穩定現況，歷程沿本WORKLOG；最終遊戲截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27。收據由assets-catalog的actor-bank15-v1進入；有界--rm容器、原始資料唯讀，不動共享Docker資源。
+
+
+## 2026-10-31 Rust接續圖元與普通容量停止
+
+沿既有原IDA9.4 EC1D0–1E4、EC7AC–7B0、EC938–978確認普通每部件開始時的768容量守門及bank15兩種停止點。DRAFT後448候選首次全同，READY凍結才裝三個正式來源。Rust型別計畫只建新Quad，前綴RAM保持、排序頭接現有桶；資料／高階資源Clock保留實際counter、資料指標、後續entity掃描與必要CPU／scratch，沒有執行原MIPS／SDK／GP0或保存PC足跡回播。
+
+唯一正式448例、3204304量子及完整CPU／RAM／scratch／逐成本同，272組零上傳、32組零新增圖元、十拒絕通過，前綴逐位元組保持。唯一正常原片前綴，一個自然基準續跑8383與原音同；十個獨立容量診斷全Machine／成本／排隊音訊同，原控制組67402指令。六組無上傳含兩組零新增，保留非預設idle DMA2。case0不套用variant，該列診斷欄位不當自然狀態證據。注入不回正常路線、不當自然滿容量或關卡覆蓋；原片、原卡及原IDA DB保持。
+
+候選、正式局部及整機各一次通過，未為完成舊矩陣重跑美術／GUI／硬體GPU或包。影像查詢的Entrypoint欄位格式不適用，只修查詢格式，沿同一映像，工作負載不受影響；沒有新建映像。026 §16.7.15限定CONFORMED，整體接管仍DRAFT。packed滿容量、rotation、其他SDK／自然來源、文字／HUD、城堡其餘HD、特效／3D及正式整場仍待；原生相容光柵保留，無完整HD或速度聲明。CPU／GPU、海報、影片與定案美術保持，README不堆逐輪歷程，最終截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27，收據由assets-catalog的actor-capacity-v1進入。有界--rm容器、原始資料唯讀，不動共享Docker資源。

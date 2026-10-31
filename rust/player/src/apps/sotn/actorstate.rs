@@ -336,7 +336,7 @@ impl ActorDataPlan {
         context: TextureContext,
         irq_mask: u32,
     ) -> Result<Self> {
-        if !plan.images.is_empty() || plan.count_after != 0 {
+        if !plan.images.is_empty() || plan.count_after != plan.count_before {
             return Err("空圖元批次帶有未封閉工作".into());
         }
         let mut ram = plan.ram.clone();
@@ -351,7 +351,7 @@ impl ActorDataPlan {
         sc[7] = 0x3c;
         put(&mut sc, 0x48, 256)?;
         put(&mut sc, 0x5c, buffer + 0x474)?;
-        put(&mut sc, 0x60, buffer + 0x3c74)?;
+        put(&mut sc, 0x60, buffer + 0x3c74 + plan.count_after * 52)?;
         let mut arch = Architecture::of(state);
         for (reg, v) in [
             (1, 0x1f800000),
@@ -362,7 +362,7 @@ impl ActorDataPlan {
         ] {
             arch.gpr[reg] = v;
         }
-        finish_scan(input, &mut sc, &mut arch, None)?;
+        finish_scan(input, &mut sc, &mut arch, &plan)?;
         arch.gpr[34] = state.gpr[16];
         arch.pc = state.gpr[31];
         arch.next_pc = arch.pc + 4;
@@ -435,8 +435,7 @@ impl ActorDataPlan {
             }
         }
 
-        if plan.count_before != 0
-            || plan.count_after >= 768
+        if plan.count_after > 768
             || w(input, 0x8002c268)? != 0
             || w(input, 0x8002c26c)? != 0
             || w(input, 0x8002c274)? == 0
@@ -456,7 +455,7 @@ impl ActorDataPlan {
             || if last.packed {
                 last_q.part != 0
             } else {
-                last_q.part + 1 != last.n as usize
+                last_q.part + 1 != last.n as usize && plan.count_after != 768
             }
         {
             return Err("最後物件／部件的終值分支尚未支援".into());
@@ -723,6 +722,11 @@ impl ActorDataPlan {
                 if last_q.entity == 255 {
                     if last.packed {
                         plan.count_after
+                    } else if h(input, entity(last_q.entity) + 0x54)? == 15
+                        && !last_q.duplicate
+                        && plan.count_after == 768
+                    {
+                        15
                     } else {
                         last.n as u32
                     }
@@ -755,7 +759,14 @@ impl ActorDataPlan {
                 if last.packed {
                     last.address
                 } else {
-                    last.address + 22
+                    if h(input, entity(last_q.entity) + 0x54)? == 15
+                        && !last_q.duplicate
+                        && plan.count_after == 768
+                    {
+                        last.address
+                    } else {
+                        last.address + 22
+                    }
                 },
             ),
             (11, 0xffffff),
@@ -772,7 +783,7 @@ impl ActorDataPlan {
         arch.ld_value = state.gpr[16];
         arch.bdbt = 0;
         arch.branched = false;
-        finish_scan(input, &mut sc, &mut arch, Some(last_q.entity))?;
+        finish_scan(input, &mut sc, &mut arch, &plan)?;
         plan.ram = ram;
         Ok(Self {
             geometry: plan,
@@ -834,12 +845,8 @@ fn frame_head(r: &[u8], a: u32) -> Result<(u32, u16)> {
     let fd = w(r, table + frame as u32 * 4)?;
     Ok((fd, h(r, fd)?))
 }
-fn finish_scan(
-    r: &[u8],
-    sc: &mut [u8],
-    arch: &mut Architecture,
-    last: Option<usize>,
-) -> Result<()> {
+fn finish_scan(r: &[u8], sc: &mut [u8], arch: &mut Architecture, plan: &ActorPlan) -> Result<()> {
+    let last = plan.quads.last().map(|q| q.entity);
     let mut ordinary_count = w(sc, 0x4c)?;
     for slot in 0..256 {
         let a = entity(slot);
@@ -890,10 +897,23 @@ fn finish_scan(
         }
         let (fd, n) = frame_head(r, a)?;
         if n & 0x8000 == 0 {
-            ordinary_count = n as u32;
+            let emitted = plan
+                .quads
+                .iter()
+                .filter(|q| q.entity == slot && !q.duplicate)
+                .count() as u32;
+            let primary_only = bank == 15
+                && plan
+                    .quads
+                    .iter()
+                    .rev()
+                    .find(|q| q.entity == slot)
+                    .map(|q| !q.duplicate)
+                    .unwrap_or(false);
+            ordinary_count = emitted - u32::from(primary_only);
         }
         if tail {
-            if n != 0 {
+            if n != 0 && !(n & 0x8000 == 0 && plan.count_after == 768) {
                 return Err("尾段有未封閉的可繪製幀".into());
             }
             if bank & 0x8000 == 0 {
@@ -901,7 +921,7 @@ fn finish_scan(
             }
             arch.gpr[10] = fd + 2;
             arch.gpr[3] = 0;
-            put(sc, 0x50, 0)?;
+            put(sc, 0x50, n as u32)?;
         }
     }
     put(sc, 0x4c, ordinary_count)
