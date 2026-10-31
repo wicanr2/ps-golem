@@ -3003,3 +3003,14 @@ Rust補齊原0x800EDC94所列七HUD／兩環境來源的CPU端點、cache／RAM�
 IDA9.4沿既有UID1000 image，首兩份一次性副本停於把未載入RAM非零內容當舊資料的查詢assertion，第二份wrapper取得明確錯誤。回查路由／衛生契約後，用has_value確認三錨點64-byte皆未載入，第三份副本載入已與正常RAM相同的ST0並完成。原始DB／DRA／BOOT／ST0 hash保持；停點與修正收據保留，失敗副本及私有logs只按明確本批檔名清理。
 
 正式相機生成、投影後(+1,+1)畫面平移的上層時機，以及原sub_801BAEB0的初始化／刪除／完整RAM／CPU／GTE／時鐘仍DRAFT；本元件接受顯式typed pose，不註冊正式玩家或跳過原函式。既有美術／CPU／GPU／海報／影片與Go包保持。後續從相機與原呼叫副作用接續，不重查已驗模型資料；工具、受測SHA、清理與發布收據由素材索引tower-mesh-v1進入。
+
+
+## 2026-11-01：鐘塔相機與捲動事件資料
+
+<!-- RUST-TOWER-CAMERA-20261101 -->
+
+沿026 §16.9.3補原物件六欄位→原packed三角表→固定點Rx*Ry*Rz→Camera，並把固定測試平移改為按事件、分配槽及旗標讀真正捲動差值。新camera.rs不執行原ISA、不讀原GTE控制或SXY，不寫Machine。相機輸入在801BAFB4、捲動資料在800F352C取，flag2優先於200、只移前1024槽。上層仍須持有frame epoch及分配handle並只套用一次，正式玩家未註冊。
+
+只用既有正常trace讀值重建六欄位pose與原末場RAM，沒有新遊戲開機。此輸入不稱完整正常Machine快照。一次集中正式抽驗：相機各值同原來源，三矩陣SDK局部診斷125／126／131步，四個捲動類型／旗標／差值案例與五拒絕通過，物件位置改寫能改變Camera。63頂點與18面HD完整RGBA同前次已驗圖層，因此不抓新圖、不重審美術或跑舊GPU矩陣。步數只作診斷紀錄，沒有速度通過聲明。
+
+IDA9.4沿既有UID1000 image，只在原DRA資料庫的一份新副本核對RotMatrix與捲動末端來源，沒有工具失敗重試；原DB／BOOT／DRA hash保持。原packed表不改用host sin/cos或舊quarter表；在較早16.9.2補回鏈及自動檢查，防止重開已解欄位。原呼叫的初始化／刪除、完整RAM／scratch／CPU／GTE／裝置與時鐘仍DRAFT，資料通過不當整段routine、整場HD或玩家驗收。素材、Go包、CPU／GPU、海報與影片保持。受測SHA、回鏈、清理及發布收據由素材索引tower-camera-v1進入。
