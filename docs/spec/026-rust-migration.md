@@ -865,3 +865,20 @@ READY證據：384隔離候選首次全部同原CPU，完整2MiB RAM／scratch／
 16.7.18限定結果：正式384例、2329328量子，完整2MiB RAM／scratch／CPU State／全GTE與逐成本同原CPU，每組一份Quad，前綴逐位元組保持。八個滿capacity768／固定池失效／frame指標失效／原routine身份破壞拒絕通過。唯一正常原片前綴的一個未注入基準續跑8383及原音同，八個獨立packed bank15 RAM診斷完整Machine／顯存／排隊音訊／成本同，共62027原CPU控制指令；四個重用案例保留非預設idle DMA2。只移除packed守門與限制ordinary duplicate，ActorDataPlan／Clock／核心API未改，沒有執行原ISA／SDK／GP0或保存PC回播生成資料。
 
 候選、正式局部與整機各一次通過。原BOOT／DRA／DB、原片／原卡保持；新IDA、美術審查、GUI／硬體GPU或包0，速度未量。注入不當自然bank15、角色或關卡覆蓋，正式玩家整場未註冊。後續原生相容光柵仍在，026 §16／16.7整體仍DRAFT，來源生命週期、未列域、其他SDK、文字／HUD、其餘城堡、特效／3D與完整呈現仍待。CPU／GPU、原版、海報、影片與定案美術保持。來源、READY、受測SHA、集中驗收與回鏈由私人packed-bank15-v1索引追溯。
+
+
+#### 16.7.19 正常操作路線的物件提交覆蓋
+
+狀態：CONFORMED，限既有16.7.1–18已驗契約的正常路線查核，不先放寬任何守門。固定原片／BIOS／原卡與frameprep-v1來源雜湊，正常啟動至8382，再沿原右移／跳躍腳本加一般攻擊與跳躍按鍵到8600。程式／RAM／PC不注入，原Machine始終作路線權威。遇800EB998入口，原CPU跑到800E3C34，獨立clone以現行高階ActorClockPlan比較完整CPU／逐成本及原子提交後完整Machine／排隊音訊，clone不回填正常路線。拒絕或不一致明列，最多四個不同原因保存前後原RAM／scratch／CPU及原始active bindings。
+
+這批先查真正阻擋接管的自然分支，不用更多合成bank來推斷正常覆蓋。若原路線存在未支援資料／Clock／裝置效果，先回RE／READY再改實作。即使所有呼叫相同，也只證明此路線物件呼叫，原生後續光柵、HUD／文字、場景與特效／3D及正式GUI未接，不稱完整HD、自然所有怪物或速度通過。來源與程式SHA由私人actor-normal-route-v1/evidence.json及effective-input.json追溯；位址為PS1 KSEG0，DRA file offset EA-0x800A0000。原資料唯讀，原卡保持，已定案美術不重審，CPU／GPU、海報、影片與原版保持。
+
+
+既有已驗實作的正常覆蓋證據已齊：218次現行來源的完整CPU／逐成本及Machine逐欄均相同；沒有新正式實作或守門放寬，只有測試器缺少Bus匯入在CPU案例0停止後修正。此READY只整理既有實作的驗證範圍，不授權整場接線或推廣成所有自然幀。
+
+
+16.7.19限定結果：原片／同卡正常啟動一次，8382–8599的218次物件呼叫全部相同，原路線到8600。測試側clone直接提交型別幾何與顯存工作，與原CPU控制組逐呼叫比較全CPU State／成本及完整Machine／顯存／排隊音訊。共2340166個控制指令、3265份Quad及1167項圖像工作；掃描輸入的非零bank為1／3／5／8002，共74個去除重用位元的bank-frame配對，entity0有39個原幀配對。沒有逐Quad記錄其bank配對，掃描統計可能含裁掉／隱藏物件，不推廣成每個來源分支都已繪製。原flags只觀測0／3，旋轉0，不當自然rotation、bank15、所有人物或怪物覆蓋。
+
+原Machine仍為正常路線權威，clone不回填，沒有宣稱正式玩家已略去原繪圖、整條Rust呈現或完整HD。原音只記錄原路線SHA，排隊音訊按每次完整Machine比較相同，不冒稱另一條完整Rust播放串流已驗。新正式實作0，既有ActorPlan／Clock／核心API均保持；原版、CPU／GPU、海報、影片與定案美術保持。
+
+第一次建置缺cpu::Bus匯入，CPU／正常開機0；初版probe／日誌保留，只補測試器import後唯一完整路線通過，不稱首次建置成功。原BOOT／DRA／DB、原片／原卡保持；新IDA／美術審查／GUI／硬體GPU／包0。026 §16整體仍DRAFT，後續原生光柵、整場呈現、HUD／文字、場景其餘來源與特效／3D仍待，速度未量。來源、輸入腳本、準備停止、READY、受測SHA及驗收由私人actor-normal-route-v1索引追溯。

@@ -2924,3 +2924,12 @@ DRAFT後46751數學、576幾何候選首次完整全同，READY凍結後安裝�
 DRAFT後384候選首次完整全同，READY凍結後才安裝。唯一正式384例、2329328量子，完整RAM／scratch／CPU State／全GTE及逐成本同；counter2／767只加1、前綴保持，八個768／固定池／frame／原routine拒絕通過。唯一正常原片前綴的一個自然基準續跑8383及原音同，八個獨立packed bank15 RAM診斷全Machine／顯存／排隊音訊／成本同，共62027原CPU指令，四組重用保持非預設DMA2。診斷涵蓋兩原packed幀、朝向、縮放／色彩／旋轉、上傳／重用及末槽，非自然bank15角色／關卡覆蓋。
 
 原BOOT／DRA／DB、原片／原卡保持，未新查IDA或重跑舊美術／核心／GUI／硬體GPU／整包。舊§16.7.14及兩個歷史probe的packed拒絕已回鏈RUST-PACKED-BANK15-20261031，舊正案例與歷史收據不重跑／改寫。026 §16.7.18限定CONFORMED，正式整場與其餘來源／SDK、文字／HUD、城堡、特效／3D仍待，速度未量，後續原生光柵保留。原版、CPU／GPU、海報、影片與定案美術保持。README維持穩定入口，工作歷程沿本WORKLOG，最終遊戲截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27；本機工具／READY／受測來源／驗收／回鏈／清理由assets-catalog的packed-bank15-v1進入。有界--rm容器、原資料唯讀，不動共享Docker資源。
+
+
+## 2026-10-31 正常操作路線物件提交查核
+
+沿已驗原卡／原片正常路線，8382後加一般攻擊／跳躍按鍵，原Machine到8600。218次800EB998→800E3C34呼叫以獨立clone執行現行ActorClockPlan，完整CPU State／逐成本及Machine／顯存／排隊音訊均同原CPU，共2340166控制指令、3265份Quad、1167項圖像工作。非零掃描輸入bank1／3／5／8002有74個去重用位元的bank-frame配對，entity0有39個原幀配對，flags僅0／3、旋轉0。掃描可含裁掉／隱藏物件，沒有逐Quad的bank配對紀錄，不推廣成每個來源都已繪製或自然所有怪物／rotation／bank15覆蓋。
+
+這批擴充既有16.7.1–18的正常路線證據，沒有新正式實作或守門放寬。原Machine始終為路線權威，clone不回填，不冒稱正式玩家已略去原繪圖或完整Rust播放串流。每次queued audio隨Machine全同，原音SHA另保存在route-verification。首建置缺Bus trait匯入，CPU／正常開機0，保存初版probe／日誌後只補import；唯一完整路線全部通過，沒有重跑舊美術／核心／GUI／硬體GPU或包。既有來源凍結、原BOOT／DRA／DB與原片／原卡保持，準備停止不列產品失敗。
+
+026 §16.7.19限逐呼叫核對CONFORMED，整場仍DRAFT。下一段優先接既有場景／人物型別資料的高解析度呈現；其餘人物分支仍列管，正常玩家新阻塞才補窄切片，不為擴矩陣重開已過案例。HUD／文字、其他場景來源及特效／3D、正式玩家接管、GPU及速度另驗。原版、海報、影片與定案美術保持；README只留穩定入口，最終遊戲截圖待完整HD正常驗證。有效工作沿公開#17／#19與私人#13／#27；actor-normal-route-v1的來源／READY／驗收／publication由assets-catalog進入。有界--rm Docker，原始資料唯讀，不動共享資源。
