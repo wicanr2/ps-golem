@@ -943,3 +943,32 @@ READY證據：三個保存來源共21個型別HUD四邊形，全部欄位同局�
 實際正式CLI三態與一次1920×1080、A海報兩次呈現通過，完整PNG同候選。舊描述不帶hud_source的原生／HD PNG逐位元組保持；錯HUD SHA、缺HUD SHA及孤立HUD SHA三格式拒絕沒有產物。不啟動Machine、原CPU、原GP0或讀卡／寫設定。正式批次零新開機、零新美術，兩次畫面檢查已定案；軟體SDL不當硬體GPU或速度。來源、IDA原名／bytes、READY、受測SHA、candidate-evidence／verification及acceptance由私人hd-field-v1追溯。
 
 原800EDC94仍有兩個draw-environment來源、其餘通用圖元、完整RAM／scratch／CPU／SDK／時間及整場交易待封閉，正式遊戲不跳過它。8010794C含其他SDK呼叫，不能依相鄰位置當純繪圖一起省略；其語意仍unknown，保留原流程，不擴大無關逆向。800E3754是排序鏈處理，另留必要相容資料階段。整場玩家、其他HUD／中文姓名／選單、特效／3D及GPU仍DRAFT；本段不冒充完整HUD或可玩HD。
+
+
+#### 16.8.2 通用圖元的相容資料與環境設定
+
+狀態：DRAFT。承接16.8.1的七個HUD型別圖元，補800EDC94完整呼叫的資料與環境設定證據。原函式仍保留於正式遊戲，不以已驗HUD像素跳過其餘RAM／scratch／CPU／SDK／裝置時間。BOOT sub_80013648為此路徑的直接環境設定依賴，只查這一個新helper，既有原DB／BOOT／DRA身份沿16.8，來源與工具在私人field-state-v1/IDA-plan及evidence。
+
+正常原片／原卡／固定輸入只開一次，至8382後自然擷取四個800EDC94入口／返回800E3C80；保存完整RAM／scratch／CPU、逐成本、原訪存地址分類及GPU原字保持。此為原版來源研究，無RAM／PC／原碼注入，不當Rust已替換呼叫。指令解碼只在oracle蒐證端分類實際控制與可能資料訪存，不能變成正式實作。Rust仍須以型別記錄與資料規則直接推導；只有契約足夠READY才實作。未列型別、SDK與整場呈現仍DRAFT，已核准美術／舊矩陣不重跑。
+
+
+#### 16.8.2.1 通用圖元的純RAM／scratch資料計畫
+
+狀態：CONFORMED，限七個HUD與兩個環境來源的相容資料。不接Machine、CPU端點、資源時鐘或正式玩家，不略過原呼叫。026 §16.8.2整體仍DRAFT。來源為一條正常原片路線的8382–8385四個原800EDC94入口／返回，無RAM／PC／原碼注入；每態15199原指令、28560週期，CPU資料訪存未落MMIO、GTE／VRAM原字保持。28560只作觀測，不能硬寫為正式成本。CPU／裝置時間仍待獨立推導。
+
+已證實的支援域：2MiB RAM、1024-byte scratch、PS1 KSEG0入口800EDC94、SP801FFFC0、RA800E3C80；原DRA函式及BOOT環境helper與五個直接依賴的身份必須相符，標準GPU編碼欄8002C26C=0。只接受原兩緩衝8003CB08／800542FC、前GT4數15、環境數0、原全域兩個裁掉條件為0。1280筆遊戲圖元中type0／hidden略過，活躍限七個order496／page31／flags2000四邊形與兩個type7環境來源，環境flags只0／800，來源只800974AC／800974EC。未列型別、容量、來源或模式回錯，不修改輸入。
+
+Rust依型別來源直接產生相容GT4欄位、CLUT表映射、512排序桶prepend與計數，保留前15個人物圖元。環境記錄依原資料複製64-byte相容區，800分支從目前frame的92-byte DRAWENV資料製作關閉背景清除的設定；直接由剪裁、位移、頁／抖色／顯示旗標與貼圖視窗欄位產生相容值，不執行SDK、不讀生成GP0。原SDK的呼叫保存區及貼圖視窗四個局部字、主保存區／局部環境副本／掃描尾值、九個scratch指標及最後GT4模板都按資料／ABI規則保留。此相容資料不當HD主命令回播；HD畫布仍直接取16.8.1型別來源。
+
+原BOOT sub_80013648範圍13648–13900，SHA 659e9238e252c354f0d94d41a72a26fa92f3a45a1c7f3cc38ac4378d0ca6ac1c；五直接依賴13950／13A1C／13AE8／13900／13B24的原名／bytes／xref／SHA在field-state-v1/environment-callees-IDA.json。位址為PS1 KSEG0，BOOT file offset EA-80010000+2048、DRA offset EA-800A0000，原DB／BOOT／DRA身份沿IDA-plan，工具IDA9.4。未改名或回寫原DB。
+
+純DataPlan::prepare只產生獨立RAM／scratch及數量，輸入保持；不提供可略去時鐘的Machine提交。原程式先研究來源，再建立本READY；候選資料四態完整RAM／scratch同原CPU，另一份獨立輸出毒化及非零ABI保存暫存器的局部原CPU診斷相同，五個身份／型別／前綴／來源拒絕通過。最早誤沿人物之前的counter0守門，在資料比較0例停止；正常四態證明此入口已有counter15，補append後保持前綴，原首次來源／日誌保留，沒有重開正常路線或美術。
+
+正式集中驗收只讀同四態與該單一診斷，不新增開機／GUI／GPU／美術或舊矩陣。環境設定也含裁切與位移；16.8.1的固定畫布HUD像素oracle沒有驗完整環境，本資料切片不推廣為正式整場裁切或完整HUD。CPU端點、快取／逐成本、IRQ／跨場及同步Machine提交仍DRAFT，正常玩家維持原流程。
+
+
+16.8.2.1限定結果：正式來源四份完整2MiB RAM及1024-byte scratch逐位元組同正常原CPU，兩個交替frame緩衝都涵蓋。原前15個人物圖元保持，追加七個HUD、兩個環境來源、相容排序與原ABI保存區；單一獨立輸出毒化及非零保存暫存器的原CPU診斷亦相同，五個主函式／SDK身份、未列型別、前綴與來源拒絕通過。此只封閉已列資料分支，DataPlan未註冊正式玩家模組，沒有CPU端點／時鐘或Machine提交。
+
+正常原片只開一次，8382–8385四個原完整呼叫各15199指令／28560週期，CPU資料訪存沒有MMIO、GTE及VRAM保持。原始逐成本、CPU快取與訪存證據保存，不把常數28560充當Rust時間公式。最早counter0假設在資料案例0拒絕；保存原候選後依真正人物後入口改為prefix15並append，不重啟原路線。候選與正式完整資料批次各一次通過，無新美術／GUI／GPU或包驗收，速度未量。
+
+原BOOT五個依賴只補一次IDA9.4直接查詢，原DB／BOOT／DRA與卡片保持。來源、首次範圍停止／修正、READY、受測版本、data-verification及acceptance由私人field-state-v1索引追溯；16.8.2的CPU端點／快取／資源成本／同步裝置及整場交易仍DRAFT，原遊戲呼叫維持。
