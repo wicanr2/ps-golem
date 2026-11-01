@@ -1148,7 +1148,7 @@ apply_data只在RAM雜湊、完整進入State／Gte及BIU仍相同時，原子�
 
 #### 16.9.7 鐘塔模型幾何與配置鏈資料
 
-狀態：限定CONFORMED，僅模型HD幾何及RAM／GTE資料；CPU／時鐘／生命週期與正式整場仍DRAFT。承接16.9.2的原模型／自有投影及16.9.3–6相機資料，補原ST0 sub_801BAEB0的801BB04C到801BB320前：從物件配置鏈綁定模型面，直接建立HD幾何、相容RAM及GTE終值，隱藏剩餘配置圖元。原IDA9.4的stage-IDA已涵蓋整段bytes／讀寫／分支，不新跑IDA或正常開機；輸入與雜湊見私人hd3d-v1/mesh-state-v1/source-plan。
+狀態：限定CONFORMED，僅模型HD幾何及RAM／GTE資料；CPU／時鐘及同步Machine由16.9.8–9承接，生命週期與正式整場仍DRAFT。承接16.9.2的原模型／自有投影及16.9.3–6相機資料，補原ST0 sub_801BAEB0的801BB04C到801BB320前：從物件配置鏈綁定模型面，直接建立HD幾何、相容RAM及GTE終值，隱藏剩餘配置圖元。原IDA9.4的stage-IDA已涵蓋整段bytes／讀寫／分支，不新跑IDA或正常開機；輸入與雜湊見私人hd3d-v1/mesh-state-v1/source-plan。
 
 原生相容座標沿Camera::native_xy直接求，HD座標從原世界頂點及Camera直接產生，不讀舊圖元XY／UV／排序、GTE投影結果或GP0作主資料。配置鏈只提供持續handle及驗證已初始化的材質／色彩域。GTE只補最後可觀測的FIFO／向量／IR／MAC／flags，不重播全部面的GTE命令；先由自有gte.rs與原局部CPU證據封閉保存條件。CPU端點、gte_done、快取／時鐘、刪除／分配及正式整場仍DRAFT，資料切片不得跳過PC或提交Machine。
 
@@ -1169,3 +1169,37 @@ GTE相容效果由既有自有gte.rs的純Rust位置數學取得。RTPS／RTPT�
 16.9.7正式集中抽驗一次通過：原保存讀集18面／63世界頂點綁定40槽，22餘槽只隱藏；完整2MiB RAM與完整Gte物件同局部原CPU，原寫入集合548 bytes。另一診斷讓quad串流立即結束、改三軸pose並反轉配置鏈，9三角形及31隱藏槽的完整RAM／GTE亦同，原寫287 bytes。兩例原CPU1478／779步及27／9個投影命令只用於資料oracle；新相容狀態各最多兩次自有GTE純數學，沒有新速度聲明。HD與native相容座標皆從世界頂點／相機直接求，不讀這兩次GTE結果。
 
 舊XY／UV／kind／flags／order毒化後全部DrawFace及GTE保持，八個事件／循環／短鏈／head／page／RGB／相機／超界拒絕通過。沒有原片開機、反組譯、畫面重抓、美術審查或舊GPU矩陣；已有18面畫布、五材質組及63頂點證據直接沿用。測試以原六欄位讀集及trace PC／GPR重建，其他CPU狀態合成，不稱正常完整Machine。本元件未註冊、沒有CPU／裝置／PC提交；下一段只補此模型階段CPU／資源時鐘與物件生命週期，不重開本節已解資料。
+
+
+
+<!-- TOWER-MESH-CLOCK-COMMIT-RESOLVED-20261101 -->
+16.9.7留下的模型CPU／gte_done／快取／資源時鐘與同步Machine已由16.9.8–9封閉。此回鏈只涵蓋801BB04C到801BB320，物件初始化／分配／刪除、尾端遊戲狀態與正式整場仍DRAFT；不重開已驗模型與相機數學。
+
+#### 16.9.8 鐘塔模型CPU與GTE資源時鐘
+
+狀態：限定CONFORMED，僅模型CPU／快取／逐成本；同步Machine由16.9.9承接，整場仍待。承接16.9.7的模型HD幾何與完整RAM／GTE資料，只補801BB04C到801BB320的CPU終值、快取及逐成本，包含原27次投影對虛擬時間的效果。原IDA9.4 stage-IDA、固定程式bytes與自有008／cpu.rs提供來源，不新跑逆向。私人mesh-clock-v1保存source-plan、原RAM讀取及GTE資源位置、兩份局部CPU oracle，入口見素材索引。
+
+HD及相容資料仍由已驗meshstate直接產生，GTE相容數學維持最多兩次；時鐘只描述原model stream的bank切換、三／四邊形及尾端隱藏所需資源，不執行原ISA或保存PC序列。LWC2先等待GTE再加RAM讀取成本，不以固定總週期代替。局部驗證沿原18面及triangle尾端／重排鏈／不同pose兩例，完整State／cache及每個成本對原CPU。Machine原API禁止改gte_done，完成端點後另開明確的completed-GTE交易契約，不繞過舊守門。物件初始化／分配／刪除與正式整場仍DRAFT。
+
+
+16.9.8 READY契約：MeshClockPlan::prepare接受原RAM／State／Gte／BIU125320，沿16.9.7資料來源守門，另要求next_pc=pc+4、bdbt=0、branched=false、gpr0=0、無已啟用IRQ、icache valid低四位、入口GTE已完成與now預留2000000。輸出資料仍取meshstate，原模型串流只再解析bank切換與末來源指標，供資源與ABI使用，不逐指令更新GPR或讀保存PC序列。
+
+模型資源依triangle／quad串流的實際面數、bank切換、原LWC2／SWC2位置與剩餘隱藏槽取用。取指cache沿008：每槽1，miss填該行word以後，另加7-word；53個靜態可能RAM load各加4。24個GTE存取位置先等gte_done，LWC2等待先於RAM讀取成本；投影資源只更新虛擬期限RTPT=目前槽完成後+22、RTPS=+14，下一存取照原期限等待。原27次投影的虛擬時間完整保留，GTE數學仍沿16.9.7只補最後至多兩次。成本不得寫死4069，也不能將GTE等候加在RAM讀取之後。
+
+CPU終值由最後model來源推導：v0=8、v1=FF、a0=末面的第一頂點指標、a1=0、a2=quad串流結束標記指標、a3=末有效串流結束指標+該面角數、t0=80182440、s1=末bank指標、gpr34=0。其餘GPR、HI／LO／CP0／muldiv_done保持，ld_value=0、ld_which=34、PC=801BB320、next_pc=801BB324、branch欄清除。now／cost／icache／gte_done由資源計畫產生；終點乘除法與GTE都必須完成，未封閉情況拒絕。兩個局部oracle採非零HI／LO／ABI及cold／同tag部分有效cache，完整CPU／逐成本／RAM／GTE比對；八入口拒絕。其他未觀測CPU狀態合成，不當正常玩家。
+
+#### 16.9.9 已完成GTE資料交易與鐘塔模型同步提交
+
+狀態：限定CONFORMED，僅已完成GTE資料交易及一次正常模型提交；正式整場仍DRAFT。原commit_cpu_data_phase拒絕改gte_done，維持該契約。新增明確的commit_completed_gte_data_phase，承接既有隔離副本排程，只接受入口／終點GTE已完成及CU2開啟；輸出GTE與真實CPU期限一起提交。Machine排程由SystemBus持有，無法讀CPU-owned GTE；只在無活動DMA／IRQ及未跨場下延後合併RAM／GTE。使用者已授權整段Rust接管，這是既有資料交易的必要限定擴充，不註冊正式玩家或放寬原版模式。
+
+
+16.9.9 READY交易契約：新API接受完整Gte輸出、CPU endpoint、aligned RAM patches、完整scratch、逐成本及budget；只有入口gte_done<=now且CU2開，終點gte_done<=end，改變的期限不能退到入口now以前。期限保持原值仍可，busy／未完成／逆退期限拒絕。舊API繼續逐值要求gte_done保持，LZCS／texture與新完整GTE交易不混用。既有CPU／成本、RAM越界／重複、活動DMA／MDEC／IRQ、跨場與原音回滾守門保持。所有裝置事件在副本先執行，通過後同時提交CPU／GTE／RAM／scratch，原機器在任何錯誤時不變。
+
+MeshMachinePlan先驗準備時State／Gte／完整RAM hash／BIU仍相同，scratch不是讀集而保持live值，再以新API提交16.9.7–8真實輸出，不修改gte_done掩過舊限制。核心交易只作輸送，模型語意仍在apps/sotn；正式路徑不跑原ISA／GP0或GTE命令串。驗證集中為受影響的phase單元測試、兩局部CPU／cache／逐成本，以及一次正常原片在11721後自然801BB04C模型事件；比較完整Machine／成本並續播11724原音／卡片。五過期／途中IRQ僅在獨立副本。全物件生命週期、主畫布呈現與正式HD玩家仍DRAFT；不重跑舊GTE／GPU／美術矩陣，不稱速度通過。
+
+
+16.9.8–9正式集中驗證完成。兩局部原CPU案例1478／779步，非零HI／LO／ABI與cold／同tag部分有效cache的完整State、每個成本、RAM及GTE相同；成本4069／2066，八入口守門通過。初始第二個cache profile的tag不同，實際也是cold，原oracle-cold-profile保留；在正式抽驗前改為同tag部分有效cache蒐證，沒有產品失敗重試或額外正式抽驗。新的完整GTE交易及受影響的舊API共17項核心phase測試全過，舊API仍拒絕改gte_done。
+
+唯一正常原片開機自然抵達11721後801BB04C，Rust直接提交到801BB320，完整Machine／逐成本與原控制組相同，新的gte_done也逐值相同。續播11724的完整機器、取出原音與原卡相同；五個State／RAM／GTE／BIU過期及途中timer IRQ診斷各在獨立副本，均完整回滾。正常分支無PC／RAM注入，僅測試觀測副本加逐欄Eq，來源與原片hash保持。確切場次／成本／音訊數與雜湊見私人mesh-clock-v1的machine-verification及acceptance。
+
+正式玩家未註冊，原生下游光柵仍在；整個sub_801BAEB0的初始化／分配／刪除、遊戲狀態尾端與完整HD呈現仍待。GTE數學維持16.9.7最多兩次，虛擬時間保留原27次資源，不讀原ISA或trace當主流程。舊18面畫布與美術沿用，沒有新的GUI／GPU／打包或速度聲明。後續承接本切片補物件生命週期與整場，不再重查模型CPU或等待順序。

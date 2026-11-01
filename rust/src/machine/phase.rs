@@ -2,7 +2,7 @@
 //! GPL-3.0-or-later.
 //! Uses the existing device scheduler; never executes guest instructions.
 use super::Machine;
-use crate::{cpu::State, gpu::transfer::TextureJob};
+use crate::{cpu::State, gpu::transfer::TextureJob, gte::Gte};
 
 #[derive(Clone, Copy, Debug)]
 pub struct RamWordPatch {
@@ -32,7 +32,7 @@ impl Machine {
         costs: &[u32],
         budget: u64,
     ) -> Result<(), String> {
-        self.commit_data_phase(endpoint, patches, None, costs, budget, None, None)
+        self.commit_data_phase(endpoint, patches, None, costs, budget, None, None, None)
     }
 
     /// Explicit completed arithmetic + scratch transport, spec026 §16.5.
@@ -50,7 +50,16 @@ impl Machine {
         if scratch.len() != self.bus.scratch.len() {
             return Err("scratch長度不符".into());
         }
-        self.commit_data_phase(endpoint, patches, Some(scratch), costs, budget, None, None)
+        self.commit_data_phase(
+            endpoint,
+            patches,
+            Some(scratch),
+            costs,
+            budget,
+            None,
+            None,
+            None,
+        )
     }
 
     /// Synchronous typed texture batch plus CPU data, spec026 §16.7.3.
@@ -77,6 +86,7 @@ impl Machine {
             costs,
             budget,
             Some(jobs),
+            None,
             None,
         )
     }
@@ -106,6 +116,34 @@ impl Machine {
             budget,
             if jobs.is_empty() { None } else { Some(jobs) },
             Some(lzcs),
+            None,
+        )
+    }
+
+    /// Explicit completed GTE + CPU/RAM transport, spec026 §16.9.9.
+    /// The caller proves the GTE endpoint and invisible intermediate effects.
+    /// Older APIs still reject a changed GTE deadline. No guest/GTE commands run.
+    pub fn commit_completed_gte_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        scratch: &[u8],
+        costs: &[u32],
+        budget: u64,
+        gte: &Gte,
+    ) -> Result<(), String> {
+        if scratch.len() != self.bus.scratch.len() {
+            return Err("scratch長度不符".into());
+        }
+        self.commit_data_phase(
+            endpoint,
+            patches,
+            Some(scratch),
+            costs,
+            budget,
+            None,
+            None,
+            Some(gte),
         )
     }
 
@@ -128,7 +166,11 @@ impl Machine {
         budget: u64,
         textures: Option<&[TextureJob]>,
         lzcs: Option<u32>,
+        completed_gte: Option<&Gte>,
     ) -> Result<(), String> {
+        if completed_gte.is_some() && (textures.is_some() || lzcs.is_some()) {
+            return Err("完整GTE交易不能混用其他模式".into());
+        }
         if costs.is_empty() || costs.len() > 100_000 || patches.len() > 524_288 {
             return Err("資料階段大小不符".into());
         }
@@ -162,7 +204,14 @@ impl Machine {
                     || endpoint.lo != before.lo
                     || endpoint.muldiv_done != before.muldiv_done
             }
-            || endpoint.gte_done != before.gte_done
+            || if completed_gte.is_some() {
+                before.gte_done > before.now
+                    || before.cop0[12] & (1 << 30) == 0
+                    || endpoint.gte_done > end
+                    || endpoint.gte_done != before.gte_done && endpoint.gte_done < before.now
+            } else {
+                endpoint.gte_done != before.gte_done
+            }
             || (lzcs.is_some()
                 && (before.gte_done > before.now || before.cop0[12] & (1 << 30) == 0))
             || endpoint.icache.iter().any(|line| line.valid & !15 != 0)
@@ -217,6 +266,9 @@ impl Machine {
         candidate.cpu.state = endpoint.clone();
         if let Some(value) = lzcs {
             candidate.cpu.gte.write(30, value);
+        }
+        if let Some(gte) = completed_gte {
+            candidate.cpu.gte = gte.clone();
         }
         *self = candidate;
         Ok(())
@@ -606,5 +658,135 @@ mod lzcs_tests {
             before.bus.timers.peek(0x1f801100)
         );
         assert!(m.take_audio().is_empty());
+    }
+}
+
+#[cfg(test)]
+mod completed_gte_tests {
+    use super::*;
+    use crate::cpu::Bus;
+    fn machine() -> Machine {
+        // Synthetic transport unit data only, never a substitute game/BIOS.
+        let mut m = Machine::new(&vec![0; 0x80000]).unwrap();
+        m.cpu.state.cop0[12] |= 1 << 30;
+        m.cpu.gte.write(10, 123);
+        m
+    }
+    fn endpoint(m: &Machine, n: u64, last: u64) -> State {
+        let mut s = m.cpu.state.clone();
+        s.now += n;
+        s.cost = last;
+        s.pc = 0x80010000;
+        s.next_pc = s.pc + 4;
+        s.gte_done = s.now - 1;
+        s
+    }
+    #[test]
+    fn completed_gte_is_explicit_and_legacy_stays_strict() {
+        let mut m = machine();
+        let s = endpoint(&m, 7, 1);
+        let mut after = m.cpu.gte.clone();
+        after.write(32, 0x12345678);
+        let scratch = vec![0x53; 1024];
+        let patches = [RamWordPatch {
+            offset: 16,
+            value: 456,
+        }];
+        assert!(m
+            .commit_cpu_data_phase(&s, &patches, &scratch, &[1, 5, 1], 7)
+            .is_err());
+        assert_eq!(m.cycles(), 0);
+        m.commit_completed_gte_data_phase(&s, &patches, &scratch, &[1, 5, 1], 7, &after)
+            .unwrap();
+        assert_eq!(m.cpu.state, s);
+        assert_eq!(m.cpu.gte, after);
+        assert_eq!(m.cycles(), 7);
+        assert_eq!(&m.bus.ram()[16..20], &456u32.to_le_bytes());
+        assert_eq!(m.bus.scratch(), scratch);
+    }
+    #[test]
+    fn busy_disabled_or_unfinished_gte_rejects_unchanged() {
+        for kind in 0..4 {
+            let mut m = machine();
+            if kind == 0 {
+                m.cpu.state.cop0[12] &= !(1 << 30);
+            }
+            if kind == 1 {
+                m.cpu.state.gte_done = 1;
+            }
+            let mut s = endpoint(&m, 7, 1);
+            if kind == 2 {
+                s.gte_done = 8;
+            }
+            let before = m.cpu.clone();
+            let g = m.cpu.gte.clone();
+            let scratch = vec![0; if kind == 3 { 1023 } else { 1024 }];
+            assert!(m
+                .commit_completed_gte_data_phase(&s, &[], &scratch, &[1, 5, 1], 7, &g)
+                .is_err());
+            assert_eq!(m.cpu, before);
+            assert_eq!(m.cycles(), 0);
+        }
+    }
+    #[test]
+    fn deadline_cannot_change_to_an_unrelated_past() {
+        let mut m = machine();
+        let mut s = m.cpu.state.clone();
+        s.now = 10;
+        s.cost = 10;
+        s.pc = 0x80010000;
+        s.next_pc = s.pc + 4;
+        m.commit_ram_phase(&s, &[], &[10], 10).unwrap();
+        m.cpu.state.gte_done = 2;
+        let before = m.cpu.clone();
+        let mut s = endpoint(&m, 7, 7);
+        s.gte_done = 1;
+        let g = m.cpu.gte.clone();
+        assert!(m
+            .commit_completed_gte_data_phase(&s, &[], &[0; 1024], &[7], 7, &g)
+            .is_err());
+        assert_eq!(m.cpu, before);
+        assert_eq!(m.cycles(), 10);
+    }
+    #[test]
+    fn irq_rolls_back_gte_cpu_ram_scratch_and_audio() {
+        let mut m = machine();
+        m.bus.write32(0x1f801074, 1 << 4);
+        m.bus.write32(0x1f801108, 2);
+        m.bus.write32(0x1f801104, 1 << 4);
+        let before = m.cpu.clone();
+        let timer = m.bus.timers.peek(0x1f801100);
+        let s = endpoint(&m, 5, 5);
+        let mut g = m.cpu.gte.clone();
+        g.write(10, 999);
+        assert!(m
+            .commit_completed_gte_data_phase(
+                &s,
+                &[RamWordPatch {
+                    offset: 16,
+                    value: 456
+                }],
+                &[0x53; 1024],
+                &[5],
+                5,
+                &g
+            )
+            .is_err());
+        assert_eq!(m.cpu, before);
+        assert_eq!(m.cycles(), 0);
+        assert_eq!(m.bus.timers.peek(0x1f801100), timer);
+        assert!(m.bus.ram()[16..20].iter().all(|&v| v == 0));
+        assert!(m.bus.scratch().iter().all(|&v| v == 0));
+        assert!(m.take_audio().is_empty());
+    }
+    #[test]
+    fn full_gte_and_lzcs_modes_do_not_mix() {
+        let mut m = machine();
+        let s = endpoint(&m, 5, 5);
+        let g = m.cpu.gte.clone();
+        assert!(m
+            .commit_data_phase(&s, &[], Some(&[0; 1024]), &[5], 5, None, Some(7), Some(&g))
+            .is_err());
+        assert_eq!(m.cycles(), 0);
     }
 }

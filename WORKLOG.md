@@ -3047,3 +3047,14 @@ CameraMachinePlan沿既有commit_cpu_data_phase在隔離副本同步裝置，再
 GTE最終SXY／SZ及IR／MAC／flags由最後四頂點、最多兩次自有純Rust位置數學保留，不重播全27次命令。HD與相容XY不讀GTE結果，沒有先光柵舊畫面。一次集中正式抽驗：原18面與一個triangle尾端／反轉鏈／不同pose診斷，完整RAM／GTE同局部原CPU，原寫548／287 bytes；1478／779步與27／9命令只作oracle，不作成本或速度。舊幾何毒化保持，八守門通過。輸入是既有六欄位讀集與PC／GPR，其他CPU狀態合成，不稱正常完整Machine。
 
 新遊戲開機、IDA、GUI／GPU與美術審查0，原18面畫布／五材質組及63頂點證據承接。較早16.9.2／16.9.6未知已回鏈；CPU端點／gte_done／快取／時鐘、初始化／分配／刪除及正式整場仍DRAFT，未註冊玩家或提交Machine。下一段承接資料補模型CPU／時鐘及物件生命週期，不重開模型、相機或美術。來源、受測SHA、清理及推送／Issue回讀由素材索引mesh-state-v1進入。
+
+
+## 2026-11-01：鐘塔模型CPU、GTE時鐘與正常同步提交
+
+<!-- RUST-TOWER-MESH-CLOCK-COMMIT-20261101 -->
+
+026 §16.9.8–9限定CONFORMED。Rust以model stream的bank切換、三／四邊形及隱藏槽產生CPU終值與資源時鐘，保留原27次GTE虛擬期限，數學仍最多兩次，不跑原ISA或保存PC序列。兩局部原CPU1478／779步，cold／同tag部分有效cache成本4069／2066，完整State／每成本／RAM／GTE同；非零HI／LO／ABI保持，八入口拒絕通過。初始不同tag的第二profile實際亦cold，原資料保留；正式抽驗前修正診斷，正式批次一次。
+
+新completed-GTE交易明確承接原API未允許的gte_done輸送，舊入口仍拒絕改期限。受影響的phase單元17項全過，含五個新期限／回滾／模式測試。MeshMachinePlan驗過期State／RAM／Gte／BIU後，原子提交模型資料及真實deadline，保留live scratch與排隊原音。唯一正常原片自然模型事件由Rust提交，完整Machine／逐成本／GTE期限同原CPU；續播11724機器、取出原音及原卡相同，正常無PC／RAM注入。五個過期／途中IRQ診斷獨立副本全回滾。
+
+舊16.9.7模型CPU未知已回鏈，來源／原片／卡片保持。原18面畫布與美術承接，IDA／新GUI／GPU／打包0。正式玩家未註冊，原生下游光柵仍在；物件生命週期與尾端遊戲狀態、整場HD仍待，不當可玩完整HD或速度通過。後續承接模型與相機切片補初始化／分配／刪除及整場接線，不重開已解數學。受測SHA、來源、清理與推送／Issue回讀由素材索引mesh-clock-v1進入。
