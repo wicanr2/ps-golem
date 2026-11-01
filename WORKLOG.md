@@ -3025,3 +3025,14 @@ IDA9.4沿既有UID1000 image，只在原DRA資料庫的一份新副本核對RotM
 一次集中正式抽驗兩個局部原CPU案例201／202步，完整RAM／GTE及48-byte寫入集合相符，第二例非零stack padding／GTE與不同pose，八拒絕通過。沒有新遊戲開機、美術／畫面審查或舊GPU矩陣。這是trace PC／GPR加六欄位讀集及合成其他CPU狀態，不冒稱完整正常Machine。步數不是速度或時鐘通過；CPU、快取、pending狀態、時間及正式提交仍DRAFT，後續整個原呼叫其他分支另補。
 
 原16.9.3的相機資料未知補自動回鏈，完整routine未知保留。原DB／BOOT／DRA雜湊與UID1000保持；本輪只讀原件，完成DB副本及私有IDA log按明確檔名清除，刪除資訊／原DB身份留收據。工具、驗證、回鏈、清理與提交／Issue回讀由素材docs/assets-catalog.md的camera-state-v1入口進入。
+
+
+## 2026-11-01：鐘塔相機CPU、資源時鐘與正常同步提交
+
+<!-- RUST-CAMERA-CLOCK-COMMIT-20261101 -->
+
+026 §16.9.5–6限定通過。Rust直接算相機設定的完整暫存器終值，資源計畫只描述快取、RAM讀取與乘法等待；不解碼原ISA、不讀保存PC序列。兩局部原CPU案例201／207步、685／720成本，完整CPU／icache／逐成本及RAM／GTE相同，八入口守門與兩過期拒絕通過。這些狀態部分合成，不當正常玩家；正常證據另列。
+
+CameraMachinePlan沿既有commit_cpu_data_phase在隔離副本同步裝置，再補CPU持有的GTE資料後整體替換，不增加核心API。正常原片只開一次，在11721後自然相機事件由Rust提交，完整Machine／成本同原控制組，續播11724的完整機器、所取原音與原卡相同，無PC／RAM／場景注入。五個過期State／RAM／GTE／BIU與途中timer IRQ診斷獨立副本均完整回滾。正式玩家尚未註冊，後續模型／原生光柵仍在，不當整個物件routine、全3D／全素材HD或速度通過。
+
+兩次開機前私人工具編譯錯誤保留日誌：先修依賴別名，再改用原有完整Machine Eq觀測副本。回查規格停止線後，只擴充prepare_sotn_framecommit_probe允許清單；正式核心與遊戲不為工具錯誤改動，正常驗證沒有重跑。原DB／原片／BIOS／卡片hash保持，美術與18面畫布沿用，新GUI／GPU／打包0。較早16.9.4相機CPU未知已回鏈；後續接幾何輸出與完整物件生命週期。來源、受測SHA、清理及提交／Issue回讀見素材索引camera-clock-v1。

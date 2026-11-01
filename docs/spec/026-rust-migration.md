@@ -1078,7 +1078,7 @@ mesh_scroll_after_event要求PC800F352C、S0=1024及有效1280槽ordinal，呼�
 
 #### 16.9.4 鐘塔相機設定的 RAM／GTE 相容資料
 
-狀態：限定CONFORMED，僅RAM／GTE資料計畫；完整CPU／時鐘與Machine提交仍DRAFT。只處理 PS1 ST0 原 sub_801BAEB0 中 801BAFB4 到 801BB04C 前的相機設定資料效果，承接16.9.3的相機數學。原SDK的SetGeomScreen 8001805C、SetGeomOffset 8001803C、SetRotMatrix 80017E3C、TransMatrix 80017CDC與SetTransMatrix 80017ECC，以原IDA9.4資料庫新副本核對。原始函式名、位址、bytes、讀寫與推論等級保存在私人camera-state-v1，入口見素材索引。
+狀態：限定CONFORMED，僅RAM／GTE資料計畫；相機CPU／時鐘及同步提交由16.9.5–6承接，整個物件呼叫仍DRAFT。只處理 PS1 ST0 原 sub_801BAEB0 中 801BAFB4 到 801BB04C 前的相機設定資料效果，承接16.9.3的相機數學。原SDK的SetGeomScreen 8001805C、SetGeomOffset 8001803C、SetRotMatrix 80017E3C、TransMatrix 80017CDC與SetTransMatrix 80017ECC，以原IDA9.4資料庫新副本核對。原始函式名、位址、bytes、讀寫與推論等級保存在私人camera-state-v1，入口見素材索引。
 
 先封閉RAM寫入範圍與GTE控制暫存器效果，不處理CPU、指令快取、pending load、busy狀態或時鐘。候選不得註冊正式玩家、跳過原PC或宣稱完整Machine同態。測試只用已觀測六欄位讀集、trace的PC／GPR與明確標記的合成其他狀態，兩份局部原CPU oracle比較完整RAM／GTE；不重跑模型、畫面、美術或正常開機。原版流程與既有HD畫面保持。
 
@@ -1095,3 +1095,44 @@ GTE從進入狀態clone，只寫CR0–4的五個packed rotation words、CR5–7�
 16.9.4正式集中抽驗一次通過。兩個局部原CPU案例分別201／202步到801BB04C，完整2MiB RAM及Gte物件逐值相同，原CPU實際寫入集合恰48 bytes，沒有scratch／裝置存取。第二例變更六欄位、非零stack padding及GTE DR／FIFO／flags，證明未寫區保留；八個錯PC／SP／槽／SDK／pending load／CU2／cache isolate拒絕通過。步數只描述局部診斷，不是時鐘、效能或正常玩家結果。新元件rust/player/src/apps/sotn/camerastate.rs未在sotn.rs宣告，不可跳PC或提交Machine。
 
 本次封閉的是相機設定資料，不含初始化／分配／刪除、後續模型幾何與所有原呼叫CPU／時鐘。正常連續玩家與正式HD主流程仍待；舊18面畫面與美術證據直接承接，沒有新抓圖、GPU矩陣或速度聲明。來源／READY／完整抽驗／回鏈／清理及發布收據由私人camera-state-v1索引進入。
+
+
+
+<!-- TOWER-CAMERA-CPU-COMMIT-RESOLVED-20261101 -->
+16.9.4的相機設定CPU／快取／資源時鐘與同步Machine提交已由16.9.5–16.9.6封閉。此回鏈只解801BAFB4到801BB04C，不代表sub_801BAEB0的初始化／分配／刪除、後續幾何或整場玩家已完成。
+
+#### 16.9.5 鐘塔相機設定的 CPU／快取／資源時鐘
+
+狀態：限定CONFORMED，僅離線CPU／快取／逐成本計畫；Machine裝置同步由16.9.6承接，正式玩家仍DRAFT。承接16.9.4相機設定的RAM／GTE效果，僅補原801BAFB4到801BB04C的CPU端點與資源成本。原SDK RotMatrix 800186AC、五相機SDK及ST0呼叫者已有IDA9.4 bytes／邊界／讀寫證據，不新開查詢；CPU硬體成本沿008／026及自有cpu.rs、callclock.rs。來源身份與展開pseudo-load後的真正RAM讀取、MULTU／MFLO位置保存於私人camera-clock-v1/source-plan.json，工具入口在素材索引。
+
+先用原六欄位讀集及trace PC／GPR作兩份明確合成的局部CPU診斷，核對GPR35值、HI／LO、延遲載入、分支／PC、快取與逐成本。這不是完整正常Machine或玩家驗收。正式元件只從型別Camera／角度產生端點，以資料相依資源區段計算快取、RAM讀取與乘法等待，不解碼或執行原ISA，不重播保存trace。原版流程、既有HD畫布與美術保持。Machine裝置同步、原呼叫其他分支與正式整場仍DRAFT。
+
+
+16.9.5 READY端點契約：CameraClockPlan::prepare接受2MiB原RAM、State、原Gte及BIU=125320，先沿16.9.4資料計畫驗來源。入口next_pc=pc+4、bdbt=0、branched=false、無pending load、gpr0=0、無已啟用IRQ、所有icache valid只含低四位、gte_done<=now、now預留2000000防溢位；其餘來源／SP／CU2／isolate限制承接16.9.4。未完成GTE、異常入口或未知BIU拒絕，不放寬核心時鐘。
+
+令sx／cx、sy／cy、sz／cz是原packed表對三軸signed16角的sin／cos，角度與Camera相同；zc=(cz*(-sy))>>12、zs=(sz*(-sy))>>12，每乘積採原32-bit低位算術右移。CPU終值由Camera與這些typed scalar直接求得：v0=a0=s0=SP+28，v1=580，a1=SP+18，t0–t2=三個translation，t3=matrix+0C的packed word，t4=matrix+10的packed word且包含原padding，t5=sz，t6=((cz*sx)>>12)-((zs*cx)>>12)，t7=(zs*cx)>>12，t8=zs，t9=(cz*sx)>>12，ra=801BB04C。t6等保留完整32-bit值，不能先截成matrix halfword。HI／LO為最後unsigned32(cz)*unsigned32(sx)的64-bit上下位。最後load值是translationZ，ld_which=34，ld_value與gpr34同該值；其他GPR含1／32／33保持。PC=801BB04C、next_pc=801BB050，bdbt=0、branched=false；CP0與gte_done保持。
+
+資源時鐘只記快取取用、26個靜態可能RAM load位置、14個MULTU與MFLO等待，不記客體指令語意。三軸正負決定已知SDK資源區段，Z正分支先MFLO、負分支另有一個取值後再查表；分支delay資源仍納入。依自有008／cpu.rs，基礎每槽1，RAM load另4，取指快取miss依word位置填本行後綴，成本7-word；unsigned乘法依第一運算元leading_zeros分7／10／14，完成期限設為該槽後now加乘法延遲，MFLO等待到該期限。所有資源區段、load與乘法位置由原bytes核實，不讀原trace／opcode當runtime輸入，不逐指令更新GPR。輸出State含完整icache／now／cost／muldiv_done及costs陣列。兩原CPU診斷201／207步、685／720成本只作來源證據，不硬編成常數，也不當效能結果。
+
+apply_data只在RAM雜湊、完整進入State／Gte及BIU仍相同時，原子複製RAM、CPU與GTE輸出；過期拒絕。它不推進Machine或裝置，未接正式玩家。正式抽驗只重用這兩個有明確合成狀態的案例，完整CPU／快取及每個成本對原CPU，並核對既有RAM／GTE與過期／入口拒絕；不擴成全遊戲、GPU、美術或既有CPU矩陣。保存來源至正式玩家與音訊／存檔的垂直鏈尚未封閉，故本切片不宣稱可玩HD或整個原routine取代。
+
+
+16.9.5正式抽驗一次通過：兩個重建局部CPU案例的完整State／icache、逐成本、RAM與GTE逐值相同；正負角及cold／partial cache成本分別685／720，乘法三種延遲有實際涵蓋。八入口拒絕及兩份過期資料拒絕通過。這些是合成其他狀態的局部診斷，不能作正常Machine證據；正式玩家尚未註冊。
+
+#### 16.9.6 鐘塔相機設定的同步機器提交
+
+狀態：限定CONFORMED，僅相機資料階段的同步Machine交易；整個物件呼叫與正式玩家仍DRAFT。承接16.9.5及既有Machine::commit_cpu_data_phase，研究同一801BAFB4到801BB04C切片的同步提交。先在隔離Machine副本沿既有costs推進裝置、合併stack字寫入與CPU端點，成功後再補已驗GTE控制資料並整體替換。GTE屬CPU持有物件，SystemBus排程無法讀取它；只有stack RAM改動且禁止活動DMA／IRQ／跨場，沒有裝置可見的中間資料依賴。來源為自有machine.rs、machine/phase.rs與16.9.4–5，不增加通用核心API，不放寬裝置契約。
+
+驗證只跑一份既有正常原片開機路線，沿11721後自然S2=8007D278的相機事件，比較完整CPU／機器、逐成本及續至11724的原音與卡片；五個過期／IRQ診斷獨立標記，不作正常路線。原版下游模型／光柵化保持，這不當正式HD玩家或整段3D接管完成。原片、BIOS與來源快照只留本機，已驗美術不重審。
+
+
+16.9.6 READY契約：CameraMachinePlan::prepare只取Machine真實RAM／State／Gte／BIU，沿16.9.5檢查來源與入口。commit先逐值核對原State／Gte／BIU及完整RAM雜湊，過期拒絕；scratch不是讀集，從當下Machine保持，不憑準備時副本覆蓋。只將資料計畫相異的aligned RAM words合併為RamWordPatch，未寫halfword與padding沿16.9.4保持。既有commit_cpu_data_phase在隔離候選沿逐成本推進SPU／CD／計時器／視訊等，拒絕活動DMA／MDEC、IRQ、跨場、錯端點、超界／重複patch與成本；成功後CPU-owned GTE整份接上已驗輸出，再整體替換live Machine。wrapper不執行原ISA、不新增核心API或清空裝置／原音。
+
+所有拒絕保留live Machine及排隊原音；正常一個原片自然事件比較完整Machine與成本，續至11724比較完整機器、原音及原卡。五個獨立過期State／RAM／GTE／BIU與期間timer IRQ診斷，透過phase_probe_equal核對不變。正常路線不改PC／RAM、不挑測試結果；來源條件未達或交易拒絕如實停下，沒有回退到原CPU後宣稱接管成功。這是本切片第一次正常機器驗證，不重跑已驗核心、局部矩陣或美術。
+
+
+16.9.6正式正常原片抽樣通過：同一正常開機路線自然抵達801BAFB4、S2=8007D278，Rust一次同步提交到801BB04C，完整Machine含CPU／GTE／RAM／scratch／裝置／排隊音訊及逐成本同獨立原CPU控制組。正常分支無PC／RAM／場景注入；五個State／RAM／GTE／BIU過期與途中timer IRQ只在獨立副本，均拒絕且完整Machine保持。續到11724的完整機器、取出原音與原卡相同。確切場次、成本、取樣數及受測SHA見私人camera-clock-v1/machine-verification與acceptance。
+
+先前兩次是私人工具在開機前編譯失敗：依賴別名未對應，以及直接核心缺少測試用phase_probe_equal。保留兩份日誌，只修工具宣告與既有prepare_sotn_framecommit_probe允許清單，再沿其逐欄Eq觀測副本完成唯一一次正常開機。正式核心未修改，沒有產品失敗重試或額外美術／GPU矩陣。
+
+本切片已能在受控相機事件完全略過原設定ISA並同步資料及時鐘；正式玩家未註冊，後續原模型／原生光柵仍在。下一段處理模型幾何輸出與完整物件生命週期／整場接線，不重開已解相機資料與數學。這不當全3D、全素材HD、GUI或速度通過。
