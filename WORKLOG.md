@@ -3014,3 +3014,14 @@ IDA9.4沿既有UID1000 image，首兩份一次性副本停於把未載入RAM非�
 只用既有正常trace讀值重建六欄位pose與原末場RAM，沒有新遊戲開機。此輸入不稱完整正常Machine快照。一次集中正式抽驗：相機各值同原來源，三矩陣SDK局部診斷125／126／131步，四個捲動類型／旗標／差值案例與五拒絕通過，物件位置改寫能改變Camera。63頂點與18面HD完整RGBA同前次已驗圖層，因此不抓新圖、不重審美術或跑舊GPU矩陣。步數只作診斷紀錄，沒有速度通過聲明。
 
 IDA9.4沿既有UID1000 image，只在原DRA資料庫的一份新副本核對RotMatrix與捲動末端來源，沒有工具失敗重試；原DB／BOOT／DRA hash保持。原packed表不改用host sin/cos或舊quarter表；在較早16.9.2補回鏈及自動檢查，防止重開已解欄位。原呼叫的初始化／刪除、完整RAM／scratch／CPU／GTE／裝置與時鐘仍DRAFT，資料通過不當整段routine、整場HD或玩家驗收。素材、Go包、CPU／GPU、海報與影片保持。受測SHA、回鏈、清理及發布收據由素材索引tower-camera-v1進入。
+
+
+## 2026-11-01：鐘塔相機RAM／GTE資料效果
+
+<!-- RUST-CAMERA-STATE-20261101 -->
+
+沿026 §16.9.4，原801BAFB4至801BB04C的相機設定資料由Rust直接產生：48 bytes堆疊、11個GTE控制暫存器，其餘RAM／GTE保持。先以IDA9.4新DB副本核對五SDK，READY後安裝未註冊camerastate.rs；正式元件承接既有Camera數學，不執行原ISA或GTE命令，不先畫舊圖再覆蓋。原版、CPU／GPU、海報與已定案素材保持。
+
+一次集中正式抽驗兩個局部原CPU案例201／202步，完整RAM／GTE及48-byte寫入集合相符，第二例非零stack padding／GTE與不同pose，八拒絕通過。沒有新遊戲開機、美術／畫面審查或舊GPU矩陣。這是trace PC／GPR加六欄位讀集及合成其他CPU狀態，不冒稱完整正常Machine。步數不是速度或時鐘通過；CPU、快取、pending狀態、時間及正式提交仍DRAFT，後續整個原呼叫其他分支另補。
+
+原16.9.3的相機資料未知補自動回鏈，完整routine未知保留。原DB／BOOT／DRA雜湊與UID1000保持；本輪只讀原件，完成DB副本及私有IDA log按明確檔名清除，刪除資訊／原DB身份留收據。工具、驗證、回鏈、清理與提交／Issue回讀由素材docs/assets-catalog.md的camera-state-v1入口進入。

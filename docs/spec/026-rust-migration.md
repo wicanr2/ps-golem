@@ -1070,3 +1070,28 @@ mesh_scroll_after_event要求PC800F352C、S0=1024及有效1280槽ordinal，呼�
 
 
 16.9.3正式集中抽驗完成，元件為rust/player/src/apps/sotn/camera.rs，未宣告進正式玩家。原六欄位相機全部值同來源；三SDK矩陣局部原CPU各125／126／131步，四個捲動資料案例及五守門拒絕通過。這些步數只描述診斷，不作成本模型或速度。物件X改寫確實改變Camera，63頂點與18面HD的完整RGBA逐位元組同16.9.2既有畫布；因此直接承接原畫面與美術，不新抓圖或重審。沒有新遊戲開機／GPU矩陣，來源是原trace讀集重建及局部CPU診斷，不當正常完整Machine或連續玩家驗收。後續只補原呼叫相容效果、時鐘與正式整場，不重開已解模型、相機或平移欄位；來源與回鏈收據由私人tower-camera-v1索引進入。
+
+
+
+<!-- TOWER-CAMERA-STATE-DATA-RESOLVED-20261101 -->
+16.9.3留下的相機設定RAM／GTE資料效果，已由16.9.4封閉；完整sub_801BAEB0的其他區段、CPU／快取／時鐘與正式玩家仍DRAFT。不要以較早完整副作用未知的文字重開已解相機資料。
+
+#### 16.9.4 鐘塔相機設定的 RAM／GTE 相容資料
+
+狀態：限定CONFORMED，僅RAM／GTE資料計畫；完整CPU／時鐘與Machine提交仍DRAFT。只處理 PS1 ST0 原 sub_801BAEB0 中 801BAFB4 到 801BB04C 前的相機設定資料效果，承接16.9.3的相機數學。原SDK的SetGeomScreen 8001805C、SetGeomOffset 8001803C、SetRotMatrix 80017E3C、TransMatrix 80017CDC與SetTransMatrix 80017ECC，以原IDA9.4資料庫新副本核對。原始函式名、位址、bytes、讀寫與推論等級保存在私人camera-state-v1，入口見素材索引。
+
+先封閉RAM寫入範圍與GTE控制暫存器效果，不處理CPU、指令快取、pending load、busy狀態或時鐘。候選不得註冊正式玩家、跳過原PC或宣稱完整Machine同態。測試只用已觀測六欄位讀集、trace的PC／GPR與明確標記的合成其他狀態，兩份局部原CPU oracle比較完整RAM／GTE；不重跑模型、畫面、美術或正常開機。原版流程與既有HD畫面保持。
+
+
+16.9.4 READY契約：五SDK的原始bytes與函式邊界逐項同BOOT，原始位址、雜湊及運算元見camera-IDA。推論等級已證實，僅此直線相機設定與已驗RotMatrix：無裝置、scratch、顯存或GTE命令。新apps/sotn/camerastate::DataPlan::prepare讀原2MiB RAM、事件State及進入GTE，從16.9.3 Sources重新產生Camera。要求PC801BAFB4、有效S2槽、SP四位元組對齊且在801F0000–801FFFB8、無pending load、CU2開啟且cache isolate關閉。SP限制是本切片支援邊界，用於排除來源別名；不宣稱原遊戲只容許此範圍。輸入不符拒絕，原輸入不變。
+
+輸出是新的RAM副本與GTE副本，不能直接提交Machine。相對進入SP，角度有號16-bit寫入+10／+12／+14，translation三個32-bit寫入+18／+1C／+20，rotation九個有號16-bit依列順序寫入+28至+38，translation再寫入+3C／+40／+44，合計48 bytes可寫集合。+16／+17、+24至+27與matrix padding +3A／+3B等其餘RAM逐位元組保持。rotation、translation來自已驗Camera，角度來自相同六欄位讀集，不讀舊投影結果。
+
+GTE從進入狀態clone，只寫CR0–4的五個packed rotation words、CR5–7的translation、CR24／25的128<<16及CR26的0x300，合計11個控制暫存器。CR4讀入的matrix padding不會改寫其保留高位，沿核心Gte::write遮罩保持。其他CR、全部DR、FIFO、flags及隱藏狀態保持，不執行Gte::execute。SDK RotMatrix只寫matrix九個halfword，沒有額外堆疊副作用。
+
+驗證限定兩個局部CPU診斷：原六欄位讀集加trace PC／GPR，其餘CPU狀態明確合成；第二例使用非零堆疊padding、不同物件pose及非零進入GTE。原CPU只存在私人oracle，跑801BAFB4到801BB04C並比較完整RAM、完整GTE及寫入集合；少量錯事件／來源／堆疊／CPU前置條件拒絕。資料計畫不更新PC／GPR／HI／LO／CP0、快取、成本或pending狀態，不作完整CPU、正常玩家、速度或正式整段接管聲明。來源數學、美術及已驗HD圖層承接，不再重畫。
+
+
+16.9.4正式集中抽驗一次通過。兩個局部原CPU案例分別201／202步到801BB04C，完整2MiB RAM及Gte物件逐值相同，原CPU實際寫入集合恰48 bytes，沒有scratch／裝置存取。第二例變更六欄位、非零stack padding及GTE DR／FIFO／flags，證明未寫區保留；八個錯PC／SP／槽／SDK／pending load／CU2／cache isolate拒絕通過。步數只描述局部診斷，不是時鐘、效能或正常玩家結果。新元件rust/player/src/apps/sotn/camerastate.rs未在sotn.rs宣告，不可跳PC或提交Machine。
+
+本次封閉的是相機設定資料，不含初始化／分配／刪除、後續模型幾何與所有原呼叫CPU／時鐘。正常連續玩家與正式HD主流程仍待；舊18面畫面與美術證據直接承接，沒有新抓圖、GPU矩陣或速度聲明。來源／READY／完整抽驗／回鏈／清理及發布收據由私人camera-state-v1索引進入。
