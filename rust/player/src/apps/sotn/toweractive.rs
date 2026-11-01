@@ -136,7 +136,6 @@ impl TowerActivePlan {
         let saved_s0 = word(r, frame + 0x48);
         let saved_ra = word(r, frame + 0x54);
         for (reg, value) in [
-            (1, 0x80070000),
             (2, 0),
             (3, half(r, 0x733da) as i16 as i32 as u32),
             (16, saved_s0),

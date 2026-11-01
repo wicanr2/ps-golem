@@ -1220,9 +1220,13 @@ MeshMachinePlan先驗準備時State／Gte／完整RAM hash／BIU仍相同，scra
 
 配置器每層從前1024槽找kind0，清52 bytes後標種類，遞迴配置剩餘數量；成功才串link，最末槽可更新800A23F8的signed最大索引。失敗逐層退回kind0，但已清資料與遞迴堆疊仍是副作用。釋放沿link只清kind，kind7另清其+10指標所指word；刪除在flags的00800000位設置時呼叫該間接釋放，再清物件47個word。原函式位址／資料流已證實，完整RAM／CPU／時鐘與實作仍DRAFT，不能把範本copy或單一helper當整個生命週期完成。
 
+
+<!-- TOWER-INIT-WIRING-RESOLVED-20261101 -->
+16.9.10的成功初始化／40槽配置完整CPU、堆疊與資源時鐘已由16.9.12封閉，並連續接16.9.11活動分支；配置不足／失敗回復、釋放／刪除及正式整場仍DRAFT，不重新研究成功配置或已驗相機／模型。
+
 #### 16.9.11 鐘塔已初始化活動分支的完整Rust呼叫
 
-狀態：限定CONFORMED，僅step非零且保留物件的完整活動呼叫；初始化／配置／刪除與正式玩家仍DRAFT。先把已驗相機／模型與caller進出邊界接成原sub_801BAEB0的一次完整活動呼叫，範圍為入口801BAEB0、A0有效物件且step非零、signed16(8007308E)+signed16(800733DA)>=256，最後回入口RA。初始化step0與刪除條件仍拒絕；不推定新配置／回收已完成。這條玩家可見活動路徑不依賴尚未知helper，因此先收斂，避免重開已驗數學或逐行翻整個模組。
+狀態：限定CONFORMED，僅step非零且保留物件的完整活動呼叫；成功初始化由16.9.12承接，配置失敗／刪除與正式玩家仍DRAFT。先把已驗相機／模型與caller進出邊界接成原sub_801BAEB0的一次完整活動呼叫，範圍為入口801BAEB0、A0有效物件且step非零、signed16(8007308E)+signed16(800733DA)>=256，最後回入口RA。初始化step0與刪除條件仍拒絕；不推定新配置／回收已完成。這條玩家可見活動路徑不依賴尚未知helper，因此先收斂，避免重開已驗數學或逐行翻整個模組。
 
 沿原prologue保存S0／S1／S2／RA到新SP+48／4C／50／54，將S2設為入口A0，讀step後接16.9.5–6相機與16.9.8–9模型。尾端沿原有號條件走keep分支，還原四個保存暫存器與SP，再回caller。只按typed資料算終值與取用cache／RAM資源，不執行原ISA；HD DrawFace沿原模型直接產生。完整CPU／RAM／GTE／逐成本與正常Machine尚未驗前不安裝。原版、CPU／GPU、海報與已驗美術保持，正式玩家未註冊。
 
@@ -1231,7 +1235,7 @@ MeshMachinePlan先驗準備時State／Gte／完整RAM hash／BIU仍相同，scra
 
 入口prologue直接把新SP=舊SP-58，依原位址把入口S2／RA／S1／S0分別存新SP+50／54／4C／48，S2設入口A0，v0／ld_value／gpr34取step，ld_which=34。801BAEB0–801BAED4十個資源後到801BAFB4，接已驗CameraClockPlan，再以其真實RAM／State／Gte接MeshClockPlan。兩者來源、GTE數學及成本不重寫。這些是計畫內的型別狀態，live Machine不跳PC或執行原ISA。
 
-尾端只取801BB320–801BB340及801BB34C–801BB364十六個資源；RAM讀取位置為801BB324／32C／34C／350／354／358，加prologue的801BAEC8。v1為733DA有號16-bit值，v0=0，at=80070000；從保存槽還原S0／S1／S2／RA與SP，ld_value／gpr34為保存S0，PC回入口RA、next_pc=RA+4，branch欄清除。其餘CPU／GTE終值承接相機／模型。這條分支不讀初始化current-entity、不配置／回收或清物件，HD DrawFace與handle沿Model資料輸出。
+尾端只取801BB320–801BB340及801BB34C–801BB364十六個資源；RAM讀取位置為801BB324／32C／34C／350／354／358，加prologue的801BAEC8。v1為733DA有號16-bit值，v0=0；at保留模型終值；從保存槽還原S0／S1／S2／RA與SP，ld_value／gpr34為保存S0，PC回入口RA、next_pc=RA+4，branch欄清除。其餘CPU／GTE終值承接相機／模型。這條分支不讀初始化current-entity、不配置／回收或清物件，HD DrawFace與handle沿Model資料輸出。
 
 commit逐值驗準備時CPU／Gte／RAM hash／BIU，scratch不在讀集而保留live值，再沿16.9.9明確completed-GTE交易把整個prologue、相機、模型、tail與return同步提交。所有成本及裝置／IRQ／跨場回滾守門保持。局部兩例1705／1012原CPU步只作oracle，不硬編總成本，非零caller S0／S1／S2／FP、HI／LO與部分有效cache都核對；第二例含三角形尾端、反轉鏈、不同pose及邊界sum=256。八個初始化／刪除／caller／來源／事件拒絕通過才定案。
 
@@ -1243,3 +1247,37 @@ commit逐值驗準備時CPU／Gte／RAM hash／BIU，scratch不在讀集而保�
 唯一正常原片開機自然抵達11721後801BAEB0、A0=8007D278，Rust從函式入口同步提交至原caller RA，整個活動呼叫略過1705個原CPU步，保留4706虛擬週期及完整Machine。成本與GTE期限逐值相同；五個過期State／RAM／GTE／BIU及途中IRQ診斷在獨立副本拒絕並保持完整機器。正常分支無PC／RAM注入，續播11724的完整機器、4464個i16原音取樣與記憶卡同控制組。受測程式與原片SHA保持，測試觀測副本只增加逐欄Eq，核心phase.rs不改。
 
 TowerActivePlan仍未註冊正式玩家，下游原生光柵仍在。step0、配置失敗回復、world_x<256刪除、其餘物件與正式整場保持DRAFT。生命周期來源已核對原初始化／配置／釋放bytes，但完整CPU／堆疊／時鐘仍待實作。已驗模型與美術承接，本批不抓新圖、重審美術、重跑GPU或打包；虛擬週期相同不代表主機速度通過。
+
+
+#### 16.9.12 鐘塔成功初始化與完整活動呼叫接線
+
+狀態：限定CONFORMED，僅成功初始化及正常連續活動接線；配置失敗／刪除與正式整場仍DRAFT。承接16.9.10原初始化／配置證據與16.9.11完整活動呼叫，補step0成功配置40槽、建立相機／模型再回caller的完整分支。原RAM、BOOT／DRA／ST0及IDA9.4位址空間／bytes雜湊沿lifecycle-v1與tower-mesh-v1，私人tower-init-v1/source-plan固定受測來源；原始資料不入Git。配置不足／失敗回復、world_x小於256的刪除仍拒絕，不能以成功案例推論完成。
+
+已證實原sub_801B53A8以current entity與十byte範本複製bank／frame等原始欄位及40-byte記錄，清三halfword、step加一，priority零才從80097408減12。原tower初始化隨後把x／y設為1152減scroll-x、128減scroll-y，以8003C7B8指向800EDA38配置type4共40槽。配置每層重掃前1024槽、清52 bytes、保存遞迴ABI堆疊，最末槽更新signed最大ordinal；成功才反向串鏈。tower保存head及ordinal，flags OR00800000，40槽設定RGB128、page15，再接相機／模型與保留分支返回。
+
+本切片要直接以型別資料建配置、RAM、完整CPU／GTE／快取／逐成本，原ISA只供oracle。先用兩個priority／非連續空槽／不同高水位與cache的局部CPU案例封閉契約，再READY安裝；一次正常原片從自然step0開始連續比較後續活動呼叫及續播原音／原卡。正常不注入PC／RAM，未達自然初始化如實記未驗。正式玩家入口及完整畫布接線另列，不縮減CPU／GPU、海報與原版模式。
+
+
+16.9.12 READY契約：TowerInitPlan::prepare讀完整2MiB RAM／State／Gte及BIU125320。入口與16.9.11相同但step必須零、current entity必須等於A0；SP至少801F0700，RA／SP對齊、CU2開、GTE已完成、無branch／load／enabled IRQ且cache valid低四位。world_x至少256。原初始化、配置與52-byte清除的程式SHA及十byte範本SHA逐項核對，stat表指標固定已觀測800A88AC，配置函式指標固定800EDA38。前1024槽須有至少40個kind0；不足整次拒絕，不先清資料。全部計畫超過100000資源也拒絕，不修改core budget。
+
+配置直接選前40個空ordinal，逐槽清52 bytes並設type4、串next，signed高水位只與最末ordinal比較。遞迴每層40-byte保存S4／S3／S2／S1／S0／RA的RAM副作用按父配置資料直接建立；第一層保存入口ABI，後續層保存父slot、剩餘數與800EDACC返回，不在正式路徑執行原函式或ISA。40個輸出節點RGB128／page15及物件head／ordinal／flags直接產生，再接既有CameraClockPlan及MeshClockPlan。尾端保留分支與caller返回沿16.9.11語意。
+
+虛擬時間按初始化priority條件、每層從0掃到所選ordinal、清13 words、成功串鏈／高水位分支及各呼叫進出取資源；靜態RAM load位置另加4，cache沿008，資料計算不靠保存trace或原CPU/GTE投影輸出。相容GTE仍最多兩次原有數學，HD DrawFace仍直接由世界頂點產生。commit驗準備時完整State／Gte／RAM hash／BIU未變，沿已驗completed-GTE API原子提交CPU／RAM／GTE及真實時鐘，保留live scratch與音訊；過期／IRQ／DMA／跨場等拒絕不變。
+
+正式集中抽驗限兩局部完整原CPU案例與八入口拒絕，再一次正常開機自然step0與接續活動呼叫，逐次比較完整Machine與每成本，續播11724原音／原卡。局部非連續空槽／高水位／priority／pose及cache為診斷，不當正常遊玩來源覆蓋。未達自然初始化、未支援的失敗或交易拒絕如實記錄，不挑結果重跑或以原CPU補完後稱接管。核心、既有美術／GPU矩陣及活動分支數學不重開。
+
+
+16.9.12接線勘誤：原保留尾端沒有寫at。配置僅在最末ordinal更新高水位時，800EDAAC的pseudo-store使用at並留下800A0000；未更新時保留入口值。16.9.11先前固定at的描述只符合當時入口；現在沿原IDA bytes及兩個初始化oracle修成保留模型終值。其餘活動呼叫資料／時鐘不改，新的正常初始化後連續呼叫一併核對，不重開美術或舊GPU矩陣。初始化正式安裝前，probe中未執行的刪除守門診斷改為sum=255；原oracle未變，未重跑原CPU案例。
+
+
+16.9.12第一次集中比較：case0完整CPU／RAM／GTE／成本通過，case1只有at不同，其他GPR、時鐘及cache相同。沿原IDA與保存PC資源集合確認800EDAAC只在高水位更新時寫at；候選誤把該值套用到不更新分支。保留formal-at-error.log，修正為條件終值後只做第二次同批比較；未修改原oracle或放寬斷言。
+
+
+16.9.12 READY接線介面：TowerPlan::prepare(Machine)只在完整801BAEB0入口按物件step選Initialize或Active，兩者各自核對完整來源／ABI／資源域。提供data／endpoint／costs／commit，呼叫端在原子提交成功後才採用18面HD DrawFace及22隱藏handle。失敗不在同場補執行半段原routine、不切換半場原版／HD；正式玩家尚未註冊。本批正常驗證從自然第一個step0起，讓同一adapter連續接後續每次活動呼叫至11724，獨立原CPU控制組同時前進，逐次核對完整Machine，結尾原音／原卡相同才採用。CPU／GPU主畫布與其餘來源仍待整場接線。
+
+
+16.9.12正常接線抽驗通過：唯一原片開機自然於第10681場遇到step0，TowerPlan接成功初始化及後續1007次活動呼叫，共1008次逐次完整Machine／每成本相同，18面typed HD幾何與22隱藏handle保持。原CPU控制組獨立執行，Rust提交不執行原ISA；正常無PC／RAM注入。續播11724完整機器、1551496個i16原音取樣及原卡相同，五過期／IRQ診斷另在副本拒絕並完整保持。
+
+本批局部正式兩次：首次case1誤設at已保留失敗，依原800EDAAC條件高水位寫入修正，第二次兩例完整CPU／RAM／GTE／cache／每成本及八拒絕通過。原oracle、case0路徑及斷言保持，沒有第三次或額外美術／GPU矩陣。最初工具快取掛載路徑失誤在CPU步進前停止；保留原日誌與修正收據，只刪兩個新建空目錄，正確既有快取保持。
+
+成功初始化與活動入口已接同一adapter，正式玩家與全場主畫布仍未註冊，原生後續光柵仍在。配置不足／失敗回復及world_x小於256的刪除保持明確拒絕，不能稱全部生命週期、全素材HD或速度通過。原版、CPU／GPU、海報及已定案美術保留。
