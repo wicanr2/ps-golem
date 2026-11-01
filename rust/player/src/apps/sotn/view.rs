@@ -43,7 +43,19 @@ impl View {
         actors: &ActorPlan,
         pack: &Path,
     ) -> Result<Self> {
-        let background = scene::build(r, vram, graphics, 0, 256)?;
+        Self::prepare_at(r, vram, graphics, actors, pack, scene::Viewport::default())
+    }
+    pub fn prepare_at(
+        r: &[u8],
+        vram: &[u16],
+        graphics: &[u8],
+        actors: &ActorPlan,
+        pack: &Path,
+        viewport: scene::Viewport,
+    ) -> Result<Self> {
+        let (left, top) = viewport.origin();
+        let (width, height) = viewport.size();
+        let background = scene::build_area(r, vram, graphics, left, top, width, height)?;
         if actors
             .quads
             .iter()
@@ -169,8 +181,8 @@ impl View {
                 i
             };
             let points = q.vertices.map(|v| Point {
-                x: v.x as i32,
-                y: v.y as i32,
+                x: v.x as i32 - left,
+                y: v.y as i32 - top,
                 u: v.u as i32 - origin[0],
                 v: v.v as i32 - origin[1],
                 color: v.color,
@@ -249,6 +261,13 @@ impl View {
 }
 // Read-only saved-source diagnostic, 026 §16.7.20. Never initializes a Machine.
 pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json::Value)> {
+    render_file_at(path, scene::Viewport::default(), true)
+}
+pub fn render_file_at(
+    path: &std::path::Path,
+    viewport: scene::Viewport,
+    write_outputs: bool,
+) -> Result<(Canvas, Canvas, serde_json::Value)> {
     use serde_json::{json, Value};
     use std::{fs, io::Read, path::PathBuf};
     let mut b = Vec::new();
@@ -325,7 +344,14 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
         .map(|b| u16::from_le_bytes([b[0], b[1]]))
         .collect();
     let actor = ActorPlan::prepare(&loaded["ram"], &loaded["scratch"])?;
-    let view = View::prepare(&loaded["ram"], &vram, &loaded["graphics"], &actor, &pack)?;
+    let view = View::prepare_at(
+        &loaded["ram"],
+        &vram,
+        &loaded["graphics"],
+        &actor,
+        &pack,
+        viewport,
+    )?;
     let hud = if has_hud {
         let mut bytes = Vec::new();
         fs::File::open(get("hud_source")?)
@@ -360,28 +386,32 @@ pub fn render_file(path: &std::path::Path) -> Result<(Canvas, Canvas, serde_json
     if !prefix.parent().is_some_and(|p| p.is_dir()) {
         return Err("預覽輸出目錄不存在".into());
     }
-    for (suffix, c) in [("native.png", &native), ("HD.png", &hd)] {
-        let mut rgba = c.rgba();
-        for p in rgba.chunks_exact_mut(4) {
-            p[3] = 255;
+    if write_outputs {
+        for (suffix, c) in [("native.png", &native), ("HD.png", &hd)] {
+            let mut rgba = c.rgba();
+            for p in rgba.chunks_exact_mut(4) {
+                p[3] = 255;
+            }
+            let mut e = png::Encoder::new(
+                fs::File::create(prefix.with_extension(suffix)).map_err(|e| e.to_string())?,
+                c.width as u32,
+                c.height as u32,
+            );
+            e.set_color(png::ColorType::Rgba);
+            e.set_depth(png::BitDepth::Eight);
+            e.write_header()
+                .map_err(|e| e.to_string())?
+                .write_image_data(&rgba)
+                .map_err(|e| e.to_string())?;
         }
-        let mut e = png::Encoder::new(
-            fs::File::create(prefix.with_extension(suffix)).map_err(|e| e.to_string())?,
-            c.width as u32,
-            c.height as u32,
-        );
-        e.set_color(png::ColorType::Rgba);
-        e.set_depth(png::BitDepth::Eight);
-        e.write_header()
-            .map_err(|e| e.to_string())?
-            .write_image_data(&rgba)
-            .map_err(|e| e.to_string())?;
     }
-    let report = json!({"scope":"saved-source direct HD preview; not gameplay","native_width":native.width,"native_height":native.height,"HD_width":hd.width,"HD_height":hd.height,"background_HD_materials":view.background_images.len(),"typed_actor_quads":view.draws.len(),"HD_actor_quads":view.hd_actor_quads,"native_actor_fallback_quads":view.native_actor_quads,"original_CPU_executed":false,"GP0_submitted":false,"native_framebuffer_input":false,"HUD_text_effects_complete":false,"HD_HUD_quads":hud.as_ref().map(|h|h.draws.len()).unwrap_or(0),"HUD_clear_texels":hud.as_ref().map(|h|h.clear_texels).unwrap_or(0),"deferred_environment_records":hud.as_ref().map(|h|h.deferred_records),"full_HD_complete":false,"speed_pass":false});
-    fs::write(
-        prefix.with_extension("json"),
-        serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,
-    )
-    .map_err(|e| e.to_string())?;
+    let report = json!({"viewport":{"width":viewport.size().0,"height":viewport.size().1,"left":viewport.origin().0,"top":viewport.origin().1,"background_tiles":view.background.sprites.len(),"actor_world_scale":1,"resident_layer_data_only":true,"new_actor_generation":false,"HUD_anchor":"screen top-left"},"scope":"saved-source direct HD preview; not gameplay","native_width":native.width,"native_height":native.height,"HD_width":hd.width,"HD_height":hd.height,"background_HD_materials":view.background_images.len(),"typed_actor_quads":view.draws.len(),"HD_actor_quads":view.hd_actor_quads,"native_actor_fallback_quads":view.native_actor_quads,"original_CPU_executed":false,"GP0_submitted":false,"native_framebuffer_input":false,"HUD_text_effects_complete":false,"HD_HUD_quads":hud.as_ref().map(|h|h.draws.len()).unwrap_or(0),"HUD_clear_texels":hud.as_ref().map(|h|h.clear_texels).unwrap_or(0),"deferred_environment_records":hud.as_ref().map(|h|h.deferred_records),"full_HD_complete":false,"speed_pass":false});
+    if write_outputs {
+        fs::write(
+            prefix.with_extension("json"),
+            serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?,
+        )
+        .map_err(|e| e.to_string())?;
+    }
     Ok((native, hd, report))
 }

@@ -70,7 +70,7 @@ impl Scene {
             || self.width == 0
             || self.width > 1024
             || self.height == 0
-            || self.height > 512
+            || self.height > 768
             || !(-1024..=1024).contains(&self.left)
             || self.materials.len() > 512
             || self.sprites.len() > 8192
@@ -242,6 +242,24 @@ mod tests {
         };
         assert!(s.render(4, Some(&[im])).is_err());
         s.materials[0].packed.clear();
+        assert!(s.render(1, None).is_err());
+    }
+}
+
+#[cfg(test)]
+mod viewport_budget_tests {
+    use super::*;
+    #[test]
+    fn viewport_canvas_height_budget() {
+        let mut s = Scene {
+            left: 0,
+            width: 1,
+            height: 768,
+            materials: vec![],
+            sprites: vec![],
+        };
+        assert_eq!(s.render(4, Some(&[])).unwrap().height, 3072);
+        s.height = 769;
         assert!(s.render(1, None).is_err());
     }
 }

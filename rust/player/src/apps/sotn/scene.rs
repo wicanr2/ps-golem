@@ -17,11 +17,70 @@ fn word(r: &[u8], a: usize) -> u32 {
 fn half(r: &[u8], a: usize) -> u16 {
     u16::from_le_bytes(r[a..a + 2].try_into().unwrap())
 }
+/// Approved saved-source viewport, spec026 §16.7.21. Not a live camera patch.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Viewport {
+    width: usize,
+    height: usize,
+}
+impl Default for Viewport {
+    fn default() -> Self {
+        Self {
+            width: 256,
+            height: 240,
+        }
+    }
+}
+impl Viewport {
+    pub fn new(width: usize, height: usize) -> Result<Self> {
+        if !(256..=800).contains(&width) || !(240..=600).contains(&height) {
+            return Err("視野寬須256..800，高須240..600".into());
+        }
+        Ok(Self { width, height })
+    }
+    pub fn parse(value: &str) -> Result<Self> {
+        let (w, h) = value.split_once('x').ok_or("視野格式須為寬x高")?;
+        if w.is_empty()
+            || h.is_empty()
+            || !w.bytes().all(|b| b.is_ascii_digit())
+            || !h.bytes().all(|b| b.is_ascii_digit())
+        {
+            return Err("視野須為十進位整數".into());
+        }
+        Self::new(
+            w.parse().map_err(|_| "視野寬不符")?,
+            h.parse().map_err(|_| "視野高不符")?,
+        )
+    }
+    pub fn size(self) -> (usize, usize) {
+        (self.width, self.height)
+    }
+    pub fn origin(self) -> (i32, i32) {
+        (
+            (256 - self.width as i32).div_euclid(2),
+            ((240 - self.height as i32) * 13).div_euclid(20),
+        )
+    }
+}
 pub fn build(ram: &[u8], vram: &[u16], graphics: &[u8], left: i32, width: usize) -> Result<Scene> {
+    build_area(ram, vram, graphics, left, 0, width, 240)
+}
+pub fn build_area(
+    ram: &[u8],
+    vram: &[u16],
+    graphics: &[u8],
+    left: i32,
+    top: i32,
+    width: usize,
+    height: usize,
+) -> Result<Scene> {
     if ram.len() != 2 << 20
         || vram.len() != 1024 * 512
         || width == 0
         || width > 1024
+        || height == 0
+        || height > 768
+        || !(-1024..=1024).contains(&top)
         || !(-1024..=1024).contains(&left)
         || format!("{:x}", Sha256::digest(graphics))
             != "a0bb78a1260eee5e3bda4bae6cfbbd0a61ddd5604905f9fd6ef833fd03319c66"
@@ -38,7 +97,7 @@ pub fn build(ram: &[u8], vram: &[u16], graphics: &[u8], left: i32, width: usize)
     let mut scene = Scene {
         left,
         width,
-        height: 240,
+        height,
         materials: Vec::new(),
         sprites: Vec::new(),
     };
@@ -61,7 +120,7 @@ pub fn build(ram: &[u8], vram: &[u16], graphics: &[u8], left: i32, width: usize)
             span(word(ram, def + 4), 4096, 1)?,
             span(word(ram, def + 8), 4096, 1)?,
         ];
-        for y in sy.div_euclid(16)..=(sy + 239).div_euclid(16) {
+        for y in (sy + top).div_euclid(16)..=(sy + top + height as i32 - 1).div_euclid(16) {
             for x in (sx + left).div_euclid(16)..=(sx + left + width as i32 - 1).div_euclid(16) {
                 if x < 0 || y < 0 || x as u64 >= cols || y as u64 >= rows {
                     continue;
@@ -140,7 +199,7 @@ pub fn build(ram: &[u8], vram: &[u16], graphics: &[u8], left: i32, width: usize)
                 scene.sprites.push(Sprite {
                     material: index,
                     x: x * 16 - sx,
-                    y: y * 16 - sy,
+                    y: y * 16 - sy - top,
                     u: u % 128,
                     v: v % 128,
                     width: 16,
@@ -150,4 +209,30 @@ pub fn build(ram: &[u8], vram: &[u16], graphics: &[u8], left: i32, width: usize)
         }
     }
     Ok(scene)
+}
+
+#[cfg(test)]
+mod viewport_tests {
+    use super::*;
+    #[test]
+    fn bounds_anchor_and_strict_decimal() {
+        assert_eq!(Viewport::default().origin(), (0, 0));
+        assert_eq!(Viewport::new(800, 600).unwrap().origin(), (-272, -234));
+        assert_eq!(Viewport::new(799, 599).unwrap().origin(), (-272, -234));
+        for bad in [
+            "255x240",
+            "801x240",
+            "256x239",
+            "256x601",
+            "256x240x1",
+            "-256x240",
+            "256x+240",
+            " 256x240",
+            "256.0x240",
+            "x240",
+            "9999999999999999999999999x240",
+        ] {
+            assert!(Viewport::parse(bad).is_err(), "{bad}");
+        }
+    }
 }

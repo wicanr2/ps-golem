@@ -56,7 +56,7 @@ fn options() -> Result<Option<Options>> {
     let mut args = env::args().skip(1);
     while let Some(a) = args.next() {
         if a == "-h" || a == "--help" {
-            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n保存來源HD呈現：-render-sotn-view INPUT.json；1080p畫面預覽：-preview-sotn-view INPUT.json [-posters DIR] [-frames N] [-screenshot FILE]。這兩項不啟動遊戲。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
+            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n保存來源HD呈現：-render-sotn-view INPUT.json [-viewport WxH]；1080p畫面預覽：-preview-sotn-view INPUT.json [-posters DIR] [-viewport WxH] [-frames N] [-screenshot FILE] [-report FILE]。預覽F1／滑鼠顯示視野工具列，F12擷取指定截圖。這兩項不啟動遊戲。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
             return Ok(None);
         }
         if a == "-version" {
@@ -183,11 +183,22 @@ fn main() {
     // Explicit read-only operation: do not initialize a machine or SDL here.
     let args: Vec<_> = env::args_os().skip(1).collect();
     if args.first().is_some_and(|a| a == "-render-sotn-view") {
-        if args.len() != 2 {
-            eprintln!("用法：psgolem-player -render-sotn-view INPUT.json");
+        if args.len() != 2 && !(args.len() == 4 && args[2] == "-viewport") {
+            eprintln!("用法：psgolem-player -render-sotn-view INPUT.json [-viewport WxH]");
             std::process::exit(2);
         }
-        match apps::sotn::view::render_file(std::path::Path::new(&args[1])) {
+        let rendered = if args.len() == 4 {
+            args[3]
+                .to_str()
+                .ok_or_else(|| "視野參數不符".to_string())
+                .and_then(apps::sotn::scene::Viewport::parse)
+                .and_then(|v| {
+                    apps::sotn::view::render_file_at(std::path::Path::new(&args[1]), v, true)
+                })
+        } else {
+            apps::sotn::view::render_file(std::path::Path::new(&args[1]))
+        };
+        match rendered {
             Ok((_, _, report)) => println!("{report}"),
             Err(e) => {
                 eprintln!("HD來源呈現失敗：{e}");

@@ -407,7 +407,7 @@ fn validate(
         || canvas.width == 0
         || canvas.height == 0
         || canvas.width > 4096
-        || canvas.height > 2048
+        || canvas.height > 3072
         || canvas.words.len() != canvas.width * canvas.height
         || materials.len() != images.len()
         || materials.len() > 512
@@ -599,4 +599,23 @@ pub fn draw_projected(
         p.triangle_checked([vs[1], vs[2], vs[3]], f);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod viewport_budget_tests {
+    use super::*;
+    #[test]
+    fn viewport_paint_height_budget_preserves_on_reject() {
+        let mut c = Canvas {
+            width: 1,
+            height: 3072,
+            words: vec![17; 3072],
+        };
+        assert!(draw(&mut c, 4, &[], &[], &[]).is_ok());
+        c.height = 3073;
+        c.words.push(17);
+        let before = c.words.clone();
+        assert!(draw(&mut c, 4, &[], &[], &[]).is_err());
+        assert_eq!(c.words, before);
+    }
 }

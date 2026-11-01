@@ -192,6 +192,27 @@ pub fn geometry(w: u32, h: u32, zoom: bool) -> Layout {
         zoomed: zoom,
     }
 }
+/// Source preview only. Keep historic 256x240 display geometry intact.
+pub fn source_geometry(w: u32, h: u32, sw: u32, sh: u32) -> Layout {
+    let mut l = geometry(w, h, false);
+    if sw as u64 * 240 == sh as u64 * 256 {
+        return l;
+    }
+    let maxw = (l.canvas.width() * 9 / 10).max(1);
+    let maxh = l.canvas.height();
+    let (gw, gh) = if maxw as u64 * sh as u64 <= maxh as u64 * sw as u64 {
+        (maxw, (maxw as u64 * sh as u64 / sw as u64).max(1) as u32)
+    } else {
+        ((maxh as u64 * sw as u64 / sh as u64).max(1) as u32, maxh)
+    };
+    l.game = Rect::new(
+        l.canvas.x() + (l.canvas.width().saturating_sub(gw) / 2) as i32,
+        l.canvas.y() + ((maxh - gh) / 2) as i32,
+        gw,
+        gh,
+    );
+    l
+}
 struct Art<'a> {
     id: String,
     name: String,
@@ -340,12 +361,37 @@ impl<'a> Renderer<'a> {
         game_texture: &Texture<'_>,
         choice: &Choice,
     ) -> Result<Option<Layout>, String> {
+        let (w, h) = c.output_size()?;
+        self.draw_layout(
+            c,
+            f,
+            game_texture,
+            choice,
+            geometry(w, h, choice.zoom && zoom_safe(f)),
+        )
+    }
+    pub fn draw_source(
+        &mut self,
+        c: &mut Canvas<Window>,
+        f: &Image,
+        game_texture: &Texture<'_>,
+        choice: &Choice,
+    ) -> Result<Option<Layout>, String> {
+        let (w, h) = c.output_size()?;
+        self.draw_layout(c, f, game_texture, choice, source_geometry(w, h, f.w, f.h))
+    }
+    fn draw_layout(
+        &mut self,
+        c: &mut Canvas<Window>,
+        f: &Image,
+        game_texture: &Texture<'_>,
+        choice: &Choice,
+        l: Layout,
+    ) -> Result<Option<Layout>, String> {
         let Some(index) = self.art.iter().position(|a| a.id == choice.id) else {
             self.blend = None;
             return Ok(None);
         };
-        let (w, h) = c.output_size()?;
-        let l = geometry(w, h, choice.zoom && zoom_safe(f));
         let side_width = (l.game.x() - l.canvas.x()).max(0) as u32;
         if side_width > 0 {
             cover(
