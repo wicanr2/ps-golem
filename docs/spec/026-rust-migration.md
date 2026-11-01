@@ -1203,3 +1203,43 @@ MeshMachinePlan先驗準備時State／Gte／完整RAM hash／BIU仍相同，scra
 唯一正常原片開機自然抵達11721後801BB04C，Rust直接提交到801BB320，完整Machine／逐成本與原控制組相同，新的gte_done也逐值相同。續播11724的完整機器、取出原音與原卡相同；五個State／RAM／GTE／BIU過期及途中timer IRQ診斷各在獨立副本，均完整回滾。正常分支無PC／RAM注入，僅測試觀測副本加逐欄Eq，來源與原片hash保持。確切場次／成本／音訊數與雜湊見私人mesh-clock-v1的machine-verification及acceptance。
 
 正式玩家未註冊，原生下游光柵仍在；整個sub_801BAEB0的初始化／分配／刪除、遊戲狀態尾端與完整HD呈現仍待。GTE數學維持16.9.7最多兩次，虛擬時間保留原27次資源，不讀原ISA或trace當主流程。舊18面畫布與美術沿用，沒有新的GUI／GPU／打包或速度聲明。後續承接本切片補物件生命週期與整場，不再重查模型CPU或等待順序。
+
+
+
+<!-- TOWER-ACTIVE-CALL-RESOLVED-20261101 -->
+16.9.9留下的活動呼叫prologue、保留分支尾端與caller返回已由16.9.11封閉，不能再以尾端未知重開相機或模型。此勘誤只適用step非零且world_x至少256的sub_801BAEB0完整呼叫；初始化／配置／刪除仍依16.9.10保持DRAFT，正式整場未註冊。
+
+#### 16.9.10 鐘塔物件初始化、配置與刪除來源
+
+狀態：DRAFT。承接16.9.3–9相機與模型的完整資料／時鐘，補ST0 sub_801BAEB0剩餘生命週期與尾端狀態。只查原sub_801B53A8初始化、sub_801B4464刪除與原RAM8003C7B8指向的800EDA38配置函式；必要直接callee至多一層，未知間接呼叫仍另列。原IDA9.4資料庫新副本載入已與原RAM核實的ST0，原DB／BOOT／DRA／ST0唯讀，原名／位址／bytes／運算元與推論等級保持。證據入口為私人hd3d-v1/lifecycle-v1的IDA-plan與lifecycle-IDA，素材索引列工具。
+
+先從原資料取得初始化範本、current entity、圖元配置／釋放與刪除條件，不猜補。只有來源／相容效果READY的切片可以進Rust，原版、CPU／GPU、海報與既有美術保持；未知CPU／時鐘／裝置效果不以已驗模型代替。驗證依新切片必要的局部案例集中抽樣，既有相機／模型／美術不重跑。
+
+
+16.9.10來源進展：IDA9.4已核對初始化801B53A8–801B54A4、刪除801B4464–801B44D0、配置800EDA38–800EDB54與清除52-byte圖元800ED828–800ED84C；再由實讀8003C7B4指向800EDC30–800EDC94補核釋放函式，使用另一份原DB副本。原名／bytes／xref與雜湊見lifecycle-v1及free-subquery。初始化從8006C3B8讀current entity，以801805D4十byte範本及8003C808所指40-byte表的index5複製欄位，step加一；priority為零時取80097408低16-bit減12。只確認這些讀寫，不自行補欄位遊戲語意。
+
+配置器每層從前1024槽找kind0，清52 bytes後標種類，遞迴配置剩餘數量；成功才串link，最末槽可更新800A23F8的signed最大索引。失敗逐層退回kind0，但已清資料與遞迴堆疊仍是副作用。釋放沿link只清kind，kind7另清其+10指標所指word；刪除在flags的00800000位設置時呼叫該間接釋放，再清物件47個word。原函式位址／資料流已證實，完整RAM／CPU／時鐘與實作仍DRAFT，不能把範本copy或單一helper當整個生命週期完成。
+
+#### 16.9.11 鐘塔已初始化活動分支的完整Rust呼叫
+
+狀態：限定CONFORMED，僅step非零且保留物件的完整活動呼叫；初始化／配置／刪除與正式玩家仍DRAFT。先把已驗相機／模型與caller進出邊界接成原sub_801BAEB0的一次完整活動呼叫，範圍為入口801BAEB0、A0有效物件且step非零、signed16(8007308E)+signed16(800733DA)>=256，最後回入口RA。初始化step0與刪除條件仍拒絕；不推定新配置／回收已完成。這條玩家可見活動路徑不依賴尚未知helper，因此先收斂，避免重開已驗數學或逐行翻整個模組。
+
+沿原prologue保存S0／S1／S2／RA到新SP+48／4C／50／54，將S2設為入口A0，讀step後接16.9.5–6相機與16.9.8–9模型。尾端沿原有號條件走keep分支，還原四個保存暫存器與SP，再回caller。只按typed資料算終值與取用cache／RAM資源，不執行原ISA；HD DrawFace沿原模型直接產生。完整CPU／RAM／GTE／逐成本與正常Machine尚未驗前不安裝。原版、CPU／GPU、海報與已驗美術保持，正式玩家未註冊。
+
+
+16.9.11 READY契約：TowerActivePlan::prepare讀2MiB RAM、完整State／Gte及BIU125320，要求PC801BAEB0、next_pc=pc+4、無branch／pending load、gpr0=0、CU2開／isolate關、無已啟用IRQ、gte_done已完成、cache valid低四位、now預留2000000。入口A0須屬800733D8起256個0xBC-byte槽，step+2C非零；signed16(8007308E)+signed16(800733DA)至少256。小於256及step0拒絕，不先執行半段。SP四位元組對齊且在801F0058–80200000，RA為對齊KSEG0 RAM指標，排除未知caller／stack alias；其他已驗資料域沿相機與模型守門。
+
+入口prologue直接把新SP=舊SP-58，依原位址把入口S2／RA／S1／S0分別存新SP+50／54／4C／48，S2設入口A0，v0／ld_value／gpr34取step，ld_which=34。801BAEB0–801BAED4十個資源後到801BAFB4，接已驗CameraClockPlan，再以其真實RAM／State／Gte接MeshClockPlan。兩者來源、GTE數學及成本不重寫。這些是計畫內的型別狀態，live Machine不跳PC或執行原ISA。
+
+尾端只取801BB320–801BB340及801BB34C–801BB364十六個資源；RAM讀取位置為801BB324／32C／34C／350／354／358，加prologue的801BAEC8。v1為733DA有號16-bit值，v0=0，at=80070000；從保存槽還原S0／S1／S2／RA與SP，ld_value／gpr34為保存S0，PC回入口RA、next_pc=RA+4，branch欄清除。其餘CPU／GTE終值承接相機／模型。這條分支不讀初始化current-entity、不配置／回收或清物件，HD DrawFace與handle沿Model資料輸出。
+
+commit逐值驗準備時CPU／Gte／RAM hash／BIU，scratch不在讀集而保留live值，再沿16.9.9明確completed-GTE交易把整個prologue、相機、模型、tail與return同步提交。所有成本及裝置／IRQ／跨場回滾守門保持。局部兩例1705／1012原CPU步只作oracle，不硬編總成本，非零caller S0／S1／S2／FP、HI／LO與部分有效cache都核對；第二例含三角形尾端、反轉鏈、不同pose及邊界sum=256。八個初始化／刪除／caller／來源／事件拒絕通過才定案。
+
+正式驗證集中為上述兩局部完整CPU／RAM／GTE／成本及一次正常原片自然11721後801BAEB0、A0=8007D278整次活動呼叫，與原CPU比較完整Machine／逐成本，續播11724原音與記憶卡。五過期／IRQ診斷用獨立副本，不回正常路線。整條活動分支通過仍不等於step0初始化、失敗回復、離場刪除、正式HD主畫布與全遊戲完成；已驗模型／美術直接承接，不重跑舊矩陣。
+
+
+16.9.11正式集中抽驗一次通過。兩局部完整活動呼叫1705／1012步，cold／同tag部分有效cache成本4860／2888，完整CPU／RAM／GTE與每成本同原CPU。含非零caller暫存器、HI／LO、三角形尾端、反轉鏈、不同pose及world_x=256邊界；八個未支援分支／入口拒絕通過。局部來源只沿觀測PC／GPR與六欄位讀集，其他CPU狀態合成，正常證據另列。
+
+唯一正常原片開機自然抵達11721後801BAEB0、A0=8007D278，Rust從函式入口同步提交至原caller RA，整個活動呼叫略過1705個原CPU步，保留4706虛擬週期及完整Machine。成本與GTE期限逐值相同；五個過期State／RAM／GTE／BIU及途中IRQ診斷在獨立副本拒絕並保持完整機器。正常分支無PC／RAM注入，續播11724的完整機器、4464個i16原音取樣與記憶卡同控制組。受測程式與原片SHA保持，測試觀測副本只增加逐欄Eq，核心phase.rs不改。
+
+TowerActivePlan仍未註冊正式玩家，下游原生光柵仍在。step0、配置失敗回復、world_x<256刪除、其餘物件與正式整場保持DRAFT。生命周期來源已核對原初始化／配置／釋放bytes，但完整CPU／堆疊／時鐘仍待實作。已驗模型與美術承接，本批不抓新圖、重審美術、重跑GPU或打包；虛擬週期相同不代表主機速度通過。
