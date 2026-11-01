@@ -1,4 +1,4 @@
-//! Candidate typed compatibility data, 026 §16.8.2. No CPU/GP0 execution.
+//! Typed compatibility data, 026 §16.8.2.1–3. No CPU/GP0 execution.
 //! Pure data only; never use this API to skip a live machine call or its clock.
 use psgolem_core::cpu::State;
 use sha2::{Digest, Sha256};
@@ -29,6 +29,8 @@ pub struct DataPlan {
     pub scratch: Vec<u8>,
     pub hud_records: usize,
     pub environments: usize,
+    pub quad_records: usize,
+    pub triangle_records: usize,
 }
 impl DataPlan {
     pub fn prepare(input: &[u8], scratch: &[u8], entry: &State) -> Result<Self> {
@@ -46,7 +48,10 @@ impl DataPlan {
         validate_identity(input)?;
         let buffer = word(input, 0x6c37c);
         let prefix = word(input, 0x97930) as usize;
-        if ![0x8003cb08, 0x800542fc].contains(&buffer) || prefix != 15 || word(input, 0x9794c) != 0
+        if ![0x8003cb08, 0x800542fc].contains(&buffer)
+            || prefix > 768
+            || word(input, 0x97938) > 48
+            || word(input, 0x9794c) != 0
         {
             return Err("圖元緩衝或前綴不支援".into());
         }
@@ -96,6 +101,9 @@ impl DataPlan {
         }
         s[0x128..0x130].copy_from_slice(&[0, 0, 0, 0, 255, 0, 255, 0]);
         let mut hud = 0;
+        let mut quads = 0;
+        let mut triangles = 0;
+        let triangle_prefix = word(input, 0x97938) as usize;
         let mut envs = 0;
         for i in 0..1280 {
             let p = 0x86fec + i * 52;
@@ -109,37 +117,64 @@ impl DataPlan {
                 return Err("圖元排序超界".into());
             }
             match kind {
-                4 => {
-                    if flags != 0x2000
-                        || order != 496
-                        || half(&r, p + 26) != 31
-                        || hud >= 32
+                4 | 5 => {
+                    let corners = if kind == 4 { 4 } else { 3 };
+                    if flags & !0x20f7 != 0
                         || !(-512..=512).contains(&(half(&r, p + 8) as i16 as i32))
                         || !(-512..=512).contains(&(half(&r, p + 10) as i16 as i32))
+                        || kind == 4 && prefix + quads >= 768
+                        || kind == 5 && triangle_prefix + triangles >= 48
                     {
-                        return Err("未支援HUD分支".into());
+                        return Err("世界貼圖圖元分支或容量未封閉".into());
                     }
                     let ci = half(&r, p + 14) as usize;
                     if ci >= 512 {
                         return Err("色盤表超界".into());
                     }
-                    s[0x27] = 12;
-                    s[0x2b] = 0x3d;
-                    for j in 0..4 {
+                    s[0x27] = (corners * 3) as u8;
+                    s[0x2b] = (if kind == 4 { 0x3c } else { 0x34 })
+                        | if flags & 1 != 0 { 2 } else { 0 }
+                        | if flags & 4 == 0 { 1 } else { 0 };
+                    let scroll = if flags & 0x2080 != 0 {
+                        [0, 0]
+                    } else {
+                        [half(&r, 0x6c39c), half(&r, 0x6c3a0)]
+                    };
+                    for j in 0..corners {
                         let q = p + j * 12;
                         let t = 0x24 + j * 12;
                         s[t + 4..t + 7].copy_from_slice(&r[q + 4..q + 7]);
-                        s[t + 8..t + 12].copy_from_slice(&r[q + 8..q + 12]);
+                        s[t + 8..t + 10].copy_from_slice(
+                            &half(&r, q + 8).wrapping_add(scroll[0]).to_le_bytes(),
+                        );
+                        s[t + 10..t + 12].copy_from_slice(
+                            &half(&r, q + 10).wrapping_add(scroll[1]).to_le_bytes(),
+                        );
                         s[t + 12..t + 14].copy_from_slice(&r[q + 12..q + 14]);
                     }
                     s[0x32..0x34].copy_from_slice(&r[0x3c104 + ci * 2..0x3c104 + ci * 2 + 2]);
-                    s[0x3e..0x40].copy_from_slice(&r[p + 26..p + 28]);
-                    let dst = b + 0x3c74 + (prefix + hud) * 52;
-                    r[dst..dst + 52].copy_from_slice(&s[0x24..0x58]);
+                    s[0x3e..0x40].copy_from_slice(
+                        &half(&r, p + 26).wrapping_add(flags & 0x60).to_le_bytes(),
+                    );
+                    let len = corners * 12 + 4;
+                    let (base, count, counter, slot) = if kind == 4 {
+                        (b + 0x3c74, prefix + quads, 0x97930, 4)
+                    } else {
+                        (b + 0xfc74, triangle_prefix + triangles, 0x97938, 12)
+                    };
+                    let dst = base + count * len;
+                    r[dst..dst + len].copy_from_slice(&s[0x24..0x24 + len]);
                     link(&mut r, ot + order * 4, dst);
-                    hud += 1;
-                    set(&mut s, 4, (dst + 52 + 0x80000000) as u32);
-                    set(&mut r, 0x97930, (prefix + hud) as u32);
+                    set(&mut s, slot, (dst + len + 0x80000000) as u32);
+                    set(&mut r, counter, (count + 1) as u32);
+                    if kind == 4 {
+                        quads += 1;
+                    } else {
+                        triangles += 1;
+                    }
+                    if kind == 4 && order == 496 && half(&r, p + 26) == 31 && flags & 0x2000 != 0 {
+                        hud += 1;
+                    }
                 }
                 7 => {
                     if ![0, 0x800].contains(&flags) || envs >= 2 {
@@ -202,14 +237,13 @@ impl DataPlan {
                 _ => return Err("未封閉圖元類型".into()),
             }
         }
-        if hud != 7 || envs != 2 {
-            return Err("圖元組合不在限定範圍".into());
-        }
         Ok(Self {
             ram: r,
             scratch: s,
             hud_records: hud,
             environments: envs,
+            quad_records: quads,
+            triangle_records: triangles,
         })
     }
 }

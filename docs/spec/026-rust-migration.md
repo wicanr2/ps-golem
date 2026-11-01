@@ -947,12 +947,18 @@ READY證據：三個保存來源共21個型別HUD四邊形，全部欄位同局�
 
 補註 `RUST-PRIMITIVE-CLOCK-20261031-HUD`：§16.8與16.8.1較早的原PS1 KSEG0 DRA 0x800EDC94完整副作用／時間未知，由§16.8.2.1–16.8.2.2限定解開七HUD／兩環境來源的資料、CPU／快取／時鐘與同步Machine。未列圖元及主畫布環境裁切、其餘SDK／整場仍未完成；舊HUD固定畫布像素收據不升格為完整遊戲畫面。
 
+<!-- RUST-WORLD-PRIMITIVES-RESOLVED-20261101 16.8.1 -->
+16.8.1較早PS1 KSEG0 DRA 800EDC94的世界kind4／5、捲動及GT4／GT3前綴限制由16.8.2.3限定承接，已解相容資料／CPU／cache／虛擬時鐘，不能再以七HUD限定重開同一分支。其他圖元、容量截斷、額外SDK及完整畫布／正式玩家仍待；此為相容階段，HD主幾何沿上游型別producer。
+
 #### 16.8.2 通用圖元的相容資料與環境設定
 
 狀態：DRAFT。承接16.8.1的七個HUD型別圖元，補800EDC94完整呼叫的資料與環境設定證據。原函式仍保留於正式遊戲，不以已驗HUD像素跳過其餘RAM／scratch／CPU／SDK／裝置時間。BOOT sub_80013648為此路徑的直接環境設定依賴，只查這一個新helper，既有原DB／BOOT／DRA身份沿16.8，來源與工具在私人field-state-v1/IDA-plan及evidence。
 
 正常原片／原卡／固定輸入只開一次，至8382後自然擷取四個800EDC94入口／返回800E3C80；保存完整RAM／scratch／CPU、逐成本、原訪存地址分類及GPU原字保持。此為原版來源研究，無RAM／PC／原碼注入，不當Rust已替換呼叫。指令解碼只在oracle蒐證端分類實際控制與可能資料訪存，不能變成正式實作。Rust仍須以型別記錄與資料規則直接推導；只有契約足夠READY才實作。未列型別、SDK與整場呈現仍DRAFT，已核准美術／舊矩陣不重跑。
 
+
+<!-- RUST-WORLD-PRIMITIVES-RESOLVED-20261101 16.8.2 -->
+16.8.2較早PS1 KSEG0 DRA 800EDC94的世界kind4／5、捲動及GT4／GT3前綴限制由16.8.2.3限定承接，已解相容資料／CPU／cache／虛擬時鐘，不能再以七HUD限定重開同一分支。其他圖元、容量截斷、額外SDK及完整畫布／正式玩家仍待；此為相容階段，HD主幾何沿上游型別producer。
 
 #### 16.8.2.1 通用圖元的純RAM／scratch資料計畫
 
@@ -978,6 +984,9 @@ Rust依型別來源直接產生相容GT4欄位、CLUT表映射、512排序桶pre
 
 補註 `RUST-PRIMITIVE-CLOCK-20261031-DATA`：16.8.2.1的DataPlan仍是純資料元件；其外層CPU端點、快取／資源時鐘及同步Machine提交已由16.8.2.2封閉所列分支，原RAM／scratch來源及首次範圍停止保留。正式玩家整場及未列域仍DRAFT，不再重開本段已驗CPU分支。
 
+<!-- RUST-WORLD-PRIMITIVES-RESOLVED-20261101 16.8.2.1 -->
+16.8.2.1較早PS1 KSEG0 DRA 800EDC94的世界kind4／5、捲動及GT4／GT3前綴限制由16.8.2.3限定承接，已解相容資料／CPU／cache／虛擬時鐘，不能再以七HUD限定重開同一分支。其他圖元、容量截斷、額外SDK及完整畫布／正式玩家仍待；此為相容階段，HD主幾何沿上游型別producer。
+
 #### 16.8.2.2 通用圖元CPU端點與資源時鐘
 
 狀態：CONFORMED，限既有資料域的CPU／資源時鐘及同步提交。承接16.8.2.1完整RAM／scratch，依原1280筆資料分類、可見／隱藏、七HUD／兩環境來源與SDK標準編碼分支，建立CPU端點與逐成本。使用既有callclock／frameclock快取契約，資源ID只標原來源位址與快取／RAM讀取成本，不在正式路徑解碼或執行ISA，不讀保存PC序列。來源及工具沿field-state-v1正常四態與IDA9.4，新增受測SHA及無序讀取資源清單在私人field-clock-v1。
@@ -1000,6 +1009,38 @@ READY證據：四個正常保存態與各自冷cache／稀疏cache共12例，完
 
 候選與正式局部各一次通過，正常路線只開一次；無新美術／GUI／硬體GPU／包或速度驗收。相容資料與時間直接由Rust推導，原CPU只作控制組；後續原生光柵仍保留，PrimitiveClockPlan未註冊正式玩家模式，不當完整HD。原版、CPU／GPU、海報、影片、存檔與既定畫質保持。來源、READY、受測SHA、完整Machine及回鏈由私人field-clock-v1追溯。
 
+
+
+<!-- RUST-WORLD-PRIMITIVES-RESOLVED-20261101 16.8.2.2 -->
+16.8.2.2較早PS1 KSEG0 DRA 800EDC94的世界kind4／5、捲動及GT4／GT3前綴限制由16.8.2.3限定承接，已解相容資料／CPU／cache／虛擬時鐘，不能再以七HUD限定重開同一分支。其他圖元、容量截斷、額外SDK及完整畫布／正式玩家仍待；此為相容階段，HD主幾何沿上游型別producer。
+
+#### 16.8.2.3 世界四邊形與三角形的相容資料／時鐘
+
+狀態：限定CONFORMED，僅已封閉kind4／5世界相容資料及時鐘；正式整場仍DRAFT。承接16.8.2.1–2及16.9.13，補通用800EDC94呼叫對ST0世界圖元的相容資料與虛擬時間。既有field-IDA的原函式SHA／位址空間及source-flow-v2正常11722場RAM／trace身份固定於field-world-v1/source-plan；不新開IDA。保存同態有96個kind4、9個kind5可見來源，含78個flags0x15、18個flags0x02的3D面、8個screen及1個flags0來源。局部CPU的其餘架構／scratch狀態合成，明確不是正常完整Machine。
+
+已證實原分支：kind4輸出52-byte GT4、kind5輸出40-byte GT3，保留相同scratch工作區，分開計數／OT prepend及既有前綴。flags1決定半透明、flags4決定調色／raw，flags60加進page；flags2080為直接XY，否則加8006C39C／8006C3A0的16-bit捲動差值。第一點XY仍沿原±512篩選。本切片不猜其他圖元、額外環境分支或容量截斷；超出已封閉容量整次拒絕。環境原兩筆與七HUD的已驗分支保持。
+
+這是必要相容階段，HD主幾何仍從場景／ActorPlan／TowerPlan的型別來源取得，不把原pool XY或新相容GP0變成HD繪圖輸入。原版流程保持，完整整場呈現與正式玩家仍DRAFT。先以六個局部原CPU案例封閉完整RAM／scratch／CPU／cache／逐成本與來源守門，再READY實作；一次正常開機在自然11722場附近接連續通用圖元呼叫及續播原音／卡片。原CPU只在獨立oracle執行，正式計畫只描述資料與有界資源。
+
+六案例含既有NO3兩個控制、ST0完整來源、cold／partial cache、正負捲動、直接XY、raw／調色／混色及非零GT4／GT3前綴。集中抽驗最多兩輪，已驗核心、美術／GPU與相機／模型不重跑。未知分支拒絕，不以回跑原CPU冒稱接管成功。
+
+
+16.8.2.3 READY契約：入口、來源、兩個緩衝、SP／RA與CPU／cache／BIU限制沿16.8.2.1–2；GT4前綴0..768、GT3前綴0..48，開始環境數0。全1280筆依pool順序處理kind4／5，flags只接受20F7內的已證實位元；隱藏位8仍先略過，400等額外分支拒絕。新輸出不能超過GT4 768／GT3 48，容量截斷未封閉時整次拒絕。第一點原XY超出±512亦拒絕，不擅自走未驗裁切時鐘。CI必須小於512，order小於512。
+
+GT4／GT3分別保留52／40 bytes與原counter，GT3長度9、command34；GT4長度12、command3C。command加半透明位2及raw位1，raw當flags4未設。每頂點RGB／UV直接複製，相容XY按flags2080選直接或16-bit wrapping加原scroll difference，page wrapping加flags60、CLUT沿原表。scratch未寫bytes與其他counter／前綴保留，OT bucket prepend維持原長度高位。環境沿原兩個來源及已驗SDK支線，可0或2筆；不強制每場七HUD。另回報quad／triangle數，原hud_records仍只計螢幕order496／page31來源。
+
+CPU末可見圖元仍須kind4，從最後有效pool記錄與新scratch／counter直接推ABI；末三角形未知保持拒絕。其餘S／HI／LO／GTE及架構資料保持。時鐘依raw／調色、半透明、XY直接／捲動與三／四角的靜態資源區段，GT3搬移兩個16-byte段加8-byte尾，GT4三段加4-byte尾。RAM讀資源168個位置由六oracle的資料訪存分類與固定原load字交叉核對，只有集合沒有執行序；正式資源順序由typed record條件產生。快取沿008、RAM另4、scratch0，不讀保存trace或固定總週期。
+
+提交仍沿既有commit_cpu_data_phase的原子RAM／scratch／CPU與裝置同步，過期State／RAM／scratch／BIU及途中IRQ拒絕保持，核心不改。HD幾何不從此相容packet取回，正式玩家與完整主畫布仍待。六局部完整狀態／逐成本集中比較，再一條自然開機ST0連續圖元呼叫與原音／原卡驗證；舊核心／美術／GPU矩陣不重跑。
+
+
+16.8.2.3集中抽驗第一次通過：六局部案例的完整CPU／cache／RAM／scratch／每成本同原CPU，八來源守門通過；含NO3舊控制與ST0完整來源，raw／調色、半透明、正負捲動、直接XY及非零GT4／GT3前綴。原oracle位址及資源集合固定，正式不讀保存執行序或硬編總成本。
+
+完成的正常原片路線從自然第11721場鐘塔入口開始，7次typed tower producer及四次連續通用圖元提交逐次完整Machine／每成本同原CPU。四次的四邊形／三角形數分別為96／9、96／9、100／9、96／9，各次對獨立原CPU的counter差值核對；鐘塔18個型別面保持handle對應，正式提交不執行原ISA。續播11728與10414個i16原音／原卡同。正常無PC／RAM／原碼注入；五過期／途中IRQ只在獨立副本拒絕並完整保持。原片及受測源碼SHA保持，核心交易未改。
+
+第一次正常嘗試在驗證工具的固定計數斷言停止：保存態96個四邊形不代表每場數量，當次正常入口為100個。尚未比較該原呼叫；保留machine-count-assumption.log、初版probe與machine-inputs。只改為由獨立原CPU的GT4／GT3 counter差值核對每場實際輸出，完整State／RAM／scratch／cache／逐成本斷言不變。產品與局部oracle未改，第二次同一路線完成；沒有第三次或額外美術／GPU驗證。
+
+這補上鐘塔producer到通用相容階段的接線，尚未註冊正式HD玩家，主畫布、其餘來源／SDK、文字／HUD與GPU接線仍待；下游原生光柵仍在，不能稱整場HD或速度通過。既有美術、CPU／GPU、海報、影片及原版模式保持，新IDA／美術審查／GPU矩陣／打包0。
 
 ### 16.9 Rust 3D 直接投影與 HD 材質
 

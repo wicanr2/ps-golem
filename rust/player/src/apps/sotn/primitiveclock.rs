@@ -142,13 +142,50 @@ impl PrimitiveClockPlan {
                     match kind {
                         4 => {
                             c.block(0x800ee744, 0x800ee774);
-                            c.block(0x800ee77c, 0x800ee78c);
-                            c.block(0x800ee79c, 0x800ee8a0);
+                            if flags & 1 != 0 {
+                                c.block(0x800ee778, 0x800ee778);
+                            }
+                            c.block(0x800ee77c, 0x800ee780);
+                            if flags & 4 == 0 {
+                                c.block(0x800ee784, 0x800ee78c);
+                            } else {
+                                c.block(0x800ee790, 0x800ee798);
+                            }
+                            c.block(0x800ee79c, 0x800ee840);
+                            if flags & 0x2080 != 0 {
+                                c.block(0x800ee844, 0x800ee8a0);
+                            } else {
+                                c.block(0x800ee8a4, 0x800ee92c);
+                            }
                             c.block(0x800ee930, 0x800ee9c0);
                             for _ in 0..3 {
                                 c.block(0x800ee9c4, 0x800ee9ec);
                             }
                             c.block(0x800ee9f0, 0x800eea70);
+                            c.block(0x800ef1c0, 0x800ef1c4);
+                        }
+                        5 => {
+                            c.block(0x800eeaa0, 0x800eead0);
+                            if flags & 1 != 0 {
+                                c.block(0x800eead4, 0x800eead4);
+                            }
+                            c.block(0x800eead8, 0x800eeadc);
+                            if flags & 4 == 0 {
+                                c.block(0x800eeae0, 0x800eeae8);
+                            } else {
+                                c.block(0x800eeaec, 0x800eeaf4);
+                            }
+                            c.block(0x800eeaf8, 0x800eeb78);
+                            if flags & 0x2080 != 0 {
+                                c.block(0x800eeb7c, 0x800eebc0);
+                            } else {
+                                c.block(0x800eebc4, 0x800eec2c);
+                            }
+                            c.block(0x800eec30, 0x800eeca8);
+                            for _ in 0..2 {
+                                c.block(0x800eecac, 0x800eecd4);
+                            }
+                            c.block(0x800eecd8, 0x800eed5c);
                             c.block(0x800ef1c0, 0x800ef1c4);
                         }
                         7 => {
@@ -266,11 +303,17 @@ const RAM_READS: &[u32] = &[
     0x800ee0ac, 0x800ee750, 0x800ee764, 0x800ee7a0, 0x800ee7ac, 0x800ee7b8, 0x800ee7c4, 0x800ee7d0,
     0x800ee7dc, 0x800ee7e8, 0x800ee7f4, 0x800ee800, 0x800ee80c, 0x800ee818, 0x800ee824, 0x800ee830,
     0x800ee844, 0x800ee850, 0x800ee85c, 0x800ee868, 0x800ee874, 0x800ee880, 0x800ee88c, 0x800ee898,
-    0x800ee930, 0x800ee93c, 0x800ee948, 0x800ee954, 0x800ee960, 0x800ee96c, 0x800ee978, 0x800ee984,
-    0x800ee990, 0x800ee994, 0x800ee9a4, 0x800ee9b8, 0x800ee9fc, 0x800eea10, 0x800eea14, 0x800eea28,
-    0x800eea38, 0x800eea5c, 0x800ef01c, 0x800ef030, 0x800ef034, 0x800ef064, 0x800ef07c, 0x800ef08c,
-    0x800ef090, 0x800ef094, 0x800ef098, 0x800ef0b8, 0x800ef0bc, 0x800ef0c0, 0x800ef0ec, 0x800ef0f0,
-    0x800ef0f4, 0x800ef0f8, 0x800ef118, 0x800ef14c, 0x800ef160, 0x800ef164, 0x800ef178, 0x800ef188,
-    0x800ef1ac, 0x800ef1c8, 0x800ef1e0, 0x800ef1e4, 0x800ef1e8, 0x800ef1ec, 0x800ef1f0, 0x800ef1f4,
-    0x800ef1f8, 0x800ef1fc, 0x800ef200, 0x800ef204,
+    0x800ee8a4, 0x800ee8ac, 0x800ee8b4, 0x800ee8c0, 0x800ee8d0, 0x800ee8e0, 0x800ee8f0, 0x800ee900,
+    0x800ee910, 0x800ee920, 0x800ee930, 0x800ee93c, 0x800ee948, 0x800ee954, 0x800ee960, 0x800ee96c,
+    0x800ee978, 0x800ee984, 0x800ee990, 0x800ee994, 0x800ee9a4, 0x800ee9b8, 0x800ee9fc, 0x800eea10,
+    0x800eea14, 0x800eea28, 0x800eea38, 0x800eea5c, 0x800eeaac, 0x800eeac0, 0x800eeafc, 0x800eeb08,
+    0x800eeb14, 0x800eeb20, 0x800eeb2c, 0x800eeb38, 0x800eeb44, 0x800eeb50, 0x800eeb5c, 0x800eeb68,
+    0x800eeb7c, 0x800eeb88, 0x800eeb94, 0x800eeba0, 0x800eebac, 0x800eebb8, 0x800eebc4, 0x800eebcc,
+    0x800eebd4, 0x800eebe0, 0x800eebf0, 0x800eec00, 0x800eec10, 0x800eec20, 0x800eec30, 0x800eec3c,
+    0x800eec48, 0x800eec54, 0x800eec60, 0x800eec6c, 0x800eec78, 0x800eec7c, 0x800eec8c, 0x800eeca0,
+    0x800eece8, 0x800eecfc, 0x800eed00, 0x800eed14, 0x800eed24, 0x800eed48, 0x800ef01c, 0x800ef030,
+    0x800ef034, 0x800ef064, 0x800ef07c, 0x800ef08c, 0x800ef090, 0x800ef094, 0x800ef098, 0x800ef0b8,
+    0x800ef0bc, 0x800ef0c0, 0x800ef0ec, 0x800ef0f0, 0x800ef0f4, 0x800ef0f8, 0x800ef118, 0x800ef14c,
+    0x800ef160, 0x800ef164, 0x800ef178, 0x800ef188, 0x800ef1ac, 0x800ef1c8, 0x800ef1e0, 0x800ef1e4,
+    0x800ef1e8, 0x800ef1ec, 0x800ef1f0, 0x800ef1f4, 0x800ef1f8, 0x800ef1fc, 0x800ef200, 0x800ef204,
 ];
