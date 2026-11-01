@@ -1,4 +1,4 @@
-//! Successful tower initialization whole call, 026 §16.9.12, GPL-3.0-or-later.
+//! Tower initialization/failure whole call, 026 §16.9.12–13, GPL-3.0-or-later.
 //! Original ST0 801BAEB0 / 801B53A8 and DRA 800EDA38 / 800ED828.
 //! Typed allocation/data and bounded resource accounting, no guest ISA/GP0.
 use super::{
@@ -101,10 +101,8 @@ fn allocate(
     slots: &[usize],
     depth: usize,
     saved: [u32; 6],
-) {
+) -> bool {
     let frame = sp - 40;
-    let ordinal = slots[depth];
-    let node = POOL + ordinal * 52;
     for (off, value) in [
         (0x10, saved[0]),
         (0x14, saved[1]),
@@ -116,10 +114,16 @@ fn allocate(
         pw(r, frame + off, value);
     }
     c.span(0x800eda38, 0x800eda68);
+    let ordinal = slots.get(depth).copied().unwrap_or(1024);
     for _ in 0..ordinal {
         c.span(0x800eda6c, 0x800eda78);
         c.span(0x800edb18, 0x800edb28);
     }
+    if ordinal == 1024 {
+        c.span(0x800edb2c, 0x800edb50);
+        return false;
+    }
+    let node = POOL + ordinal * 52;
     c.span(0x800eda6c, 0x800eda80);
     r[node..node + 52].fill(0);
     r[node + 7] = 4;
@@ -129,7 +133,7 @@ fn allocate(
     }
     c.span(0x800ed844, 0x800ed848);
     c.span(0x800eda84, 0x800eda8c);
-    if depth + 1 == slots.len() {
+    if depth + 1 == 40 {
         c.span(0x800eda90, 0x800edaa8);
         if (w(r, 0xa23f8) as i32) < ordinal as i32 {
             pw(r, 0xa23f8, ordinal as u32);
@@ -140,7 +144,7 @@ fn allocate(
         }
     } else {
         c.span(0x800edabc, 0x800edac8);
-        allocate(
+        if !allocate(
             r,
             c,
             frame,
@@ -151,15 +155,21 @@ fn allocate(
                 node as u32 + 0x80000000,
                 ordinal as u32,
                 4,
-                (slots.len() - depth) as u32,
+                (40 - depth) as u32,
                 0x800edacc,
             ],
-        );
+        ) {
+            r[node + 7] = 0;
+            c.span(0x800edacc, 0x800edae4);
+            c.span(0x800edb30, 0x800edb50);
+            return false;
+        }
         pw(r, node, (POOL + slots[depth + 1] * 52) as u32 + 0x80000000);
         c.span(0x800edacc, 0x800edadc);
         c.span(0x800edae8, 0x800edb14);
     }
     c.span(0x800edb30, 0x800edb50);
+    true
 }
 pub struct TowerInitPlan {
     pub data: DataPlan,
@@ -202,17 +212,13 @@ impl TowerInitPlan {
             return Err("鐘塔初始化入口未支援".into());
         }
         let e = (entity - 0x80000000) as usize;
-        if h(r, e + 0x2c) != 0 || (h(r, 0x7308e) as i16 as i32 + h(r, 0x733da) as i16 as i32) < 256
-        {
-            return Err("鐘塔初始化分支或保留條件不符".into());
+        if h(r, e + 0x2c) != 0 {
+            return Err("鐘塔初始化分支不符".into());
         }
         let slots: Vec<_> = (0..1024)
             .filter(|&i| r[POOL + i * 52 + 7] == 0)
             .take(40)
             .collect();
-        if slots.len() != 40 {
-            return Err("鐘塔配置不足分支尚未接管".into());
-        }
         let mut ram = r.to_vec();
         let frame = (sp - 0x58 - 0x80000000) as usize;
         for (off, reg) in [(0x50, 18), (0x54, 31), (0x4c, 17), (0x48, 16)] {
@@ -256,7 +262,7 @@ impl TowerInitPlan {
         ph(&mut ram, e + 2, 1152u16.wrapping_sub(h(r, 0x7308e)));
         ph(&mut ram, e + 6, 128u16.wrapping_sub(h(r, 0x73092)));
         c.span(0x801baee8, 0x801baf24);
-        allocate(
+        let allocated = allocate(
             &mut ram,
             &mut c,
             frame,
@@ -271,6 +277,31 @@ impl TowerInitPlan {
                 0x801baf28,
             ],
         );
+        if !allocated {
+            c.span(0x801baf28, 0x801baf38);
+            let mut data = DataPlan {
+                ram,
+                gte: gte.clone(),
+                draws: Vec::new(),
+                hidden_handles: Vec::new(),
+                compatibility_commands: 0,
+            };
+            let (endpoint, suffix) =
+                super::towerlife::finish_deleted(&mut data, &c.state, entity, sp)?;
+            c.costs.extend_from_slice(&suffix);
+            if c.costs.len() > 100000 {
+                return Err("鐘塔失敗回復超過資源上限".into());
+            }
+            return Ok(Self {
+                data,
+                before: entry.clone(),
+                before_gte: gte.clone(),
+                ram_sha: Sha256::digest(r).into(),
+                biu,
+                endpoint,
+                costs: c.costs,
+            });
+        }
         let head = POOL + slots[0] * 52;
         pw(&mut ram, e + 0x64, slots[0] as u32);
         pw(&mut ram, e + 0x7c, head as u32 + 0x80000000);
@@ -312,7 +343,7 @@ impl TowerInitPlan {
         c.state.bdbt = 0;
         c.state.branched = false;
         let camera = CameraClockPlan::prepare(&ram, &c.state, gte, biu)?;
-        let model =
+        let mut model =
             MeshClockPlan::prepare(&camera.data.ram, camera.endpoint(), &camera.data.gte, biu)?;
         let mut costs = c.costs;
         costs.extend_from_slice(camera.costs());
@@ -322,6 +353,26 @@ impl TowerInitPlan {
             costs: Vec::new(),
         };
         tail.span(0x801bb320, 0x801bb340);
+        if (h(&model.data.ram, 0x7308e) as i16 as i32 + h(&model.data.ram, 0x733da) as i16 as i32)
+            < 256
+        {
+            let (endpoint, suffix) =
+                super::towerlife::finish_deleted(&mut model.data, &tail.state, entity, sp)?;
+            costs.extend_from_slice(&tail.costs);
+            costs.extend_from_slice(&suffix);
+            if costs.len() > 100000 {
+                return Err("鐘塔初始化刪除超過資源上限".into());
+            }
+            return Ok(Self {
+                data: model.data,
+                before: entry.clone(),
+                before_gte: gte.clone(),
+                ram_sha: Sha256::digest(r).into(),
+                biu,
+                endpoint,
+                costs,
+            });
+        }
         tail.span(0x801bb34c, 0x801bb364);
         let rr = &model.data.ram;
         let saved_s0 = w(rr, frame + 0x48);

@@ -1,6 +1,6 @@
 //! Complete initialized/retained tower call, 026 §16.9.11, GPL-3.0-or-later.
 //! Original ST0 sub_801BAEB0; typed composition of conformed camera and model.
-//! No guest ISA, GP0 or old framebuffer. Init/deletion remain explicit errors.
+//! No guest ISA, GP0 or old framebuffer. Deletion follows 026 §16.9.13.
 use super::{
     camera::Sources, cameraclock::CameraClockPlan, meshclock::MeshClockPlan, meshstate::DataPlan,
 };
@@ -97,8 +97,8 @@ impl TowerActivePlan {
             return Err("鐘塔初始化分支尚未接管".into());
         }
         let world_x = half(r, 0x7308e) as i16 as i32 + half(r, 0x733da) as i16 as i32;
-        if world_x < 256 {
-            return Err("鐘塔刪除分支尚未接管".into());
+        if world_x < 256 && sp < 0x801f0070 {
+            return Err("鐘塔刪除堆疊範圍不符".into());
         }
         let frame = (sp - 0x58 - 0x80000000) as usize;
         let mut ram = r.to_vec();
@@ -121,7 +121,7 @@ impl TowerActivePlan {
         pre.state.bdbt = 0;
         pre.state.branched = false;
         let camera = CameraClockPlan::prepare(&ram, &pre.state, gte, biu)?;
-        let model =
+        let mut model =
             MeshClockPlan::prepare(&camera.data.ram, camera.endpoint(), &camera.data.gte, biu)?;
         let mut costs = pre.costs;
         costs.extend_from_slice(camera.costs());
@@ -131,6 +131,21 @@ impl TowerActivePlan {
             costs: Vec::with_capacity(16),
         };
         tail.span(0x801bb320, 0x801bb340);
+        if world_x < 256 {
+            let (endpoint, suffix) =
+                super::towerlife::finish_deleted(&mut model.data, &tail.state, entity, sp)?;
+            costs.extend_from_slice(&tail.costs);
+            costs.extend_from_slice(&suffix);
+            return Ok(Self {
+                data: model.data,
+                before: entry.clone(),
+                before_gte: gte.clone(),
+                ram_sha,
+                endpoint,
+                costs,
+                biu,
+            });
+        }
         tail.span(0x801bb34c, 0x801bb364);
         let r = &model.data.ram;
         let saved_s0 = word(r, frame + 0x48);
