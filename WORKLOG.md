@@ -3104,3 +3104,12 @@ TowerPlan把成功初始化與活動入口接成同一介面。唯一正常原�
 第一次正常嘗試在驗證工具的固定計數斷言停止：保存態96個四邊形不代表每場數量，當次正常入口為100個。尚未比較該原呼叫；保留machine-count-assumption.log、初版probe與machine-inputs。只改為由獨立原CPU的GT4／GT3 counter差值核對每場實際輸出，完整State／RAM／scratch／cache／逐成本斷言不變。產品與局部oracle未改，第二次同一路線完成；沒有第三次或額外美術／GPU驗證。
 
 正式HD玩家／完整畫布仍待，下游原生光柵仍在；未列圖元／SDK、末三角形ABI與容量截斷不猜補。原版、CPU／GPU、海報及影片保持，沒有新速度／全HD完成聲明。Docker有界--rm、UID1000，來源及清理／commit／push／Issue回讀收據由素材索引field-world-v1進入。對照頁與已定案美術保持。
+
+
+## 2026-11-01：ST0兩層程序式3D幾何
+
+<!-- RUST-PLANES-GEOMETRY-20261101 -->
+
+026 §16.9.14限定CONFORMED。新planes.rs直接由兩層8×8表、原四頂點、物件相位與Camera產生78個3D四邊形及1前置平面，保留深度色彩、UV／CLUT、可見性與配置handle。正式主幾何不讀舊XY／UV／RGB／GP0／GTE快照。兩局部原CPU案例的全部可見欄位／相位相同，舊圖元及封包毒化保持，五來源／鏈拒絕；baseline隱藏33餘槽。來源用既有IDA9.4及正常11722 trace讀集，其他CPU／scratch合成，不稱整機。原型及正式抽驗各一次，新的遊戲／IDA／美術／GPU／速度量測0。
+
+元件只提供型別幾何，未註冊正式玩家、不跳PC、不更新live RAM／CPU／GTE或時間；完整原routine效果與整場畫布仍待。16.9.1已補回鏈，來源／驗證與發布收據由素材索引planes-v1進入。原版、海報、定案素材與CPU／GPU契約保持，容器有界--rm與UID1000。
