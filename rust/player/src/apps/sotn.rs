@@ -325,3 +325,6 @@ pub(crate) mod scene;
 pub(crate) mod view;
 
 pub(crate) mod hud;
+
+// Staged compatibility ordering only, 026 §16.8.3; no player registration.
+pub(crate) mod order;

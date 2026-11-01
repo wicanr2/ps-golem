@@ -944,6 +944,10 @@ UI以F1固定／收起或滑鼠移到上方顯示。四預設、寬高文字欄�
 本批只對原DB的單次副本匯出上述四個直接接點，保留原名／位址／operands／bytes／xref與SHA。來源DRA、BOOT及DB沿16.2，工具與來源SHA在私人hd-field-v1/IDA-plan.json及evidence.json。先建立原資料到型別圖元、排序、取樣及直接HD畫布的最小充分證據，包含文字／HUD可見範圍；CPU／RAM／顯存、SDK／時間及整場交易未封閉前不註冊正式玩家路徑。原CPU／GP0只作oracle，不能作正式主繪圖；原版、CPU／GPU、海報、影片、存檔及既定畫質保持。
 
 
+
+
+補註 `RUST-ORDER-COMPACTION-20261101`：本節PS1／SLPM_860.23／DRA原0x800E3754必要相容資料、完整CPU／資源時鐘及正常同步提交，已由§16.8.3限定CONFORMED承接；舊「另留排序階段」不再代表本函式未知。8010794C／80105B70及整場玩家未封閉範圍保持DRAFT。
+
 #### 16.8.1 保存來源的螢幕HUD圖層
 
 狀態：CONFORMED，限保存來源HUD圖層。已證實800EDC94以80086FEC為1280筆、每筆52 bytes的遊戲圖元資料池；type在+7、flags在+50、order在+38。type4為四點貼圖，四點色彩／XY／UV各相隔12 bytes，CLUT索引在+14並經8003C104表映射，page在+26；按pool順序prepend同排序桶。flags 0x0008隱藏、0x2000使用螢幕XY、0x0004決定調色、0x0001半透明。本片只支援order496、page31、flags2000及已證實調色／混色位元，其他來源列deferred，不把此圖層當完整通用圖元接管。
@@ -969,6 +973,10 @@ READY證據：三個保存來源共21個型別HUD四邊形，全部欄位同局�
 
 <!-- RUST-WORLD-PRIMITIVES-RESOLVED-20261101 16.8.1 -->
 16.8.1較早PS1 KSEG0 DRA 800EDC94的世界kind4／5、捲動及GT4／GT3前綴限制由16.8.2.3限定承接，已解相容資料／CPU／cache／虛擬時鐘，不能再以七HUD限定重開同一分支。其他圖元、容量截斷、額外SDK及完整畫布／正式玩家仍待；此為相容階段，HD主幾何沿上游型別producer。
+
+
+
+補註 `RUST-ORDER-COMPACTION-20261101`：本節PS1／SLPM_860.23／DRA原0x800E3754必要相容資料、完整CPU／資源時鐘及正常同步提交，已由§16.8.3限定CONFORMED承接；舊「另留排序階段」不再代表本函式未知。8010794C／80105B70及整場玩家未封閉範圍保持DRAFT。
 
 #### 16.8.2 通用圖元的相容資料與環境設定
 
@@ -1061,6 +1069,30 @@ CPU末可見圖元仍須kind4，從最後有效pool記錄與新scratch／counter
 第一次正常嘗試在驗證工具的固定計數斷言停止：保存態96個四邊形不代表每場數量，當次正常入口為100個。尚未比較該原呼叫；保留machine-count-assumption.log、初版probe與machine-inputs。只改為由獨立原CPU的GT4／GT3 counter差值核對每場實際輸出，完整State／RAM／scratch／cache／逐成本斷言不變。產品與局部oracle未改，第二次同一路線完成；沒有第三次或額外美術／GPU驗證。
 
 這補上鐘塔producer到通用相容階段的接線，尚未註冊正式HD玩家，主畫布、其餘來源／SDK、文字／HUD與GPU接線仍待；下游原生光柵仍在，不能稱整場HD或速度通過。既有美術、CPU／GPU、海報、影片及原版模式保持，新IDA／美術審查／GPU矩陣／打包0。
+
+
+#### 16.8.3 排序空桶鏈的直接收尾
+
+狀態：CONFORMED，限已驗雙緩衝排序收尾。沿16.8既有IDA9.4 DRA資料庫，原名sub_800E3754，PS1 KSEG0 800E3754..800E37C4共112 bytes，SHA bad677d498d2e13ba800ad767abddc9f970799da4f16646411023a87807a82f0。caller sub_800E3880在800E3C88／8C載入8013556C的A0，800E3C90呼叫、800E3C98返回。沒有callee、GTE、MMIO或scratch指令；來源DRA及DB SHA沿16.8，既有field-IDA.json的原名／bytes／xref與四個正常保存態不重查。
+
+原112 bytes已證實為512個四位元組排序表頭的空桶串接壓縮，不改排序優先數字、實體／幾何或圖像。只接受目前8006C37C為8003CB08／800542FC，A0及8013556C等於frame+0x474。低24位等於當前實體位址+4視為連續空桶；遇非連續桶時，將該空段第一個表頭整字寫成此終端桶的低24位位址。中間表頭保持；末端沒有非連續桶時不flush，單格空段仍沿原整字寫入規則。原源表頭高位不自行保留。此為必要相容資料，只讀表頭不讀其指向的GP0 payload；HD主繪圖仍由型別producer建立，不能把排序表當HD命令流。
+
+Rust從512個原tag建立EmptyRun與有界RAM patch，原始資料→typed run→壓縮規則→必要相容RAM／CPU／時間→Machine；不執行舊ISA，不以opcode解碼或已存PC trace求結果。CPU保留未改暫存器、HI／LO、COP0、算術／GTE deadline；更新A0末位址、A1末表頭實體位址、A2遮罩、A3=512、T0未結束空段、T1最後空段起點或原值、V0=0、V1末tag低24位、load暫存raw tag及原返回／延遲槽終值。資源時鐘沿008及既有primitiveclock的cache模型，以空段／終端選取固定來源區塊、每次RAM load加4，沒有GTE或MMIO資源。代碼簽章、入口、pending load／branch、BIU、隔離cache、待處理IRQ、cache形狀與now界限任一不符拒絕。
+
+先用八個局部診斷封閉完整CPU／RAM／scratch／GTE保持與逐成本，含雙緩衝來源、cold／sparse cache、全空／全佔用、交錯、高tag位、尾端未結束與511終端。其餘CPU入口由已保存態改PC／A0作診斷，不當正常Machine。通過後才READY正式模組；commit沿既有commit_ram_phase有界排程，過期State／RAM／scratch／BIU與途中IRQ拒絕並完整保持，不擴張核心交易。
+
+正式來源局部抽驗一次，再一次正常原片開機讀檔，在自然8382附近接四次排序收尾及續播；獨立原CPU只在oracle控制組執行。比較完整Machine／每成本、排隊與輸出原音、原卡、來源雜湊，正常主分支不注入RAM／PC。美術、GPU與舊CPU矩陣不重跑。此切片不註冊正式HD玩家，其他8010794C／80105B70／文字與整場仍DRAFT；原版、CPU／GPU、1080p／海報、影片與既有雙擊包保持，沒有速度完成聲明。來源、READY及收據只留私人素材order-v1，入口為其docs/assets-catalog.md#render-control。
+
+
+限定結果：八局部CPU／RAM／scratch／GTE保持與逐成本同獨立原CPU，九入口拒絕通過；一般來源每次5744步／7851模型週期，含cold cache與交錯tag的最大觀測9281週期。提交預算明確為16384模型週期，並非步數；沿既有排程API，不擴張核心。末端未終止空段不補寫，高tag位及T1保持按原結果。
+
+唯一正常原片開機讀檔，在自然8382起四次排序呼叫逐次完整Machine／每成本同原CPU，續播8386及5950個i16原音／原卡同，主分支無PC／RAM注入。另兩個OT改寫診斷只在自然入口副本測交錯高tag／尾端空段，不續播、不當正常覆蓋，完整Machine／每成本同；五過期／IRQ診斷全部拒絕並完整保持。沒有新GUI、GPU、IDA、美術或已過矩陣重驗。原CPU只在oracle側執行；Rust主提交沒有guest step或ISA解碼，正式整場玩家仍未註冊。
+
+準備階段一次Python讀取語法與候選Bus匯入、正常工具卡片Box／Vec型別停止均在零案例／零開機前，保留原日誌與前後SHA。八候選與八正式局部均第一次通過，正常路線只完成一次；沒有因結果重畫或降低驗收。來源、READY、完整State／每成本、純測試Eq副本及清理／發布收據由私人素材order-v1進入，全部原圖／RAM／原片／卡片保持本機。此切片移除排序收尾對原CPU的依賴，不表示主畫布或完整HD／速度已完成。
+
+| 不可變模組鍵 | 原始定位 | 語意等級與消費者 | 舊節回鏈 |
+|---|---|---|---|
+| PS1／SLPM_860.23／DRA | 0x800E3754..0x800E37C4，caller0x800E3C90 | 已證實的512空桶壓縮與必要CPU／時間；apps/sotn/order.rs | 16.8／16.8.1；RUST-ORDER-COMPACTION-20261101 |
 
 ### 16.9 Rust 3D 直接投影與 HD 材質
 
