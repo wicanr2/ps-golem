@@ -3036,3 +3036,14 @@ IDA9.4沿既有UID1000 image，只在原DRA資料庫的一份新副本核對RotM
 CameraMachinePlan沿既有commit_cpu_data_phase在隔離副本同步裝置，再補CPU持有的GTE資料後整體替換，不增加核心API。正常原片只開一次，在11721後自然相機事件由Rust提交，完整Machine／成本同原控制組，續播11724的完整機器、所取原音與原卡相同，無PC／RAM／場景注入。五個過期State／RAM／GTE／BIU與途中timer IRQ診斷獨立副本均完整回滾。正式玩家尚未註冊，後續模型／原生光柵仍在，不當整個物件routine、全3D／全素材HD或速度通過。
 
 兩次開機前私人工具編譯錯誤保留日誌：先修依賴別名，再改用原有完整Machine Eq觀測副本。回查規格停止線後，只擴充prepare_sotn_framecommit_probe允許清單；正式核心與遊戲不為工具錯誤改動，正常驗證沒有重跑。原DB／原片／BIOS／卡片hash保持，美術與18面畫布沿用，新GUI／GPU／打包0。較早16.9.4相機CPU未知已回鏈；後續接幾何輸出與完整物件生命週期。來源、受測SHA、清理及提交／Issue回讀見素材索引camera-clock-v1。
+
+
+## 2026-11-01：鐘塔模型HD幾何與配置鏈RAM／GTE資料
+
+<!-- RUST-TOWER-MESH-STATE-20261101 -->
+
+026 §16.9.7限定CONFORMED。Rust從原模型及六欄位Camera直接產生HD DrawFace與相容XY／UV／種類／CLUT／排序，按物件allocator handle解析40槽，18面綁定後只將22餘槽隱藏。鏈支持非連續與重排，驗證來源及既定page／色彩域；舊圖元XY／UV／kind／flags／order不作繪圖輸入。原RAM其他bytes、link／page／color與未寫角保持。
+
+GTE最終SXY／SZ及IR／MAC／flags由最後四頂點、最多兩次自有純Rust位置數學保留，不重播全27次命令。HD與相容XY不讀GTE結果，沒有先光柵舊畫面。一次集中正式抽驗：原18面與一個triangle尾端／反轉鏈／不同pose診斷，完整RAM／GTE同局部原CPU，原寫548／287 bytes；1478／779步與27／9命令只作oracle，不作成本或速度。舊幾何毒化保持，八守門通過。輸入是既有六欄位讀集與PC／GPR，其他CPU狀態合成，不稱正常完整Machine。
+
+新遊戲開機、IDA、GUI／GPU與美術審查0，原18面畫布／五材質組及63頂點證據承接。較早16.9.2／16.9.6未知已回鏈；CPU端點／gte_done／快取／時鐘、初始化／分配／刪除及正式整場仍DRAFT，未註冊玩家或提交Machine。下一段承接資料補模型CPU／時鐘及物件生命週期，不重開模型、相機或美術。來源、受測SHA、清理及推送／Issue回讀由素材索引mesh-state-v1進入。

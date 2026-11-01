@@ -1051,6 +1051,10 @@ READY證據：四個正常保存態與各自冷cache／稀疏cache共12例，完
 <!-- TOWER-CAMERA-DATA-RESOLVED-20261101 -->
 16.9.2的相機欄位、固定點矩陣及捲動來源已由16.9.3封閉為唯讀事件資料，原先「相機生成仍待」不再用來重開此段數學。完整原呼叫的CPU／GTE／RAM／時間與正式玩家仍未知，不能由資料通過推論已完成。
 
+
+<!-- TOWER-MESH-STATE-DATA-RESOLVED-20261101 -->
+模型後段801BB04C到801BB320的HD幾何／配置handle、RAM及完整GTE資料已由16.9.7封閉，不能以較早未知重開模型或相機數學。模型CPU端點／gte_done／快取／時鐘、物件初始化／分配／刪除與正式整場仍DRAFT。
+
 #### 16.9.3 鐘塔相機與畫面平移來源
 
 狀態：限定CONFORMED，僅相機／捲動事件的型別資料；完整原呼叫／副作用仍DRAFT。承接16.9.2模型與直接投影，補801BAFB4相機建立事件的物件位置／Euler欄位及800F3430所在捲動函式的輸入。只用既有11721–11722有界trace與原RAM，不新跑遊戲或重查模型。私人hd3d-v1/tower-camera-v1保存IDA-plan與input-evidence：由原SH／ADDIU實際讀入的六個欄位值重建pose讀集，不冒稱完整正常Machine快照；原末場RAM保持。新元件必須從欄位與原查表直接產生Camera及實際平移，不讀GTE控制快照、原SXY或固定測試pose作正式輸入。
@@ -1136,3 +1140,32 @@ apply_data只在RAM雜湊、完整進入State／Gte及BIU仍相同時，原子�
 先前兩次是私人工具在開機前編譯失敗：依賴別名未對應，以及直接核心缺少測試用phase_probe_equal。保留兩份日誌，只修工具宣告與既有prepare_sotn_framecommit_probe允許清單，再沿其逐欄Eq觀測副本完成唯一一次正常開機。正式核心未修改，沒有產品失敗重試或額外美術／GPU矩陣。
 
 本切片已能在受控相機事件完全略過原設定ISA並同步資料及時鐘；正式玩家未註冊，後續原模型／原生光柵仍在。下一段處理模型幾何輸出與完整物件生命週期／整場接線，不重開已解相機資料與數學。這不當全3D、全素材HD、GUI或速度通過。
+
+
+
+<!-- TOWER-MESH-STATE-DATA-RESOLVED-20261101 -->
+模型後段801BB04C到801BB320的HD幾何／配置handle、RAM及完整GTE資料已由16.9.7封閉，不能以較早未知重開模型或相機數學。模型CPU端點／gte_done／快取／時鐘、物件初始化／分配／刪除與正式整場仍DRAFT。
+
+#### 16.9.7 鐘塔模型幾何與配置鏈資料
+
+狀態：限定CONFORMED，僅模型HD幾何及RAM／GTE資料；CPU／時鐘／生命週期與正式整場仍DRAFT。承接16.9.2的原模型／自有投影及16.9.3–6相機資料，補原ST0 sub_801BAEB0的801BB04C到801BB320前：從物件配置鏈綁定模型面，直接建立HD幾何、相容RAM及GTE終值，隱藏剩餘配置圖元。原IDA9.4的stage-IDA已涵蓋整段bytes／讀寫／分支，不新跑IDA或正常開機；輸入與雜湊見私人hd3d-v1/mesh-state-v1/source-plan。
+
+原生相容座標沿Camera::native_xy直接求，HD座標從原世界頂點及Camera直接產生，不讀舊圖元XY／UV／排序、GTE投影結果或GP0作主資料。配置鏈只提供持續handle及驗證已初始化的材質／色彩域。GTE只補最後可觀測的FIFO／向量／IR／MAC／flags，不重播全部面的GTE命令；先由自有gte.rs與原局部CPU證據封閉保存條件。CPU端點、gte_done、快取／時鐘、刪除／分配及正式整場仍DRAFT，資料切片不得跳過PC或提交Machine。
+
+驗證限兩個局部原CPU診斷，採既有六欄位讀集與trace PC／GPR，其他狀態合成。正常18面與一個三角形末尾／不同pose／重新連結配置鏈的診斷比較完整RAM／GTE及HD來源；少量來源／配置鏈／事件拒絕。既有18面畫布、素材與GPU／美術證據承接，不重跑舊矩陣。
+
+
+16.9.7 READY來源與配置：原801BB04C–801BB320只更新配置鏈中的圖元資料，無scratch／裝置或顯存寫入。DataPlan::prepare要求PC801BB04C、有效S2物件槽、無pending load、CU2開且isolate關；由16.9.3原六欄位重建相機，驗證目前GTE旋轉／平移／OFX／OFY／H與該相機吻合，只作來源一致性檢查，不以GTE投影作HD輸入。物件+64為allocator ordinal、+7C為head，必須吻合80086FEC起1280個52-byte槽；沿next指標解析恰40個唯一槽並以null結尾，支持不連續／重排，不把131等測試槽寫死。40是原初始化配置數，本切片只支援該domain；循環、短鏈、超界、錯head或未封閉材質拒絕。
+
+每面承接mesh::Model::decode的原頂點／UV／CLUT／排序，按配置鏈位置綁定持續handle。只支援已初始化page15及有效頂點RGB128的域，材質與色彩只驗證，不由舊XY／UV／種類／旗標／排序推導幾何。世界頂點先直接求native_xy，再同一typed Camera::project建立HD位置／深度；三角形第四角沿既有退化面複用第三角。輸出DrawFace含handle、Face、四個ProjectedPoint、page15及flags2，供後續依handle在捲動事件套用一次平移及既有材質綁定。此入口尚未光柵化，不讀framebuffer或GP0。
+
+相容RAM按原面種類寫kind=5／4、前三／四個UV、CLUT、前三／四個native XY packed words、order與flags=2；保留link、page、color、未寫角與所有其他bytes。剩餘配置槽只改flags=8。18面正常讀集寫548個不同bytes；診斷讓quad串流首byte為FF、末面改三角形，重排鏈及改pose後寫287 bytes，原CPU分別1478／779步、27／9個投影命令。步數與命令數只作原資料oracle，不當CPU成本或速度。
+
+GTE相容效果由既有自有gte.rs的純Rust位置數學取得。RTPS／RTPT只更新向量、IR／MAC、SXY／SZ FIFO及flags，其他架構資料保持；每次命令重新開始flags。最後quad的四個點會覆寫全部四深度與三畫面FIFO，因此只載最後面前三點做一次RTPT，再載第四點做RTPS。最後triangle先以之前一面的末頂點補一次RTPS深度，再載最後三點做RTPT；若模型僅一個triangle，直接RTPT保留入口最末深度。三軸向量暫存器也按最後實際載入保留。最多兩次Gte::execute純數學，與原面數無關，不走原ISA或重播整串27次命令；其結果只用相容GTE，HD／RAM座標皆不讀它。CPU的gte_done及時鐘不在此資料契約。
+
+抽驗限原18面及triangle尾端／重排鏈／不同pose兩例，完整RAM／Gte同局部原CPU。舊XY／UV／kind／flags／order毒化後HD資料與GTE不變，八事件／鏈／材質／相機拒絕；原頂點變動沿先前模型證據承接。新元件未註冊、不跳PC、不提交Machine；後續補CPU／時鐘及初始化／分配／刪除，已驗相機與美術不重開。
+
+
+16.9.7正式集中抽驗一次通過：原保存讀集18面／63世界頂點綁定40槽，22餘槽只隱藏；完整2MiB RAM與完整Gte物件同局部原CPU，原寫入集合548 bytes。另一診斷讓quad串流立即結束、改三軸pose並反轉配置鏈，9三角形及31隱藏槽的完整RAM／GTE亦同，原寫287 bytes。兩例原CPU1478／779步及27／9個投影命令只用於資料oracle；新相容狀態各最多兩次自有GTE純數學，沒有新速度聲明。HD與native相容座標皆從世界頂點／相機直接求，不讀這兩次GTE結果。
+
+舊XY／UV／kind／flags／order毒化後全部DrawFace及GTE保持，八個事件／循環／短鏈／head／page／RGB／相機／超界拒絕通過。沒有原片開機、反組譯、畫面重抓、美術審查或舊GPU矩陣；已有18面畫布、五材質組及63頂點證據直接沿用。測試以原六欄位讀集及trace PC／GPR重建，其他CPU狀態合成，不稱正常完整Machine。本元件未註冊、沒有CPU／裝置／PC提交；下一段只補此模型階段CPU／資源時鐘與物件生命週期，不重開本節已解資料。
