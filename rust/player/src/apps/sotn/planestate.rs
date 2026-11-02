@@ -28,6 +28,30 @@ const IDS: &[(usize, usize, &str)] = &[
         "bb15388a4382acfb4f166213a27097561e4d921bdb3dc2f06d092e7b9ede3467",
     ),
 ];
+#[derive(Clone, Copy, Debug)]
+pub enum Outcome {
+    Empty,
+    Top,
+    Left,
+    Right,
+    Visible,
+}
+#[derive(Clone, Copy, Debug)]
+pub struct Visit {
+    pub tile: usize,
+    pub column: i32,
+    pub direction: i32,
+    pub outcome: Outcome,
+}
+pub struct RowInfo {
+    pub source_x: i32,
+    pub origin: i32,
+    pub phase: i32,
+    pub z: i32,
+    pub tile_row: i32,
+    pub top: [i32; 3],
+    pub visits: Vec<Visit>,
+}
 pub struct DataPlan {
     pub ram: Vec<u8>,
     pub scratch: Vec<u8>,
@@ -35,6 +59,7 @@ pub struct DataPlan {
     pub geometry: planes::Plan,
     pub compatibility_commands: usize,
     pub projected_candidates: usize,
+    pub rows: Vec<RowInfo>,
 }
 fn h(r: &[u8], p: usize) -> u16 {
     u16::from_le_bytes(r[p..p + 2].try_into().unwrap())
@@ -140,6 +165,7 @@ impl DataPlan {
         let mut candidates = 0;
         let mut searched = 0;
         let mut last = None;
+        let mut rows = Vec::with_capacity(16);
         // Reconstruct the required partial stores of culled candidates. The HD
         // geometry above remains independent of these compatibility writes.
         for layer in 0..2 {
@@ -151,6 +177,7 @@ impl DataPlan {
             let y = h(r, 0x18219c + layer * 8) as i16 as i32 + 64 - h(r, 0x73092) as i16 as i32 / 4;
             let order = h(r, 0x18219e + layer * 8);
             for row in 0..8 {
+                let mut visits = Vec::new();
                 let z = row * 256 + 448 - phase % 256;
                 let tile_row = (row + phase / 256) % 8;
                 let d = z - 448;
@@ -182,6 +209,12 @@ impl DataPlan {
                     x += direction * 256;
                     let tile = r[table + (tile_row * 8 + column) as usize] as usize;
                     if tile == 0 {
+                        visits.push(Visit {
+                            tile,
+                            column,
+                            direction,
+                            outcome: Outcome::Empty,
+                        });
                         continue;
                     }
                     if tile >= 9 || used >= links.len() {
@@ -202,10 +235,22 @@ impl DataPlan {
                     ph(&mut ram, p + 12, h(r, uv));
                     pw(&mut scratch, 0x4c, xy(native[3]));
                     if native[3][1] < 0 {
+                        visits.push(Visit {
+                            tile,
+                            column,
+                            direction,
+                            outcome: Outcome::Top,
+                        });
                         ph(&mut ram, p + 50, 8);
                         break;
                     }
                     if native[3][0] < 0 {
+                        visits.push(Visit {
+                            tile,
+                            column,
+                            direction,
+                            outcome: Outcome::Left,
+                        });
                         ph(&mut ram, p + 50, 8);
                         if direction < 0 {
                             direction = 1;
@@ -225,6 +270,12 @@ impl DataPlan {
                         pw(&mut scratch, 0x28 + i * 12, xy(native[i]));
                     }
                     if native[2][0] > 256 {
+                        visits.push(Visit {
+                            tile,
+                            column,
+                            direction,
+                            outcome: Outcome::Right,
+                        });
                         ph(&mut ram, p + 50, 8);
                         if direction > 0 {
                             break;
@@ -240,8 +291,24 @@ impl DataPlan {
                         pw(&mut ram, p + 28 + i * 12, bottom_word);
                     }
                     ph(&mut ram, p + 38, order);
+                    visits.push(Visit {
+                        tile,
+                        column,
+                        direction,
+                        outcome: Outcome::Visible,
+                    });
                     used += 1;
                 }
+                rows.push(RowInfo {
+                    source_x: h(r, e + 2) as i16 as i32
+                        + (geometry.updated_phases[layer * 2] >> 16) as u16 as i16 as i32,
+                    origin,
+                    phase,
+                    z,
+                    tile_row,
+                    top,
+                    visits,
+                });
             }
         }
         if used != geometry.quads.len() {
@@ -275,6 +342,7 @@ impl DataPlan {
             geometry,
             compatibility_commands: 2,
             projected_candidates: candidates,
+            rows,
         })
     }
 }
