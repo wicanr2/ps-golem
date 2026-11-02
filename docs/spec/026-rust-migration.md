@@ -1122,6 +1122,9 @@ Rust從512個原tag建立EmptyRun與有界RAM patch，原始資料→typed run�
 <!-- RUST-PLANES-GEOMETRY-RESOLVED-20261101 -->
 16.9.1的原ST0 801BA70C程序式78個3D面來源已由16.9.14直接讀格子、頂點與相位建立，另含1前置平面；不能再把這些幾何當未知或用原SXY／GP0當主來源。完整RAM／scratch／CPU／GTE／時間、初始化／刪除及正式玩家仍待；其他遊戲／關卡3D不在本切片。
 
+<!-- RUST-PLANE-DATA-RESOLVED-20261102-16.9.1 -->
+16.9.1程序式平面活動／保留分支的完整RAM／scratch／GTE資料效果已由16.9.16限定封閉；不再將這部分當未知。CPU端點／快取／時間、初始化／刪除及正式整場仍待，保存來源與幾何／美術既有結果承接。
+
 #### 16.9.2 鐘塔原始模型與相機資料
 
 狀態：限定CONFORMED，僅原模型解析、自有回退投影與顯式相機／畫面平移輸入；相機／平移資料已由16.9.3承接；完整相容效果與玩家仍DRAFT。承接16.9.1的九個鐘塔面，改從ST0原模型頂點／索引／UV與物件相機資料直接建立型別幾何，不依賴已投影SXY、GP0或來源trace作正式輸入。私有hd3d-v1/tower-mesh-v1沿已保存11722正常來源，不新開原片或重審美術。IDA9.4只讀原DB／ST0，在一次性副本加入80180000模組；觀測入口801BAEB0與GTE位置801BB29C／801BB2CC來自原trace的實際呼叫，不猜函式邊界。輸入、工具與地址基準由IDA-plan保存。
@@ -1432,6 +1435,9 @@ TowerPlan沿step選初始化／活動，同一介面現在承接已封閉失敗�
 16.9.14正式集中抽驗一次通過：兩個局部原CPU案例的全部可見XY／UV／RGB／CLUT／page／order／flags及相位相同；baseline79個四邊形含78個可靠3D面，餘33槽隱藏。signed相位／正負移動／負scroll-y診斷亦同，舊圖元與相容封包輸出毒化不改typed結果，五守門拒絕。資料沿正常11722原trace最小讀集重建，其他CPU／scratch合成，並非正常Machine。沒有新遊戲、IDA、GPU、速度或已定案美術重審。新planes元件未註冊、不跳PC、不提交live狀態；下一段完整副作用／時間及整場畫布另接。
 
 
+<!-- RUST-PLANE-DATA-RESOLVED-20261102-16.9.14 -->
+16.9.14程序式平面活動／保留分支的完整RAM／scratch／GTE資料效果已由16.9.16限定封閉；不再將這部分當未知。CPU端點／快取／時間、初始化／刪除及正式整場仍待，保存來源與幾何／美術既有結果承接。
+
 #### 16.9.15 程序式平面的直接HD畫布接線
 
 狀態：限定CONFORMED，限保存來源的呈現資料鏈；完整副作用／時間與正式玩家仍DRAFT。承接16.9.14已驗79個平面圖元、16.9.1的draw_projected與019素材載入器。新PlaneView只接受2MiB RAM、1024×512原始VRAM words、原來源事件及外部素材路徑，呼叫planes::Plan取得直接幾何；不讀GP0、原光柵畫面、GTE快照或舊圖元輸出。原CPU幾何oracle沿planes-v1/verification.json，來源／程式／畫片雜湊沿view-source-plan。原ST0來源與位址基準沿16.9.14，不新增逆向猜測。
@@ -1444,3 +1450,31 @@ TowerPlan沿step選初始化／活動，同一介面現在承接已封閉失敗�
 
 
 16.9.15集中呈現抽驗一次通過：79個圖元全命中既有HD、三個材質identity，78面可靠3D。原生完整畫布同保存原CPU幾何的獨立重建畫布；HD相對同投影原材質控制有163779個像素差異，透視相對仿射有291682個像素差異。舊圖元／封包毒化不改HD；缺素材沿原材質回退；五個大小／捲動／色盤／比例拒絕通過。原幾何／CPU oracle沒有重跑，沒有新遊戲、GPU、美術或速度驗收。正式player的cargo check通過；新的planes／planeview僅資料模組，完整遊戲入口未啟用。最初probe漏列既有serde依賴，停止於編譯，補與player同鎖版相依後才開始此一次呈現抽驗；斷言與產品保持。
+
+
+<!-- RUST-PLANE-DATA-RESOLVED-20261102-16.9.15 -->
+16.9.15程序式平面活動／保留分支的完整RAM／scratch／GTE資料效果已由16.9.16限定封閉；不再將這部分當未知。CPU端點／快取／時間、初始化／刪除及正式整場仍待，保存來源與幾何／美術既有結果承接。
+
+#### 16.9.16 程序式平面活動分支的完整資料效果
+
+狀態：限定CONFORMED，僅活動／保留分支完整資料；CPU／時間與正式玩家仍DRAFT。承接16.9.14–15已驗直接幾何／畫布，補原ST0 sub_801BA70C活動且保留物件分支的完整RAM、1KiB scratch及GTE終值。來源為既有IDA9.4 stage-IDA／camera-IDA、原函式801BA70C–801BAEB0及SDK helper，來源／工具SHA與位址基準見私人plane-state-v1/source-plan；不新跑IDA或正常原片。CPU端點／快取／虛擬時間、初始化／配置失敗／刪除、正式整場仍DRAFT，不用資料切片跳PC或提交Machine。
+
+待封閉效果包含64-byte函式frame與保存槽、四相位及兩個前置相位、六個全域色彩byte、scratch矩陣／原四頂點／36份符號擴充UV halfword、每列色彩、所有可見與被裁候選對配置槽的完整或部分寫入。原裁切前已可能寫flags、第一UV與scratch投影，不能只補可見面。GTE最後四頂點覆蓋投影FIFO，候選只以最後兩個純數學命令求終值，不重播全部原幾何迴圈。HD仍直接由原表／頂點與相位產生，不讀相容GTE投影或舊輸出。
+
+先用兩個局部原CPU oracle觀測完整寫入與GTE，含非零caller保存暫存器、非零初始scratch／GTE、有號相位與邊界world-x=256。其餘CPU狀態合成，不當正常Machine。來源／ABI／鏈與未支援分支守門另抽驗；只有證據封閉READY後才安裝DataPlan。既有幾何、美術與GPU矩陣直接承接，本批不新增畫布審查。
+
+
+16.9.16 READY契約：DataPlan::prepare讀2MiB RAM、1KiB scratch、原始入口State及Gte，僅接受801BA70C、非零step、world-x和至少256、完整112個唯一null終止的kind4／page15鏈，容量用盡分支拒絕。SP須四位元組對齊、801F0040–80200000；CU2開、isolate關、無branch／pending load且gpr0零。原函式／表及RotMatrix／SetGeomScreen／SetGeomOffset／SetRotMatrix的SHA逐值核對，零角度的trig0資料必須為sin0／cos4096。head的原初始化UV／page／order／flags須符合已證實的前置平面，未知前態不猜補。
+
+資料輸出完整保留未寫區：SP-40 frame的+18到+3C保存S0–S7／FP／RA，+10留下最後列原32-bit上色值；四相位與兩前置相位沿已驗Plan。六個全域byte在8003CB25及80054319設16／8／32。scratch0..12寫18-byte單位矩陣，padding保持，60..80複製原四頂點32 bytes，80..110把原36個UV halfword各符號擴充為word。200..208每列寫上下RGB及兩個kind4高byte。
+
+相容候選走同一原表與原生裁切條件，每次先寫目前槽flags15／UV0及scratch4C的第四頂點。上／左裁掉只留這些部分寫入；通過後再寫CLUT／UV1／UV2與scratch28／34／40，右裁掉保留此階段；可見才補UV3、四座標、兩組完整顏色word與order並前進配置鏈。末尾隱藏所有未用槽，但不清它們其他payload。此相容資料不作HD幾何輸入，HD繼續沿已驗Plan；不執行原ISA或GP0。
+
+GTE終值只從輸入Gte保留其他控制／資料，設原單位旋轉、offset128／160、H256與最後候選TR，執行最後一頂點RTPS及前三頂點RTPT兩次自有純數學，覆蓋四個SZ／三個SXY及最終IR／MAC／flags。兩個原局部CPU分別234／250次命令，完整資料比較須相同，不用繪圖輸出回推GTE。候選遍歷上限4096，未知鏈／來源／ABI整次拒絕；不修改live RAM／scratch／CPU／GTE或時間。
+
+正式驗證沿已保存兩個原CPU案例，不重跑oracle：完整RAM、完整scratch及Gte內部狀態相同才採用；舊XY／UV／顏色／排序輸出毒化須不改HD型別結果，來源／ABI／鏈／初始化／刪除／容量守門集中抽驗。原CPU其他狀態合成，這是資料契約驗證，沒有正常Machine／CPU端點／時鐘／速度或正式整場完成聲明。
+
+
+16.9.16集中正式資料抽驗一次通過：兩局部原CPU案例完整2MiB RAM、1KiB scratch與Gte內部狀態逐值相同，79／91個可見圖元、117／125個非零候選。原CPU分別11704／12435步與234／250次GTE命令；新資料元件只執行最後兩個自有純數學，HD沿原表／頂點產生，不讀相容投影輸出。舊XY／UV／顏色／排序毒化不改幾何與GTE，十二個來源／ABI／鏈／初始化／刪除／形狀守門通過。容量用盡分支仍拒絕，不把未抽到分支稱已驗。
+
+完整RAM包含被裁候選已發生的UV／旗標部分寫入、四頂點暫存與最後列顏色，不能只保留可見面。非零caller保存暫存器、scratch／GTE及有號相位、world-x=256均覆蓋。第一次編譯誤把State.bdbt當bool，停止於驗證前；明確比較零後才開始此一次正式抽驗，原oracle與斷言未改。正式player編譯通過，但DataPlan未註冊live接管，不提交PC／時間；沒有正常Machine、新開機、美術／GPU／速度驗收。
