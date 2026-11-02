@@ -14,6 +14,8 @@
 
 Rust改寫位於[`rust/`](rust/)，自有核心已能正常首存與重新讀檔。[玩家視窗](rust/player/)支援原版、LOGO／OPN的HD影片及A／B／C海報，提供柔和融合、安全放大與偏好保存。F1或滑鼠上緣顯示工具列，F2暫停續播；遊戲中央與原生狀態保持的範圍見[024 §6](docs/spec/024-poster-presentation.md#6-rust海報工具列與設定遷移)、[026](docs/spec/026-rust-migration.md)及[027](docs/spec/027-hd-movie-replacement.md)。完整手把設定、實體音訊／GPU、其餘影片、全遊戲HD與三平台Rust雙擊仍待完成；軟體視窗速度未過關。目前雙擊遊玩版本仍使用Go。 HD整段資料流程與2D／3D直接繪圖的目標見[026 §16](docs/spec/026-rust-migration.md#16-rust-整段繪圖流程接管)，整體仍DRAFT。場景／人物的直接CPU-HD畫布與1080p保存來源預覽已接入，正式遊戲整場仍待完成。 Rust已加入型別化3D相機與直接透視取樣，鐘塔單場保存來源的87個3D圖元全數命中既有HD素材；範圍見026 §16.9.1，正式3D資料生產與整場玩家仍待接。
 
+技術說明：[PS1 3D 繪圖攔截、HD 素材與視野控制](docs/ps1-3d-render-hooks.md)，涵蓋中途接管、解析度、縮放、800×600 視野與相機的差別，以及已完成和待接線範圍。
+
 ## 執行
 
 發行包（Linux、Windows、macOS）用 `tools/build_dist.sh <版號>` 在 docker 內建出，放在 `dist-all/<完整版號>/patch/`；完整版號採 `v.X.Y.Z-YYYYMMDD`。
