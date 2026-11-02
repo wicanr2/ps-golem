@@ -173,18 +173,19 @@ impl View {
             height: 240 * scale,
             words: vec![0; 256 * 240 * scale * scale],
         };
+        self.paint(&mut canvas, scale)?;
+        Ok(canvas)
+    }
+    pub(super) fn paint(&self, canvas: &mut Canvas, scale: usize) -> Result<()> {
+        if ![1, 4].contains(&scale) || canvas.width != 256 * scale || canvas.height != 240 * scale {
+            return Err("共同3D畫布尺寸不符".into());
+        }
         if scale == 1 {
             let images = (0..self.materials.len()).map(|_| None).collect::<Vec<_>>();
-            paint::draw(&mut canvas, 1, &self.materials, &images, &self.native)?;
+            paint::draw(canvas, 1, &self.materials, &images, &self.native)?;
         } else {
-            paint::draw_projected(
-                &mut canvas,
-                4,
-                &self.materials,
-                &self.images,
-                &self.projected,
-            )?;
+            paint::draw_projected(canvas, 4, &self.materials, &self.images, &self.projected)?;
         }
-        Ok(canvas)
+        Ok(())
     }
 }

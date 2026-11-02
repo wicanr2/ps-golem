@@ -351,3 +351,9 @@ pub(crate) mod toweractive;
 pub(crate) mod towerinit;
 pub(crate) mod tower;
 pub(crate) mod field3d;
+
+// 026 §16.11 staged source APIs; full-field player dispatch remains pending.
+mod primitives;
+mod primitiveclock;
+mod hudst0;
+mod fieldhud;

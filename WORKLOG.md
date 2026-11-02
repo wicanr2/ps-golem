@@ -3189,3 +3189,12 @@ PlaneMachinePlan先保護完整CPU／GTE／BIU及RAM／scratch，再沿既有核
 首次編譯與執行均通過，正式player編譯通過；補註來源getter及空素材manifest在首次編譯前凍結，沒有改斷言挑案例。DrawFace新增直接native數學結果，planeview共用材質／共同排序後一次繪製。模組只註冊staged API，正式整場未啟用，原通用光柵仍在。其他圖層／人物／HUD／文字／特效、未知SDK與完整合成仍待，不稱全HD或速度通過；已定案美術／原版／CPU／GPU／海報／雙擊包保持。
 
 四處規格回鏈、技術文件、索引與唯一目前狀態表同步；私人field-coordination-v1保存原生／HD子圖層、受測／格式化來源、驗證與兩庫推送／Issue回讀。原圖與RAM不入Git，新美術／GPU及舊矩陣重跑0。Docker均有界--rm、UID1000，無新image或其他專案清理；收尾擁有權／容器狀態見hygiene與publication。
+
+
+## 2026-11-02：ST0序章HUD接上3D共同畫布
+
+026 §16.11限定CONFORMED。既有正常source-flow-v2／field-IDA與核准page27 indexed素材承接，八HUD全有HD映射。8010794C媒體／錯誤分支與狀態更新、80105B70彩色矩形來源有證據；CD／載入與診斷用途標強推論，保留原流程，不深挖無關driver。fieldhud把場初始化、平面、鐘塔及800EDC94相容提交接在同一Epoch，先核對全可見通用池、排序與HUD來源才提交完整Machine。主幾何直接來自typed3D／語意HUD，不讀舊GP0或framebuffer。
+
+唯一正常BIOS路線11721–11724，三Epoch、兩緩衝、12階段完整Machine／逐成本同原CPU。可見池105／105／109，3D為97／97／101，HUD各八。4464個i16原音／卡片及輸入SHA保持，主線無PC／RAM／原碼注入。一個正常11722共同畫布：97個3D＋八HUD全HD，原生及HUD子畫布同原CPU封包的隔離GPU；原裁切y20..226、RGB16／8／32底色及窗口外圖元保持。四倍HD與原材質回退差184378像素，舊pool／封包／framebuffer毒化保持，十拒絕與缺素材回退通過，一次技術查看、新美術零。
+
+staged API註冊及player編譯通過，正式整場尚未啟用，人物獨立封包／其他圖層仍待。沒有全HD、全遊戲／硬體GPU／1080p內部畫布或速度聲明；原版、CPU／GPU、海報及既有雙擊包保持。索引、既有技術文件、三處舊規格回鏈與唯一目前狀態表同步；README沿穩定入口。受測／格式化來源、原生／HD子圖層與驗證、發布及Docker收尾留私人field-hud-v1，原圖／RAM／完整素材不入Git。

@@ -226,6 +226,13 @@ impl Coordinator {
         *self = next;
         Ok(costs)
     }
+    pub(super) fn after_scroll(&self, m: &Machine) -> Result<Epoch> {
+        let key = self.check(m)?;
+        if !self.scrolled || self.batches.iter().any(Option::is_none) {
+            return Err("共同場尚未完成捲動與來源".into());
+        }
+        Ok(key)
+    }
     pub fn scroll(&mut self, m: &Machine) -> Result<()> {
         self.check(m)?;
         if self.scrolled || self.batches.iter().any(Option::is_none) {
