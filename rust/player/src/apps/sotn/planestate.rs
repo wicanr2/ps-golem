@@ -82,6 +82,15 @@ fn vector(g: &mut Gte, i: usize, v: [i16; 3]) {
 }
 impl DataPlan {
     pub fn prepare(r: &[u8], input_scratch: &[u8], entry: &State, before: &Gte) -> Result<Self> {
+        Self::prepare_activity(r, input_scratch, entry, before, false)
+    }
+    pub(super) fn prepare_activity(
+        r: &[u8],
+        input_scratch: &[u8],
+        entry: &State,
+        before: &Gte,
+        allow_deletion: bool,
+    ) -> Result<Self> {
         if r.len() != 2 << 20
             || input_scratch.len() != 1024
             || entry.gpr[0] != 0
@@ -95,7 +104,7 @@ impl DataPlan {
         {
             return Err("平面資料入口、ABI或來源大小不符".into());
         }
-        let geometry = planes::Plan::prepare(r, entry)?;
+        let geometry = planes::Plan::prepare_activity(r, entry, allow_deletion)?;
         if geometry.quads.len() >= 112 {
             return Err("平面容量用盡分支尚未封閉".into());
         }

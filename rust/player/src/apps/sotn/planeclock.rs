@@ -139,9 +139,32 @@ pub struct PlaneClockPlan {
     endpoint: State,
     costs: Vec<u32>,
     resource_ids: Vec<u32>,
+    before_restore: State,
+    restore_index: usize,
 }
 impl PlaneClockPlan {
     pub fn prepare(r: &[u8], scratch: &[u8], entry: &State, gte: &Gte, biu: u32) -> Result<Self> {
+        Self::prepare_inner(r, scratch, entry, gte, biu, None, false)
+    }
+    pub(super) fn prepare_lifecycle(
+        r: &[u8],
+        scratch: &[u8],
+        entry: &State,
+        gte: &Gte,
+        biu: u32,
+        prefix: Option<&State>,
+    ) -> Result<Self> {
+        Self::prepare_inner(r, scratch, entry, gte, biu, prefix, true)
+    }
+    fn prepare_inner(
+        r: &[u8],
+        scratch: &[u8],
+        entry: &State,
+        gte: &Gte,
+        biu: u32,
+        prefix: Option<&State>,
+        allow_deletion: bool,
+    ) -> Result<Self> {
         if entry.next_pc != entry.pc.wrapping_add(4)
             || biu != 125320
             || !(0x80000000..0x80200000).contains(&entry.gpr[31])
@@ -153,17 +176,19 @@ impl PlaneClockPlan {
         {
             return Err("平面CPU、cache或事件入口未封閉".into());
         }
-        let data = DataPlan::prepare(r, scratch, entry, gte)?;
+        let data = DataPlan::prepare_activity(r, scratch, entry, gte, allow_deletion)?;
         if data.rows.len() != 16 || data.rows.iter().any(|row| row.visits.is_empty()) {
             return Err("平面語意列或候選資源不完整".into());
         }
         let mut c = Clock {
-            state: entry.clone(),
+            state: prefix.unwrap_or(entry).clone(),
             costs: Vec::with_capacity(13000),
             ids: Vec::with_capacity(13000),
             overflow: false,
         };
-        c.block(0x801ba70c, 0x801ba748);
+        if prefix.is_none() {
+            c.block(0x801ba70c, 0x801ba748);
+        }
         c.block(0x801ba870, 0x801ba9c0);
         for _ in 0..36 {
             c.block(0x801ba9c4, 0x801ba9dc);
@@ -260,6 +285,8 @@ impl PlaneClockPlan {
             c.block(0x801bae3c, 0x801bae4c);
         }
         c.block(0x801bae50, 0x801bae70);
+        let before_restore = c.state.clone();
+        let restore_index = c.costs.len();
         c.block(0x801bae7c, 0x801baeac);
         if c.overflow {
             return Err("平面資源超過有界成本項".into());
@@ -306,7 +333,12 @@ impl PlaneClockPlan {
             endpoint: c.state,
             costs: c.costs,
             resource_ids: c.ids,
+            before_restore,
+            restore_index,
         })
+    }
+    pub(super) fn before_restore(&self) -> (&State, usize) {
+        (&self.before_restore, self.restore_index)
     }
     pub fn endpoint(&self) -> &State {
         &self.endpoint
