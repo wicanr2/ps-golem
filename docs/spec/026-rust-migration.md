@@ -1430,3 +1430,17 @@ TowerPlan沿step選初始化／活動，同一介面現在承接已封閉失敗�
 
 
 16.9.14正式集中抽驗一次通過：兩個局部原CPU案例的全部可見XY／UV／RGB／CLUT／page／order／flags及相位相同；baseline79個四邊形含78個可靠3D面，餘33槽隱藏。signed相位／正負移動／負scroll-y診斷亦同，舊圖元與相容封包輸出毒化不改typed結果，五守門拒絕。資料沿正常11722原trace最小讀集重建，其他CPU／scratch合成，並非正常Machine。沒有新遊戲、IDA、GPU、速度或已定案美術重審。新planes元件未註冊、不跳PC、不提交live狀態；下一段完整副作用／時間及整場畫布另接。
+
+
+#### 16.9.15 程序式平面的直接HD畫布接線
+
+狀態：限定CONFORMED，限保存來源的呈現資料鏈；完整副作用／時間與正式玩家仍DRAFT。承接16.9.14已驗79個平面圖元、16.9.1的draw_projected與019素材載入器。新PlaneView只接受2MiB RAM、1024×512原始VRAM words、原來源事件及外部素材路徑，呼叫planes::Plan取得直接幾何；不讀GP0、原光柵畫面、GTE快照或舊圖元輸出。原CPU幾何oracle沿planes-v1/verification.json，來源／程式／畫片雜湊沿view-source-plan。原ST0來源與位址基準沿16.9.14，不新增逆向猜測。
+
+限定已觀測捲動兩欄皆零；非零整次拒絕。每個圖元使用其明確page15、UV與原RAM色盤表索引，從VRAM取原始4bpp資料並建立既有upload／CLUT identity。依UV範圍選128方形象限，跨象限沿既有256方形來源。色盤不得與上方240行畫布alias，大小／索引／有限座標與容量守門沿planes、paint及019。材質缺檔維持既有逐圖元原材質回退，不猜來源。
+
+原flags0的前置平面用raw／不混色；其餘flags0x15沿已驗16.8.2.3的modulate及page混色模式0，深度RGB保留。排序為order遞增、同桶依原物件槽ordinal遞減，承接原kind4池掃描／頭插規則。scale1直接以原native整數XY與原材質畫布；scale4用原世界頂點直接算出的次像素位置／深度與HD材質作透視取樣。兩者都從typed幾何獨立呈現，不先畫原版再蓋HD。只允許1／4倍，拒絕其他尺寸。
+
+一次集中驗證承接原CPU保存的兩個幾何案例，不重新執行舊CPU矩陣：限定baseline79圖元核對新adapter的native整張畫布與獨立oracle幾何畫布；HD命中／實際細節及透視差異、原圖元與封包毒化保持、缺素材回退與少量入口拒絕一併抽驗。GPU、速度、完整正常玩家與全遊戲HD不由此切片宣稱。新程式放rust/player/src/apps/sotn/planeview.rs，只註冊可被呼叫的資料模組，正式玩家不自動啟用；不改RAM、VRAM、CPU、原版模式、海報或既有偏好。
+
+
+16.9.15集中呈現抽驗一次通過：79個圖元全命中既有HD、三個材質identity，78面可靠3D。原生完整畫布同保存原CPU幾何的獨立重建畫布；HD相對同投影原材質控制有163779個像素差異，透視相對仿射有291682個像素差異。舊圖元／封包毒化不改HD；缺素材沿原材質回退；五個大小／捲動／色盤／比例拒絕通過。原幾何／CPU oracle沒有重跑，沒有新遊戲、GPU、美術或速度驗收。正式player的cargo check通過；新的planes／planeview僅資料模組，完整遊戲入口未啟用。最初probe漏列既有serde依賴，停止於編譯，補與player同鎖版相依後才開始此一次呈現抽驗；斷言與產品保持。

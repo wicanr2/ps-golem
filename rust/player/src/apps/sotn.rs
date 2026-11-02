@@ -328,3 +328,6 @@ pub(crate) mod hud;
 
 // Staged compatibility ordering only, 026 §16.8.3; no player registration.
 pub(crate) mod order;
+
+pub(crate) mod planes;
+pub(crate) mod planeview;
