@@ -30,12 +30,27 @@ impl View {
             return Err("平面呈現的非零捲動尚未封閉".into());
         }
         let plan = planes::Plan::prepare(ram, entry)?;
+        Self::from_quads(ram, vram, plan.quads, pack)
+    }
+    /// Internal source bundle only; no old pool XY/GP0/framebuffer input.
+    pub(super) fn from_quads(
+        ram: &[u8],
+        vram: &[u16],
+        quads: Vec<planes::Quad>,
+        pack: &Path,
+    ) -> Result<Self> {
+        if ram.len() != 2 << 20 || vram.len() != 1024 * 512 || quads.len() > 152 {
+            return Err("共同3D畫布來源大小或容量不符".into());
+        }
+        if ram[0x6c39c..0x6c39e] != [0, 0] || ram[0x6c3a0..0x6c3a2] != [0, 0] {
+            return Err("共同3D畫布非零繪圖偏移尚未封閉".into());
+        }
         let mut materials = Vec::new();
         let mut ids = HashMap::new();
         let mut draws = Vec::new();
         let mut reliable_quads = 0;
-        for q in plan.quads {
-            if q.page != 15 || ![0, 0x15].contains(&q.flags) || q.order >= 512 {
+        for q in quads {
+            if q.page != 15 || ![0, 2, 0x15].contains(&q.flags) || q.order >= 512 {
                 return Err("平面呈現的頁／旗標／排序未封閉".into());
             }
             let min: [usize; 2] =

@@ -416,6 +416,9 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 回填16.3.2停止線：其無I/O初始化的裝置時間／Machine提交未知已由本節解開。跨IRQ／field與活動DMA／MDEC、完整場景與顯存工作仍未支援，不能用本API省略必要I/O或強接整段HD。下一段沿16.1直接場景／材質／顯存生成，承接已驗初始化，不重驗舊美術、CPU或正常資料。
 
 
+<!-- RUST-COMMON-ST0-FIELD-20261102-16.3.3 -->
+16.3.3的場初始化／直接3D輸出或捲動來源，已由16.10限定接入同一ST0 Epoch。原800E3B80、801BA70C／801BAEB0、800F352C與800E3754的既有時序／來源承接，三完整Epoch／九同步階段及一個97圖元共同CPU畫布通過。這只封閉兩來源協調，不代表其餘來源、正式整場或GPU／速度完成。
+
 ### 16.4 Rust直接場景與HD材質畫布
 
 狀態：CONFORMED，僅限保存NO3房15普通前景及kind1背景的資料／CPU繪圖元件；正式玩家接線、其他場景、角色／文字／3D及GPU後端仍DRAFT。承接025 §12.3–12.4及§12.17的原始資料／IDA9.4地址與雜湊，不重開舊美術或遊戲。來源為原RAM／VRAM、F_NO3.BIN、獨立原圖層PNG及已驗Go直接合成，完整SHA由私人scene-v1/scene-evidence.json保存，入口為素材assets-catalog的render-control。所有程式為自有GPL-3.0-or-later來源的Rust高階資料重寫，Go來源8fbc874；原ASM只作證據。
@@ -1185,6 +1188,9 @@ mesh_scroll_after_event要求PC800F352C、S0=1024及有效1280槽ordinal，呼�
 <!-- TOWER-CAMERA-STATE-DATA-RESOLVED-20261101 -->
 16.9.3留下的相機設定RAM／GTE資料效果，已由16.9.4封閉；完整sub_801BAEB0的其他區段、CPU／快取／時鐘與正式玩家仍DRAFT。不要以較早完整副作用未知的文字重開已解相機資料。
 
+<!-- RUST-COMMON-ST0-FIELD-20261102-16.9.3 -->
+16.9.3的場初始化／直接3D輸出或捲動來源，已由16.10限定接入同一ST0 Epoch。原800E3B80、801BA70C／801BAEB0、800F352C與800E3754的既有時序／來源承接，三完整Epoch／九同步階段及一個97圖元共同CPU畫布通過。這只封閉兩來源協調，不代表其餘來源、正式整場或GPU／速度完成。
+
 #### 16.9.4 鐘塔相機設定的 RAM／GTE 相容資料
 
 狀態：限定CONFORMED，僅RAM／GTE資料計畫；相機CPU／時鐘及同步提交由16.9.5–6承接，整個物件呼叫仍DRAFT。只處理 PS1 ST0 原 sub_801BAEB0 中 801BAFB4 到 801BB04C 前的相機設定資料效果，承接16.9.3的相機數學。原SDK的SetGeomScreen 8001805C、SetGeomOffset 8001803C、SetRotMatrix 80017E3C、TransMatrix 80017CDC與SetTransMatrix 80017ECC，以原IDA9.4資料庫新副本核對。原始函式名、位址、bytes、讀寫與推論等級保存在私人camera-state-v1，入口見素材索引。
@@ -1473,6 +1479,9 @@ TowerPlan沿step選初始化／活動，同一介面現在承接已封閉失敗�
 <!-- RUST-PLANE-LIFECYCLE-RESOLVED-20261102-16.9.15 -->
 16.9.15原ST0 801BA70C的112槽初始化／配置不足／刪除未知已由16.9.19限定封閉；8003C7E0指向800ED910，與鐘塔遞迴配置不同。九局部完整狀態／逐成本及一次自然初始化／連續活動Machine／原音同。自然失敗／刪除事件、其他域及正式整場仍待，原下游光柵仍在。
 
+<!-- RUST-COMMON-ST0-FIELD-20261102-16.9.15 -->
+16.9.15的場初始化／直接3D輸出或捲動來源，已由16.10限定接入同一ST0 Epoch。原800E3B80、801BA70C／801BAEB0、800F352C與800E3754的既有時序／來源承接，三完整Epoch／九同步階段及一個97圖元共同CPU畫布通過。這只封閉兩來源協調，不代表其餘來源、正式整場或GPU／速度完成。
+
 #### 16.9.16 程序式平面活動分支的完整資料效果
 
 狀態：限定CONFORMED，僅活動／保留分支完整資料；CPU／時間與正式玩家仍DRAFT。承接16.9.14–15已驗直接幾何／畫布，補原ST0 sub_801BA70C活動且保留物件分支的完整RAM、1KiB scratch及GTE終值。來源為既有IDA9.4 stage-IDA／camera-IDA、原函式801BA70C–801BAEB0及SDK helper，來源／工具SHA與位址基準見私人plane-state-v1/source-plan；不新跑IDA或正常原片。CPU端點／快取／虛擬時間、初始化／配置失敗／刪除、正式整場仍DRAFT，不用資料切片跳PC或提交Machine。
@@ -1567,3 +1576,33 @@ PlaneClockPlan的既有公開prepare仍只接受活動／保留域；新增內�
 一次正常BIOS開機，從第一個自然801BA70C／A0=8007CC98的step0開始，同一PlanePlan接後續所有同物件活動直到11724，逐次完整Machine／每成本同原CPU控制組，續播原音／卡片同。精確場號、初始化／活動／刪除計數、音訊取樣及hash見machine-verification；正常主線無PC／RAM／原碼注入。六個過期CPU／RAM／scratch／GTE／BIU與交易中IRQ診斷均在獨立副本完整拒絕。配置失敗／刪除只有局部診斷覆蓋，不稱自然事件已驗。
 
 最初測試外殼漏匯出machine模組，停止於編譯；保留舊probe／日誌及READY hash，補同核心的模組匯出後才開始一次執行比較，產品與斷言保持。正式player編譯通過。公開prepare原活動／保留域保持，內部生命週期入口只增加已證實分支；正式玩家未啟用，原下游光柵仍在。完整場協調、其餘來源／HUD／文字／特效、整場CPU／GPU與速度仍待，不重審既有美術。
+
+
+<!-- RUST-COMMON-ST0-FIELD-20261102-16.9.19 -->
+16.9.19的場初始化／直接3D輸出或捲動來源，已由16.10限定接入同一ST0 Epoch。原800E3B80、801BA70C／801BAEB0、800F352C與800E3754的既有時序／來源承接，三完整Epoch／九同步階段及一個97圖元共同CPU畫布通過。這只封閉兩來源協調，不代表其餘來源、正式整場或GPU／速度完成。
+
+### 16.10 共用場工作與ST0兩個直接3D來源
+
+狀態：限定CONFORMED，僅ST0兩來源共同場與CPU子圖層；正式整場仍DRAFT。本節先將已驗場初始化與兩個ST0 3D來源接到同一工作表，封閉跨來源排序、槽位歸屬、捲動與場識別。不是正式整場：其餘來源／SDK、HUD／文字／特效、整場呈現與按需相容仍未完成，不啟用正式玩家、不關閉原版或CPU／GPU／海報。
+
+既有正常source-flow-v2的421184筆CPU紀錄已證實800E3B80場初始化、801BA70C平面、801BAEB0鐘塔、800F352C捲動完成、800EDC94通用圖元與800E3754排序入口的先後；來源事件、GPR及SHA保存私人field-coordination-v1/source-plan。來源位址以KSEG0為主，RAM／ST0／DRA偏移分列；既有IDA9.4原始定位／caller與026 §16.3.3／16.9.12–19直接承接。沒有新IDA或入口原片研究。
+
+
+16.10 READY契約：Coordinator只承接已驗FrameClockPlan、PlanePlan與TowerPlan。begin從800E3B80準備場資源與時鐘，用原frame_counter、draw_buffer與ordering_start建立Epoch；Machine提交成功後才替換待建工作，前場未完成不可發布。兩角色固定為本正常ST0來源的8007CC98／8007D278，來源／ABI檢查仍由各Plan負責；角色重複、未知入口／物件、epoch錯置與可見／隱藏handle碰撞在Machine提交前拒絕，協調器與Machine均保持。
+
+每個producer只傳出原表／模型直接產生的native座標、次像素點／深度、UV、色彩、page／CLUT／order／flags與槽位。DrawFace附加原camera.native_xy結果，不由舊投影RAM求新HD。每角色完整可見／隱藏handle不得重複、越1280或跨角色重疊，總上限152。初始化失敗／刪除沒有新幾何時沿已驗生命週期輸出，不重建被釋放面。
+
+800F352C／S0=1024捲動完成只讀已驗原scroll來源：flags2且ordinal<1024的鐘塔點加136850／136854有號差值，原生座標i16 wrapping；其他已列flags保持。無可靠深度的點以更新後native位置後備。只有同Epoch兩角色已到且捲動已封閉，800E3754排序入口才seal出一次不可變Bundle；缺來源、未捲動、錯epoch或重複seal不發布。Epoch不用VBlank場號替代，避免繪圖周期跨場時混入舊資料。共同排序為order遞增、同桶ordinal遞減，沿通用池掃描／頭插證據。
+
+Bundle只支援page15、flags0／2／0x15及已驗透明／混色域，三角形以重複末點建立退化第二三角。材質取該seal時的原上傳VRAM／CLUT；只接受既有安全區域與來源identity，不讀GP0、原光柵或舊pool XY。原尺寸與四倍畫布沿planeview／paint；跨來源共同排序後一次繪製，不分來源各畫一張再貼合。這只是ST0 3D子圖層，沒有整個遊戲背景／人物／HUD完成聲明。
+
+一次正常BIOS路線在ST0窗口同時接場初始化與兩producer，獨立原CPU控制組逐次比較完整Machine／每成本，續播11724核對原音／卡片與唯讀輸入。只在一個正常完整Epoch集中比較97個預期來源圖元的原生欄位／共同畫布與控制組池資料，實測數量以當次輸出為準；HD命中／可靠深度、缺素材回退與少量跨場／碰撞／重複拒絕同批抽驗。正常與元資料副本診斷分列，已驗來源與美術／GPU矩陣不重跑。不足以發布的Epoch如實記錄，不能稱正式整場HD或速度通過。
+
+
+16.10第一次集中正常比較通過：第11721–11723的Epoch5912／5913／5914，兩組draw buffer交替，三次場初始化＋三次平面＋三次鐘塔共九階段的完整Machine／逐成本同原CPU。可見圖元總數為97／97／101，沒有固定硬編每場數量；不完整Epoch丟棄0。續播11724的4464個i16原音與卡片相同，主線無PC／RAM／原碼注入，原輸入SHA保持。
+
+只在正常11722／Epoch5913作一次共同畫布抽驗：79平面四邊形加18鐘塔面，共97個圖元、55隱藏handle、八個材質identity，97個HD命中、96面可靠深度。原生typed座標／UV／RGB／page／CLUT／order／flags同獨立原CPU控制組池資料，完整共同原生畫布逐像素同。HD相對同投影原材質回退有193285個像素差異，缺素材回退保持。沒有分來源各畫完再合貼，三角形及四邊形按共同排序一次呈現。黑底只是3D子圖層，沒有完整遊戲畫面／HUD／人物聲明。
+
+十個缺來源／錯Epoch／重複角色／跨來源與內部槽碰撞／NaN／未知頁／過期Machine／重複seal／錯發布PC拒絕通過，元資料與相應Machine複本保持。一次技術畫面查看後採用，已定案美術不重審；首次編譯與執行均通過。正式player編譯通過，新增模組只提供staged API，未啟用正式玩家分派。原FrameClockPlan與兩producer／核心交易不重寫，新增native欄位只由原模型與相機數學求得。既有原版、CPU／GPU、海報及雙擊包保持。
+
+此共同場只涵蓋已列ST0來源。其他圖層／人物／HUD／文字／特效、8010794C／80105B70、完整呈現與按需相容仍待；原通用光柵仍在，不稱完整HD或速度通過。新GPU、美術、IDA與原入口重跑0；來源、受測／格式化版本、原生／HD子圖層及收尾／發布由私人field-coordination-v1保存。

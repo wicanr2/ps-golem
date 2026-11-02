@@ -335,3 +335,19 @@ pub(crate) mod planestate;
 pub(crate) mod planeclock;
 pub(crate) mod planecommit;
 pub(crate) mod planelife;
+
+// Staged common ST0 source work, 026 §16.10; player dispatch unchanged.
+pub(crate) mod frame;
+pub(crate) mod framecpu;
+pub(crate) mod frameclock;
+pub(crate) mod camera;
+pub(crate) mod camerastate;
+pub(crate) mod cameraclock;
+pub(crate) mod mesh;
+pub(crate) mod meshstate;
+pub(crate) mod meshclock;
+pub(crate) mod towerlife;
+pub(crate) mod toweractive;
+pub(crate) mod towerinit;
+pub(crate) mod tower;
+pub(crate) mod field3d;

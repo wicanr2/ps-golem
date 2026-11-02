@@ -14,6 +14,7 @@ pub struct DrawFace {
     pub handle: usize,
     pub face: Face,
     pub points: [ProjectedPoint; 4],
+    pub native: [[i16; 2]; 4],
     pub page: u16,
     pub flags: u16,
 }
@@ -157,6 +158,7 @@ impl DataPlan {
                 handle: ((link - POOL) / 52) as usize,
                 face: face.clone(),
                 points,
+                native,
                 page: 15,
                 flags: 2,
             });

@@ -217,6 +217,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | 原始鐘塔模型 | 026 §16.9.2–3：18面模型、原始頂點與相機來源 | 全場景模型及正式整場呈現 |
 | 鐘塔 routine 替代 | 026 §16.9.11–13：限定初始化／活動／生命週期及同步提交證據 | 正式玩家註冊、其餘種類與自然事件覆蓋 |
 | 程序式平面 | 026 §16.9.14–19：直接HD畫布；完整資料／CPU／時鐘、112連續槽生命週期及自然初始化／活動Machine相同 | 自然失敗／刪除覆蓋、完整場協調及正式玩家 |
+| ST0共同場 | 026 §16.10：場初始化、平面／鐘塔、捲動及seal；三Epoch／九階段同Machine，97圖元共同CPU畫布 | 其他來源、完整遊戲合成、正式玩家與GPU／速度 |
 | NO3 可調視野 | 026 §16.7.21：保存來源到800×600 | 連續遊玩、跨房與框外物件 |
 | 任意 3D 視點 | 已有型別化相機與原始幾何基礎 | 新視點、剔除、遮擋與來源覆蓋的專門規格／驗證 |
 | 1080p 與後端 | 已有1080p保存預覽；CPU／GPU支援按各規格範圍承接 | 新路線的完整遊玩、GPU與速度驗收 |
@@ -229,7 +230,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 4. **視野：** 原窗口重疊區保持，新增區域有真實來源；另測房界、剔除與物件生成，不以拉伸或黑邊當擴大成功。
 5. **正常路徑：** 原版與HD從等價存檔及輸入走同一路線；正常、注入診斷與保存來源收據分開。
 
-已通過切片直接承接。程序式平面的完整資料／CPU／快取／時間與限定生命週期，已由026 §16.9.16–19封閉，正常初始化／連續活動的同步提交亦已比較。下一段接完整場來源協調、其餘繪圖來源、正式玩家及視野擴充。未驗分支維持 DRAFT；文件中的相機公式與後續做法不能代替 READY 契約。
+已通過切片直接承接。程序式平面的完整資料／CPU／快取／時間與限定生命週期，已由026 §16.9.16–19封閉，正常初始化／連續活動的同步提交亦已比較。ST0兩個3D來源已由026 §16.10接到共同Epoch與排序畫布；這是子圖層。下一段補其餘繪圖來源與完整合成，再接正式玩家及視野擴充。未驗分支維持 DRAFT；文件中的相機公式與後續做法不能代替 READY 契約。
 
 ## 7. 程式與規格入口
 
@@ -238,7 +239,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | 原始幾何如何產生 | [planes.rs](../rust/player/src/apps/sotn/planes.rs)、[mesh.rs](../rust/player/src/apps/sotn/mesh.rs) |
 | 相機與原生回退 | [projection.rs](../rust/src/projection.rs)、[camera.rs](../rust/player/src/apps/sotn/camera.rs) |
 | 幾何如何接到材質／畫布 | [planeview.rs](../rust/player/src/apps/sotn/planeview.rs)、[paint.rs](../rust/src/paint.rs) |
-| 替代呼叫如何保留機器效果 | [planelife.rs](../rust/player/src/apps/sotn/planelife.rs)、 [planeclock.rs](../rust/player/src/apps/sotn/planeclock.rs)、[planecommit.rs](../rust/player/src/apps/sotn/planecommit.rs)、[planestate.rs](../rust/player/src/apps/sotn/planestate.rs)、[tower.rs](../rust/player/src/apps/sotn/tower.rs)、[machine/phase.rs](../rust/src/machine/phase.rs) |
+| 替代呼叫如何保留機器效果 | [field3d.rs](../rust/player/src/apps/sotn/field3d.rs)、 [planelife.rs](../rust/player/src/apps/sotn/planelife.rs)、 [planeclock.rs](../rust/player/src/apps/sotn/planeclock.rs)、[planecommit.rs](../rust/player/src/apps/sotn/planecommit.rs)、[planestate.rs](../rust/player/src/apps/sotn/planestate.rs)、[tower.rs](../rust/player/src/apps/sotn/tower.rs)、[machine/phase.rs](../rust/src/machine/phase.rs) |
 | 2D 可見視窗與場景選格 | [scene.rs](../rust/player/src/apps/sotn/scene.rs)、[view.rs](../rust/player/src/apps/sotn/view.rs) |
 | 材質載入與身分核對 | [texture_audit.rs](../rust/player/src/texture_audit.rs)、[019](spec/019-hd-texture-pack.md) |
 | 正式契約與工作狀態 | [規格索引](spec/000-index.md)、[026](spec/026-rust-migration.md)、[017](spec/017-sotn-widescreen.md)、[Issue #17](https://github.com/wicanr2/ps-golem/issues/17)、[Issue #18](https://github.com/wicanr2/ps-golem/issues/18) |
