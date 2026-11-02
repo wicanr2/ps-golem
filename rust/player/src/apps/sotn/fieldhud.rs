@@ -109,6 +109,15 @@ impl Bundle {
     }
 }
 impl Coordinator {
+    pub(super) fn check_epoch(&self, m: &Machine) -> Result<Epoch> {
+        self.three.check(m)
+    }
+    pub(super) fn batch(&self, role: Role) -> Option<&field3d::Batch> {
+        self.three.batch(role)
+    }
+    pub(super) fn after_scroll(&self, m: &Machine) -> Result<Epoch> {
+        self.three.after_scroll(m)
+    }
     pub fn epoch(&self) -> Option<Epoch> {
         self.three.epoch()
     }

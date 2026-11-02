@@ -3207,3 +3207,12 @@ staged API註冊及player編譯通過，正式整場尚未啟用，人物獨立�
 16.12正常整機未通過。首次編譯測試器漏hud匯入且變數遮蔽音訊SHA，遊戲0；只修測試器後首次正常路線因協調器把人物排在3D之前而停止。回DRAFT按保存原trace證實begin→plane→tower→scroll→tiles→actors→primitives→order，修READY及先後守門。第二次正常路線在800EB998被ActorDataPlan架構入口拒絕，未保存入口State／context，無法辨識具體條件；不猜補、不放寬、沒有第三次正常遊戲。未通過fieldactors及新helpers退出正式模組，來源存私人staged-*，前批3D／HUD保持。
 
 另做一次保存來源材質元件抽驗；封裝首編譯少serde鎖版相依，執行0，補既有版本後首次元件執行通過。一次技術查看、美術／IDA／硬體GPU0，正式player編譯通過；無新包、全HD或速度聲明。規格／索引／唯一狀態表與兩處回鏈如實分開元件通過與整機拒絕，README沿穩定入口。下一步先觀測完整入口State／context及逐項守門。來源、失敗、子圖層及收尾／發布由私人field-actors-v1保存，原資料不入Git；Docker有界--rm、UID1000，不動其他專案。
+
+
+## 2026-11-02：人物入口高位拒絕修正，ST0共同場限定接通
+
+026 §16.12.3限定CONFORMED。一次只讀原入口觀測保存完整前後State／GPU context／RAM／scratch／VRAM及成本，13個架構條件唯information_high=80000000拒絕；診斷CPU與7011成本、完整RAM／scratch及顯存資料同原CPU。觀測器在第一呼叫後因把BIOS前空白預設卡作基準而停止，原三入口窗口未完成；修正基準與有界斷言，未重開觀測器。原完整入口足以定位，正式GPU傳輸另有同高位拒絕，舊清邊末讀回只寫offset會漏高位。
+
+READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offset，對齊Fill讀回保持，其他高位仍拒絕。七傳輸測試及正式保存入口資料核對通過。一次正式正常BIOS11721–11724整合場初始化／兩3D／人物／通用池，三Epoch／兩緩衝／15階段全Machine與每成本同原CPU；人物4／4／3、3D97／97／101，4464個i16原音、卡片及輸入保持，主線無注入。只一張11722共同畫布，97個3D＋四人物／物件＋八HUD共109全HD、原生像素同原CPU封包GPU；HD對原材質差190674像素，缺圖回退／毒化與15拒絕通過。
+
+一次技術查看、零美術／IDA／硬體GPU重審，正式player編譯通過，五檔只格式化；首次player編譯漏actorclock模組宣告，只補actorstate／actorclock宣告，實作與正常比較來源保持。舊NO3與CPU／GTE矩陣不重跑，前批兩失敗／本批觀測器停止均保留，沒有以正常整合覆蓋歷史。四處回鏈、索引／技術文件、唯一目前狀態表及舊工具路由同步。原版、CPU／GPU、海報、影片與雙擊包保持，正式整場玩家尚未啟用，150場景精靈及其餘來源／GPU／速度待接。私人actor-entry-v1／field-actors-v2保存來源、比較、子畫布及收尾／兩庫推送／Issue回讀，原資料不入Git，Docker有界--rm、UID1000，不動其他專案。

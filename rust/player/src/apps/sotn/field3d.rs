@@ -114,7 +114,7 @@ impl Coordinator {
         self.sealed = false;
         Ok(costs)
     }
-    fn check(&self, m: &Machine) -> Result<Epoch> {
+    pub(super) fn check(&self, m: &Machine) -> Result<Epoch> {
         let key = self.epoch.ok_or("共同場尚未開始")?;
         if key != current(m) || self.sealed {
             return Err("共同場Epoch過期或已發布".into());

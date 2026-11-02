@@ -482,6 +482,9 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 驗證一次集中使用12保存態：完整型別資料、相容封包／512排序表／計數及144工作同Go與保留原版；Rust測試端從原CPU存取依序還原RAM寫入、GP0／GP1及DMA2 block／linked-list，與型別直接作業比較全部GPU欄位及完整VRAM。參考端才用GP0解析，Rust作業路徑不使用它；使用同一保留原VRAM種子，明示這是局部事件oracle，非正常新開機或整段Machine等價。公開合成案例驗遮罩、精確清邊、快取／游標、未完成FIFO、長度／預算及原子拒絕。注入邊界案例另標diagnostic，不當正常玩家通過。已過場景、美術、GUI／GPU硬體與全素材不重跑；完整人物HD呈現及其餘CPU／時間效果仍待接，不稱完整HD或速度通過。
 
 
+<!-- RUST-INFORMATION-HIGH-RESOLVED-16.6 -->
+16.12.3補證：原PS1 GPU GPUREAD／read_buffer高位80000000與DRA 800EB998架構入口的舊限制，已限定支援0／80000000並保留SDK清邊末讀回。正常三Epoch／15階段全Machine與每成本同原CPU；人物數4／4／3，不固定每場四個。一次97個3D＋四人物／物件＋八HUD共同畫布原生同封包GPU、109全HD命中。其他高位仍拒絕，正式整場／其餘來源與GPU／速度未完成。舊兩次正常失敗與觀測器卡片基準停止保持；原單入口資料已足以定位，不重新開啟三入口觀測窗口或舊美術矩陣。
+
 ### 16.7 物件呼叫完整CPU與裝置時間接續
 
 狀態：DRAFT。承接16.6已備的幾何及直接GPU資料作業，先由保存12態的原CPU／存取序列定位剩餘RAM、scratch、ABI與逐量子時間。原CPU僅在私人研究oracle執行，不是正式接管實作，也不由原輸出或存取序列回播生成正式結果。只有資料來源、全部必要效果與途中SDK事件／DMA／IRQ／時間都封閉後才升READY；目前不註冊正式玩家、不跳過整段物件routine。記憶體／切場可作使用者已授權的診斷，另標注入來源，不把局部注入當正常可玩完成。
@@ -1655,7 +1658,7 @@ HUD及覆蓋／排序／環境準備成功後，沿既有PrimitiveClockPlan提�
 
 ### 16.12 ST0人物獨立圖元與共同畫布
 
-狀態：DRAFT。第二次正常抽驗在人物資料架構入口守門拒絕，整場人物協調尚未通過；純材質抽取另由16.12.1驗證。承接16.11序章3D／HUD，將既有16.7的ActorClockPlan與原人物幀表直接接到同一Epoch。先封閉已觀測ST0人物來源，不修改玩法、相機或舊幾何規則；NO3原scene身份守門保留。source-flow-v2的同一正常trace已有800EB998→800E3C34，正確順序為場初始化→兩3D來源→捲動→圖層→人物→通用圖元→排序。保存11722來源的GT4前綴為四項，原排序桶128／136／148，3D最高69、HUD最低495；還有150個場景精靈與48模式命令，不能把人物＋3D＋HUD叫完整整場。
+狀態：限定CONFORMED，僅ST0人物／3D／HUD共同CPU畫布與正常同步提交；正式整場仍DRAFT。承接16.11序章3D／HUD，將既有16.7的ActorClockPlan與原人物幀表直接接到同一Epoch。先封閉已觀測ST0人物來源，不修改玩法、相機或舊幾何規則；NO3原scene身份守門保留。source-flow-v2的同一正常trace已有800EB998→800E3C34，正確順序為場初始化→兩3D來源→捲動→圖層→人物→通用圖元→排序。保存11722來源的GT4前綴為四項，原排序桶128／136／148，3D最高69、HUD最低495；還有150個場景精靈與48模式命令，不能把人物＋3D＋HUD叫完整整場。
 
 來源／位址／bytes身份與SHA沿16.7及私人field-actors-v1/source-plan，PS1 KSEG0、DRA檔案偏移EA-800A0000。原CPU與原封包只作獨立oracle。新美術／IDA0，沿既有核准素材，缺HD如實以原材質直接繪製，不套用其他姿勢。
 
@@ -1672,6 +1675,9 @@ fieldactors在fieldhud之外協調人物。begin成功才清除人物；800EB998
 
 16.12第二次正常抽驗：在800EB998被ActorDataPlan架構入口守門拒絕，尚未走到共同畫布或完成音訊／卡片比較。沒有保留入口State與TextureContext，現有混合條件錯誤不足以辨識究竟哪項前置條件失配；不得推測或直接放寬。前批3D／HUD已驗證據保持，新增fieldactors及其兩個協調器輔助版本退出正式模組，僅保留私人staged來源。沒有第三次正常遊戲；下一步獨立蒐證必須保存入口完整State／context與各守門判定。
 
+<!-- RUST-INFORMATION-HIGH-RESOLVED-16.12 -->
+16.12.3補證：原PS1 GPU GPUREAD／read_buffer高位80000000與DRA 800EB998架構入口的舊限制，已限定支援0／80000000並保留SDK清邊末讀回。正常三Epoch／15階段全Machine與每成本同原CPU；人物數4／4／3，不固定每場四個。一次97個3D＋四人物／物件＋八HUD共同畫布原生同封包GPU、109全HD命中。其他高位仍拒絕，正式整場／其餘來源與GPU／速度未完成。舊兩次正常失敗與觀測器卡片基準停止保持；原單入口資料已足以定位，不重新開啟三入口觀測窗口或舊美術矩陣。
+
 #### 16.12.1 人物材質與畫布的獨立元件
 
 狀態：限定CONFORMED，限原View人物部分的純抽取與保存來源診斷；16.12正常整機協調仍DRAFT。ActorView沿16.7.20全部材質／幾何守門，只取typed ActorPlan、原圖像／CLUT，不讀舊GP0或framebuffer。View委派人物部分，原NO3背景／CLI及可調視野保持。抽一個既有NO3 8382態，舊／新完整native與HD畫布逐字對照。另用既有ST0 11722人物完成後保存RAM／VRAM，零scratch僅作診斷，要求四圖元全raw，以排除繼承RGB影響；重新解出typed幾何後比原四GT4的XY／UV／page／CLUT／command與實際排序，再核對隔離GPU的原生像素、HD命中、缺圖回退及pool／封包／framebuffer毒化。這不是原入口完整State、ActorClockPlan或正常Machine通過。只一次集中保存態驗證／畫面查看，不開第三次遊戲、美術／IDA／硬體GPU0。入口私人field-actors-v1/component-inputs與component-verification及tools/probe_sotn_actorview_component.rs，原資料不公開。
@@ -1682,3 +1688,40 @@ fieldactors在fieldhud之外協調人物。begin成功才清除人物；800EB998
 元件抽驗不啟動Machine、BIOS或原CPU，原生oracle只在隔離GPU重播已保存GT4；這不提供正常ActorClockPlan／架構／時鐘證據。一次技術畫面採用，正式player編譯通過，兩正式Rust檔只作已驗抽取與格式化。第一次元件測試封裝少serde鎖版相依，在執行0停止，補相同版本後首次元件執行通過。原版、NO3背景／可調視野、CPU／GPU、海報、影片與雙擊包保持，沒有新包、完整HD或速度聲明。
 
 下一個必要證據：在800EB998拒絕前保存完整State／TextureContext及所有入口守門的逐項判定，先辨識具體失配，再補相容契約。16.12兩次正常失敗與初次編譯停止均保留，沒有第三次正常遊戲；不猜測失配欄位、不放寬守門。私人field-actors-v1的orchestration-status／component-verification／acceptance分開保存，不以元件通過覆蓋整機拒絕。
+
+
+<!-- RUST-INFORMATION-HIGH-RESOLVED-16.12.1 -->
+16.12.3補證：原PS1 GPU GPUREAD／read_buffer高位80000000與DRA 800EB998架構入口的舊限制，已限定支援0／80000000並保留SDK清邊末讀回。正常三Epoch／15階段全Machine與每成本同原CPU；人物數4／4／3，不固定每場四個。一次97個3D＋四人物／物件＋八HUD共同畫布原生同封包GPU、109全HD命中。其他高位仍拒絕，正式整場／其餘來源與GPU／速度未完成。舊兩次正常失敗與觀測器卡片基準停止保持；原單入口資料已足以定位，不重新開啟三入口觀測窗口或舊美術矩陣。
+
+#### 16.12.2 人物架構入口的逐項拒絕觀測
+
+狀態：DRAFT。承接16.12兩次正常停止，這次只查800EB998架構入口的具體拒絕，不重跑美術或元件矩陣。沿同原片／BIOS／固定腳本一次正常開機11721–11724，原Machine始終作路線權威；在每個入口先保存完整CPU State／icache／GTE、TextureContext、RAM／scratch／VRAM、IRQ／BIU及13個架構守門布林，再保存原CPU到800E3C34的完整端點與每成本。收據在私人actor-entry-v1，位址PS1 KSEG0，DRA偏移EA-800A0000，來源／工具與SHA沿inputs／diagnostic-overlay。
+
+可丟棄診斷副本只繞過ActorDataPlan的第一個複合架構守門，其餘資料／SDK／時鐘／交易來源不改。只在PC／nextPC／SP／RA、delay／zero register、clip／offset、cache隔離與pendingIRQ均符合，而差異僅ld_which／information_high時準備候選。候選以原始未正規化State／context輸入；原CPU跑完後比完整CPU與每成本，符合才在獨立Machine clone提交並比全部欄位。診斷不回填原Machine，不註冊正式玩家，不修改原RAM／PC／原碼。任何未知如實保存，原正式守門不放寬；只有原因與必要副作用封閉後才訂READY。這不是完整HD、正常Rust取代或速度驗收。
+
+
+<!-- RUST-INFORMATION-HIGH-RESOLVED-16.12.2 -->
+16.12.3補證：原PS1 GPU GPUREAD／read_buffer高位80000000與DRA 800EB998架構入口的舊限制，已限定支援0／80000000並保留SDK清邊末讀回。正常三Epoch／15階段全Machine與每成本同原CPU；人物數4／4／3，不固定每場四個。一次97個3D＋四人物／物件＋八HUD共同畫布原生同封包GPU、109全HD命中。其他高位仍拒絕，正式整場／其餘來源與GPU／速度未完成。舊兩次正常失敗與觀測器卡片基準停止保持；原單入口資料已足以定位，不重新開啟三入口觀測窗口或舊美術矩陣。
+
+#### 16.12.3 GPU資訊高位的保留與ST0人物接續
+
+狀態：限定CONFORMED，僅0／80000000資訊高位保留及ST0共同場；正式整場仍DRAFT。16.12.2取得正常11721一個完整800EB998→800E3C34入口，13項架構守門只有information_high失配，其值80000000，原offset256／0、clip256／20至511／226。繞過第一gate的獨立診斷已核對完整CPU及7011個成本相同，完整RAM／scratch逐byte同；一項Upload及兩項Clear的直接顯存資料同原VRAM。原前後context保持80000000。此為READY前保存證據，當時完整Machine未通過且原傳輸API仍在Clear拒絕；正式整合結果列本節末。
+
+觀測器在此第一入口資料落盤後，因卡片基準取自BIOS格式化前的空白預設卡而停止；不稱11721–11724全窗口觀測成功，也不稱有外部原卡被修改。入口State／GTE／RAM／scratch／VRAM／成本與停止日誌完整保留；不重啟觀測器，改用已保存入口補足資料證據。
+
+只將ActorDataPlan與Gpu::apply_texture_jobs的Clear資訊高位守門擴至0／80000000，其餘架構／IRQ／SDK／bounds保持。Clear非64對齊SDK分支的末資訊讀回必須為原read_buffer高位與原offset編碼的OR，不能寫成純offset。80000000已包含在E3／E4／E5命令首位，OR不改既有恢復命令；傳輸RAM／CPU／成本公式不變。64對齊Fill分支原讀回保持不動。其他高位仍拒絕，拒絕前驗完整工作列表，不留半次上傳或清邊；不把未知bit泛化為已支援。
+
+新增核心抽驗：0／80000000各正負offset的非對齊清邊對原GP1查詢／GP0矩形及環境恢復序列，比像素、命令端點、read_buffer、mask及context；對齊Fill含80000000保持讀回；其他高位與後段壞來源仍拒絕不變。只跑此傳輸模組必要測試，不重開舊CPU／GTE／美術矩陣。
+
+16.12共同場按已證實begin→plane→tower→scroll→tiles→actors→primitives→order接線，CPU／RAM／原音／卡片契約及原版／GPU／海報保持。一次正常11721–11724整合十五階段、三Epoch／兩緩衝逐次完整Machine及每成本比原CPU，並只驗一張97個3D＋四人物／物件＋八HUD的新共同畫布；缺圖回退及原來源拒絕沿既有集中抽驗。16.12.1 NO3純抽取證據直接承接，不重播。只有全部通過才限定CONFORMED，正式整場／其餘150場景精靈、GPU與速度仍DRAFT。
+
+
+16.12.3正式集中結果：一次正常BIOS11721–11724，Epoch5912／5913／5914、兩緩衝，場初始化／兩3D／人物／通用池共15階段完整Machine與每成本同獨立原CPU。各場人物／物件圖元4／4／3、3D97／97／101、可見通用池105／105／109，不硬編每場數量；最後4464個i16原音、卡片及唯讀輸入保持，主線無PC／RAM／原碼注入。m由高階Plan略去原入口指令執行，原CPU只在控制組；正式GUI尚未啟用整場分派。
+
+只在11722／Epoch5913集中驗共同畫布：97個3D＋四人物／物件＋八HUD，共109圖元全命中既有HD，人物原材質後備0。typed人物欄位及實際色盤同原GT4；原生共同畫布與HUD子畫布同原CPU實際GT4／GT3的隔離GPU。底色RGB16／8／32、y20..226裁切及原窗口外圖元保持，四倍HD相對同幾何原材質有190674個像素差異。原pool／封包與framebuffer毒化後HD保持，缺圖回退及15個來源／前綴／階段／重複／環境拒絕通過。一張共同Canvas依3D→人物→HUD直接繪製，未用舊畫面當底圖。
+
+GPU傳輸模組七測試通過，含0／80000000正負offset清邊對原GP1／GP0序列、對齊Fill保留讀回及其他高位拒絕。正式ActorDataPlan離線同原保存CPU／7011成本、完整RAM／scratch與顯存資料，沒有診斷gate bypass。一次技術畫面查看後採用，原定案素材零重審，舊NO3／CPU／GTE矩陣零重跑；正式player編譯通過，五檔格式化後逐byte同受測來源的rustfmt輸出。首次player編譯缺actorclock模組宣告，只補actorstate／actorclock宣告後同命令通過，已驗實作不變、不重開遊戲。
+
+入口觀測原計畫三次，只完成一個完整原呼叫後因觀測器卡片基準過早停止；修正基準後沒有重跑觀測器，失敗日誌及原版來源保留，不能稱原窗口全過。這個一入口用於辨識拒絕，後來一次正式正常整合才提供三Epoch完整Machine／音訊／卡片證據，兩者分開。新GPU硬體／美術／IDA與速度聲明0，原版、CPU／GPU、海報、影片及雙擊包保持。
+
+此共同畫布仍缺150個場景精靈／48模式命令及其餘來源，不稱完整序章、全素材HD或正式整場玩家完成。下一段回場景來源與完整呈現交易，不重開已解資訊高位。來源、局部及正式證據由私人actor-entry-v1／field-actors-v2保存，入口素材docs/assets-catalog.md#render-control。

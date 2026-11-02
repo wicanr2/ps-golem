@@ -360,3 +360,8 @@ mod fieldhud;
 
 // 026 §16.12 actor material extraction; staged orchestration remains private.
 mod actorview;
+
+// 026 §16.12.3 staged ST0 composition; full-field player dispatch remains pending.
+mod actorstate;
+mod actorclock;
+mod fieldactors;

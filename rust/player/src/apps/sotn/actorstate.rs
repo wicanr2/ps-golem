@@ -400,7 +400,7 @@ impl ActorDataPlan {
             || state.bdbt != 0
             || state.branched
             || state.gpr[0] != 0
-            || context.information_high != 0
+            || !matches!(context.information_high, 0 | 0x80000000)
             || context
                 .area_start
                 .iter()

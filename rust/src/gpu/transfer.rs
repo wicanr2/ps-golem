@@ -74,7 +74,9 @@ impl Gpu {
                     }
                     total = total.checked_add(words.len()).ok_or("圖像總量溢位")?;
                 }
-                TextureJob::Clear { .. } if self.read_buffer & 0xffc00000 != 0 => {
+                TextureJob::Clear { .. }
+                    if !matches!(self.read_buffer & 0xffc00000, 0 | 0x80000000) =>
+                {
                     return Err("SDK資訊高位未驗證".into())
                 }
                 _ => (),
@@ -130,7 +132,7 @@ impl Gpu {
                     if rect.x & 63 == 0 && rect.width & 63 == 0 {
                         candidate.buf[0] = 0x02000000;
                     } else {
-                        candidate.read_buffer = off;
+                        candidate.read_buffer = (candidate.read_buffer & 0xffc00000) | off;
                         candidate.buf[0] = 0xe5000000 | off;
                     }
                     candidate.buf[1] = rect.xy();
@@ -280,5 +282,91 @@ mod tests {
         assert!(g.apply_texture_jobs(&[]).is_err());
         assert_eq!(g.buf, buf);
         assert_eq!(g.len, len);
+    }
+    #[test]
+    fn sdk_clear_preserves_observed_information_high_against_commands() {
+        for high in [0, 0x80000000] {
+            for offset in [0xe5000100, 0xe50047f4] {
+                let mut a = Gpu::new();
+                a.pixels.fill(0xffff);
+                a.gp0(0xe3005100);
+                a.gp0(0xe40389ff);
+                a.gp0(offset);
+                a.gp0(0xe6000003);
+                a.read_buffer = high | 0x12345;
+                let mut b = a.clone();
+                let r = rect();
+                a.apply_texture_jobs(&[TextureJob::Clear { rect: r }])
+                    .unwrap();
+                let mut saved = [0; 3];
+                for (i, k) in [3, 4, 5].iter().enumerate() {
+                    b.gp1(0x10000000 | k);
+                    saved[i] = b.read_data();
+                }
+                for q in [
+                    0xe3000000,
+                    0xe4ffffff,
+                    0xe5000000,
+                    0xe6000000,
+                    0x60000000,
+                    r.xy(),
+                    r.wh(),
+                    0xe3000000 | saved[0],
+                    0xe4000000 | saved[1],
+                    0xe5000000 | saved[2],
+                ] {
+                    b.gp0(q);
+                }
+                b.gp1(0x04000002);
+                assert!(a.pixels == b.pixels);
+                assert_eq!(a.buf, b.buf);
+                assert_eq!(a.read_buffer, b.read_buffer);
+                assert_eq!(a.read_buffer & 0xffc00000, high);
+                assert_eq!(a.texture_context(), b.texture_context());
+                assert_eq!(
+                    (a.mask_or, a.mask_and, a.dma),
+                    (b.mask_or, b.mask_and, b.dma)
+                );
+            }
+        }
+    }
+    #[test]
+    fn aligned_clear_with_high_bit_keeps_readback_and_other_high_bits_reject() {
+        let mut a = Gpu::new();
+        a.read_buffer = 0x80012345;
+        let mut b = a.clone();
+        let r = Rect {
+            x: 64,
+            y: 10,
+            width: 64,
+            height: 5,
+        };
+        a.apply_texture_jobs(&[TextureJob::Clear { rect: r }])
+            .unwrap();
+        for q in [0xe6000000, 0x02000000, r.xy(), r.wh()] {
+            b.gp0(q);
+        }
+        b.gp1(0x04000002);
+        assert!(a.pixels == b.pixels);
+        assert_eq!(a.buf, b.buf);
+        assert_eq!(a.read_buffer, b.read_buffer);
+        for high in [0x00400000, 0x40000000, 0xc0000000] {
+            let mut g = Gpu::new();
+            g.read_buffer = high;
+            let old = g.clone();
+            let jobs = [
+                TextureJob::Upload {
+                    rect: rect(),
+                    words: vec![17; 6],
+                },
+                TextureJob::Clear { rect: rect() },
+            ];
+            assert!(g.apply_texture_jobs(&jobs).is_err());
+            assert!(g.pixels == old.pixels);
+            assert_eq!(g.buf, old.buf);
+            assert_eq!(g.read_buffer, old.read_buffer);
+            assert_eq!(g.texture_context(), old.texture_context());
+            assert_eq!(g.dma, old.dma);
+        }
     }
 }
