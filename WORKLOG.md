@@ -3198,3 +3198,12 @@ PlaneMachinePlan先保護完整CPU／GTE／BIU及RAM／scratch，再沿既有核
 唯一正常BIOS路線11721–11724，三Epoch、兩緩衝、12階段完整Machine／逐成本同原CPU。可見池105／105／109，3D為97／97／101，HUD各八。4464個i16原音／卡片及輸入SHA保持，主線無PC／RAM／原碼注入。一個正常11722共同畫布：97個3D＋八HUD全HD，原生及HUD子畫布同原CPU封包的隔離GPU；原裁切y20..226、RGB16／8／32底色及窗口外圖元保持。四倍HD與原材質回退差184378像素，舊pool／封包／framebuffer毒化保持，十拒絕與缺素材回退通過，一次技術查看、新美術零。
 
 staged API註冊及player編譯通過，正式整場尚未啟用，人物獨立封包／其他圖層仍待。沒有全HD、全遊戲／硬體GPU／1080p內部畫布或速度聲明；原版、CPU／GPU、海報及既有雙擊包保持。索引、既有技術文件、三處舊規格回鏈與唯一目前狀態表同步；README沿穩定入口。受測／格式化來源、原生／HD子圖層與驗證、發布及Docker收尾留私人field-hud-v1，原圖／RAM／完整素材不入Git。
+
+
+## 2026-11-02：人物材質獨立元件完成，ST0整機協調退回DRAFT
+
+有效結果為026 §16.12.1限定CONFORMED。View的人物材質／Draw準備純抽成ActorView，原NO3背景、CLI與視野保持。一個NO3保存8382態的舊／新native及HD畫布相同。既有ST0保存11722後態，以明示零scratch診斷且要求四圖元全raw，typed XY／UV／page／CLUT／command／實際排序桶同原GT4，原生像素同隔離GPU。四HD命中，含里希特20×45來源，HD對原材質差9793像素；pool／封包／framebuffer毒化與缺圖回退保持。這只是黑底人物／物件子圖層，沒有場景／3D／HUD或正常Machine聲明。
+
+16.12正常整機未通過。首次編譯測試器漏hud匯入且變數遮蔽音訊SHA，遊戲0；只修測試器後首次正常路線因協調器把人物排在3D之前而停止。回DRAFT按保存原trace證實begin→plane→tower→scroll→tiles→actors→primitives→order，修READY及先後守門。第二次正常路線在800EB998被ActorDataPlan架構入口拒絕，未保存入口State／context，無法辨識具體條件；不猜補、不放寬、沒有第三次正常遊戲。未通過fieldactors及新helpers退出正式模組，來源存私人staged-*，前批3D／HUD保持。
+
+另做一次保存來源材質元件抽驗；封裝首編譯少serde鎖版相依，執行0，補既有版本後首次元件執行通過。一次技術查看、美術／IDA／硬體GPU0，正式player編譯通過；無新包、全HD或速度聲明。規格／索引／唯一狀態表與兩處回鏈如實分開元件通過與整機拒絕，README沿穩定入口。下一步先觀測完整入口State／context及逐項守門。來源、失敗、子圖層及收尾／發布由私人field-actors-v1保存，原資料不入Git；Docker有界--rm、UID1000，不動其他專案。

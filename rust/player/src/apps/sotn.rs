@@ -357,3 +357,6 @@ mod primitives;
 mod primitiveclock;
 mod hudst0;
 mod fieldhud;
+
+// 026 §16.12 actor material extraction; staged orchestration remains private.
+mod actorview;
