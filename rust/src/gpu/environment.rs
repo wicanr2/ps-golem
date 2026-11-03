@@ -45,6 +45,7 @@ impl Gpu {
         g.recalc_window();
         g.mask_or = 0;
         g.mask_and = 0;
+        g.prepare_native_pixel_write(r, true);
         let c = e.color;
         let value = (c[0] as u16 >> 3) | ((c[1] as u16 >> 3) << 5) | ((c[2] as u16 >> 3) << 10);
         for y in r.y..r.y + r.height {

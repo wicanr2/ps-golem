@@ -158,6 +158,7 @@ impl Gpu {
         }
     }
     pub fn screen(&self) -> Frame {
+        let pixels = self.vram();
         let view = self.scanout();
         let (width, height) = (view.width, view.height);
         let mut rgba = vec![0; (width * height * 4) as usize];
@@ -170,10 +171,10 @@ impl Gpu {
                     for i in 0..3 {
                         let p = b + i;
                         rgba[o + i as usize] =
-                            (self.pixels[(row + ((p / 2) & 1023)) as usize] >> (8 * (p & 1))) as u8;
+                            (pixels[(row + ((p / 2) & 1023)) as usize] >> (8 * (p & 1))) as u8;
                     }
                 } else {
-                    let pixel = self.pixels[(row + ((self.display_x + x) & 1023)) as usize];
+                    let pixel = pixels[(row + ((self.display_x + x) & 1023)) as usize];
                     for i in 0..3 {
                         let v = ((pixel >> (5 * i)) & 31) as u8;
                         rgba[o + i] = (v << 3) | (v >> 2);

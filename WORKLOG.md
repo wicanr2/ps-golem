@@ -3270,3 +3270,12 @@ READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offse
 READY後staged協調器保留人物呼叫前來源，primitive前建Work、提交成功後保存，begin清空，seal要求來源。一次正常BIOS至11726，三epoch／兩buffer／30階段完整Machine與逐成本同原CPU，工作數300／307／310；每場環境後以GPU副本核對完整cache及按需原生Gpu，不回填live機器。7438個i16原音、卡片與輸入保持，三HD、五Scanout及原音SHA同16.16，主線無注入。原版兩個Scanout證據及美術承接，沒有新影像審查／IDA／硬體GPU或舊核心矩陣。
 
 三檔僅rustfmt，正式player編譯通過；生成器的mark格式與seal定位於正常執行前核對修正，未開第二條玩家路線。規格回鏈、技術文件／索引與唯一現況更新，README沿既有穩定入口。live GPU仍走原DMA列表，按需VRAM所有權／DMA提交及正式GUI仍待，沒有全HD或速度聲明；原版、兩後端、海報、影片與雙擊包承接。私人native-source-v1保存來源、初敗／原型／正常、格式化及推送／Issue／Docker收尾，原資料不入Git，有界--rm／UID1000，不動他人資源。
+
+
+## 2026-11-03：有界按需原生顯存所有權
+
+026 §16.19限定CONFORMED。GPU最多保留兩個不重疊的typed目標，先保留cache／metadata；native像素在明確vram／screen或相依寫入時產生並重用。完整所有列環境覆寫可取消，部分列／部分寫入先物化；外部貼圖更新保留舊目標時點輸入。快照移除其他pending所有權且預檢texture page／CLUT與所有待產生區域不交集，不形成跨場鏈。正式共享測試比較器保留逐欄metadata與原生cache，完整像素經vram觀測，所有權／觀測cache不當作額外機器暫存器。
+
+真RAM的原primitive診斷、default CPU／scratch與BIOS載入但不開機，原型／正式來源各一次GPU抽驗。12次交替覆寫不先算原生色彩，八類需求／寫入、四拒絕同原GPU；舊GP0僅供測試oracle，正式API不解析。首次target路徑誤掛形成UID不符空目錄，程式0，確認後只刪該空目錄並回既有快取；抽取函式slice多一層借用而編譯拒絕，GPU執行0，修正後首次實際診斷通過。兩個初敗均保存，不當產品缺陷。六檔只rustfmt，正式player與相關原版傳輸／讀回回歸通過；正常開機、美術／IDA／硬體GPU及舊CPU矩陣0。
+
+規格回鏈、技術文件／索引與唯一現況更新，README沿既有入口。Machine-DMA、區域來源及正式GUI未接，整場原光柵仍在；現有全vram查詢會觸發原生需求，後續接線須處理，不稱已省去所有原生工作或速度通過。原版、兩後端、海報、影片與雙擊包承接。使用者明示先完成HD接線，再評估重製；本批未啟動重製分支。私人deferred-pixels-v1保存來源、初敗、原型／正式、格式化與發布／Issue／Docker收尾；原資料不入Git，UID1000、有界--rm，不動其他專案資源。

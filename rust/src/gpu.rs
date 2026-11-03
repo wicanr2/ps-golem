@@ -37,6 +37,8 @@ struct Point {
 #[derive(Clone)]
 pub struct Gpu {
     pixels: Vec<u16>,
+    deferred_pixels: Vec<std::sync::Arc<scene::PreparedScene>>,
+    observed_pixels: std::sync::OnceLock<Vec<u16>>,
     buf: [u32; 16],
     len: usize,
     need: usize,
@@ -109,6 +111,8 @@ impl Gpu {
     pub fn new() -> Self {
         let mut g = Self {
             pixels: vec![0; WIDTH * HEIGHT],
+            deferred_pixels: Vec::new(),
+            observed_pixels: std::sync::OnceLock::new(),
             buf: [0; 16],
             len: 0,
             need: 0,
@@ -235,7 +239,7 @@ impl Gpu {
         self.invalidate_texture();
     }
     pub fn vram(&self) -> &[u16] {
-        &self.pixels
+        self.observed_native_pixels()
     }
     pub fn set_field(&mut self, field: bool) {
         self.field_readout = field;
@@ -343,6 +347,9 @@ impl Gpu {
         r
     }
     pub fn read_data(&mut self) -> u32 {
+        if self.in_cmd == FB_READ {
+            self.resolve_native_pixels();
+        }
         if self.in_cmd != FB_READ {
             return self.read_buffer;
         }
@@ -373,6 +380,13 @@ impl Gpu {
         n
     }
     pub fn gp0(&mut self, v: u32) {
+        if !self.deferred_pixels.is_empty()
+            && (self.in_cmd != NONE
+                || self.len != 0
+                || !matches!(v >> 24, 0 | 1 | 0x1f | 0xe1..=0xe6))
+        {
+            self.resolve_native_pixels();
+        }
         if self.in_cmd == FB_WRITE {
             self.upload_word(v);
             return;
@@ -604,3 +618,5 @@ pub mod display;
 
 /// Typed native compatibility preparation; see 026 §16.17.
 pub mod scene;
+
+pub mod deferred;

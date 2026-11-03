@@ -1884,3 +1884,27 @@ PreparedScene內部cache端點尚未供live Machine採用，不作完整VRAM輸�
 READY後一次正常BIOS至11726，三epoch／兩buffer，保留人物呼叫前typed頂點及scratch metadata，primitive提交前從語意池與typed圖塊建立Work，成功提交後保存，seal帶同epoch工作；不讀舊OT／GP0。30階段完整Machine與每成本同獨立原CPU，7438個i16原音、卡片與原始輸入保持，主線無注入。三場工作數300／307／310，在各場環境提交後的GPU副本，完整cache非像素狀態及按需原生Gpu同原列表oracle，副本不回填主線。三HD畫布、五Scanout與原音SHA全同16.16；既有兩個完整Scanout像素證據承接，沒有新畫面／美術重審。
 
 三檔僅rustfmt，正式player編譯通過。nativework只處理原生相容工作，3D相容XY來自已驗語意池；HD主幾何仍沿直接模型／投影producer，不能把此元件稱為新3D模型接管。staged API未接正式GUI分派，live GPU仍執行舊DMA圖元列表，按需VRAM所有權與DMA直接提交仍待；無新速度或全HD聲明。原版、兩後端、海報、影片及雙擊包承接。私人native-source-v1的source-plan、prototype-verification、verification、source-freeze及acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+<!-- RUST-DEFERRED-PIXELS-RESOLVED-16.18 -->
+16.19補證：通用GPU已具最多兩區域的按需原生像素所有權與讀寫障壁；16.18的同場來源尚未交給此API，Machine／DMA、來源區域存取與正式GUI仍待，不重開已驗語意來源。
+
+### 16.19 有界按需原生顯存所有權
+
+狀態：限定CONFORMED，僅通用GPU像素所有權；通用GPU元件；Machine／DMA與正式GUI另接。沿16.17型別工作與16.18來源，最多保留兩個不重疊的待產生目標。提交先更新cache／metadata，不調色或寫出原生目標像素；目標輸入快照移除其他待產生所有權，且完整texture page／CLUT與所有pending目標均不得重疊，避免跨場快照鏈及未證實回授。
+
+唯讀vram／screen是明確像素需求，合成base及最多兩個目標、OnceLock重用；不重播metadata。未知GP0像素操作、讀回或部分重疊寫入先物化，純metadata控制不需。typed texture writes在外部區域可保留舊快照，任何依賴相交先物化；完整draw environment覆蓋pending且所有列實際寫入時取消舊工作，不為已覆蓋的場光柵化。原版未啟用此API時維持舊路徑。
+
+先用既有真RAM的原primitive oracle產生GPU測試fixture，診斷default CPU／scratch及BIOS載入但不開機明列；正式API不解析GP0。驗雙緩衝跨12次覆寫仍零native色彩計算、快照無鏈，readonly需求／clone、紋理更新、部分寫入、C0讀回、metadata與完整GPU觀測相同，過量／重疊／回授拒絕。test-only GPU equality逐欄比較metadata，像素明確走vram觀測，pending／觀測cache不當作額外機器暫存器。未READY前只留私人原型；不把元件通過稱正式HD、DMA略過或速度通過。
+
+
+16.19 READY：12次交替覆寫仍最多兩區域、零原生色彩計算且無快照鏈；八種需求／寫入及四拒絕同原GPU。只安裝通用GPU所有權與既有入口障壁，不接Machine／DMA或GUI。原vram與screen明確視為原生像素需求，GP0非像素控制保持延後，未知像素操作／部分寫入先物化；完整所有列環境覆寫可取消。測試GPU equality逐欄比較metadata並明確讀vram，排除所有權／觀測快取，不忽略原生cache欄位。
+
+
+16.19集中結果：原型及正式來源各一次限定GPU執行。真RAM的原primitive診斷產生307工作，default CPU／scratch與BIOS載入但不開機明列；測試器才解碼原列表，正式API不解析GP0。12次交替完整環境覆寫與提交，最多兩區域、保留工作native計算數0、輸入快照不保留其他pending所有權，無跨場鏈。metadata／CLUT／texture cache含invalid行資料均逐欄同原GPU；像素觀測則明確經vram，與完整原生字相同。
+
+八種需求／寫入包含clone後唯讀且重讀沿同快取、外部貼圖更新保留舊輸入、已觀測快取失效、部分目標上傳、C0讀回／游標、純metadata後screen、完整單區覆寫及交錯掃描不完整列覆寫。過量、既有區域重疊、取樣另一pending目標及零尺寸四拒絕不物化或改動metadata／base。GP0舊像素操作先物化；安全scalar控制不物化。typed texture外部寫入保留snapshot，部分交集先物化；環境只有完整涵蓋及所有列寫入才取消舊工作。Gp1原點／模式保留已提交像素的時點輸入；reset沿既有metadata實作，沒有新增正常reset路線聲明。
+
+六檔只rustfmt，正式player編譯及相關原版傳輸／讀回回歸通過；未啟用defer API時pending為空，原版仍走既有流程。第一次錯誤cargo target掛載形成UID不符空目錄，程式0，確認後只刪該空目錄並改回既有快取；第一次抽取函式多一層slice借用導致編譯拒絕，GPU執行0，修正型別後首次實際診斷通過，失敗均保留。沒有重跑正常原片／美術／IDA／硬體GPU或舊CPU矩陣。
+
+尚未接Machine／DMA或正式玩家，整場原光柵仍在。vram／screen是完整原生需求，現有來源建構器的整張vram讀取會觸發物化；後續須改接區域來源存取及直接DMA，不能僅新增defer API就稱HD已免原生工作。這次只證明有界所有權與相容障壁，無速度倍率或全HD聲明。原版、CPU／GPU、海報、影片及雙擊包承接；使用者明示先完成HD接線，再評估重製。私人deferred-pixels-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

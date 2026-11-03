@@ -90,6 +90,7 @@ impl Gpu {
         }
         let mut candidate = self.clone();
         for j in jobs {
+            candidate.prepare_native_pixel_write(j.rect(), false);
             match j {
                 TextureJob::Upload { rect, words } => {
                     // SDK cache flush + A0 completed transfer. Derive the

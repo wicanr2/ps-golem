@@ -72,7 +72,8 @@ impl Gpu {
         commands: Vec<NativeCommand>,
         target: Rect,
     ) -> Result<PreparedScene, String> {
-        if self.in_cmd != NONE
+        if !self.deferred_pixels.is_empty()
+            || self.in_cmd != NONE
             || self.len != 0
             || self.need != 0
             || commands.is_empty()
@@ -88,50 +89,7 @@ impl Gpu {
         {
             return Err("原生場景的命令邊界／目標不符".into());
         }
-        if self.tww != 0 || self.twh != 0 || self.twx != 0 || self.twy != 0 {
-            return Err("原生場景只支援零貼圖視窗".into());
-        }
-        let mut page = self.page_x / 64 | self.page_y / 16 | (self.tex_mode << 7);
-        for c in &commands {
-            if matches!(c,NativeCommand::Polygon{vertices,..}if ![3,4].contains(&vertices.len())) {
-                return Err("原生多邊形需三或四頂點".into());
-            }
-            let clut = match c {
-                NativeCommand::Mode { page: p } => {
-                    page = *p as u32;
-                    continue;
-                }
-                NativeCommand::Polygon { page: p, clut, .. } => {
-                    page = *p as u32;
-                    *clut
-                }
-                NativeCommand::Sprite16 { clut, .. } => *clut,
-            };
-            // Conservatively include the full texture page and CLUT, including wrapping.
-            // A framebuffer feedback scene must use an explicitly compatible fallback.
-            let tm = page >> 7 & 3;
-            let tx = (page & 15) * 64;
-            let ty = (page & 16) * 16;
-            let overlaps = |x: u32, y: u32, width: u32, height: u32| -> bool {
-                let vertical =
-                    y < target.y as u32 + target.height as u32 && y + height > target.y as u32;
-                let horizontal = (x < target.x as u32 + target.width as u32
-                    && (x + width).min(1024) > target.x as u32)
-                    || (x + width > 1024 && x + width - 1024 > target.x as u32);
-                vertical && horizontal
-            };
-            if overlaps(tx, ty, 64 << tm.min(2), 256)
-                || (tm < 2
-                    && overlaps(
-                        (clut as u32 & 63) * 16,
-                        (clut as u32 >> 6) & 511,
-                        if tm == 0 { 16 } else { 256 },
-                        1,
-                    ))
-            {
-                return Err("貼圖或色盤可能與繪圖目標重疊".into());
-            }
-        }
+        self.check_scene_reads(&commands, &[target])?;
         let mut cache = self.clone();
         cache.render_native_commands(&commands, true);
         Ok(PreparedScene {
@@ -141,6 +99,60 @@ impl Gpu {
             target,
             native: OnceLock::new(),
         })
+    }
+    pub(super) fn check_scene_reads(
+        &self,
+        commands: &[NativeCommand],
+        targets: &[Rect],
+    ) -> Result<(), String> {
+        for target in targets {
+            if self.tww != 0 || self.twh != 0 || self.twx != 0 || self.twy != 0 {
+                return Err("原生場景只支援零貼圖視窗".into());
+            }
+            let mut page = self.page_x / 64 | self.page_y / 16 | (self.tex_mode << 7);
+            for c in commands {
+                if matches!(c,NativeCommand::Polygon{vertices,..}if ![3,4].contains(&vertices.len()))
+                {
+                    return Err("原生多邊形需三或四頂點".into());
+                }
+                let clut = match c {
+                    NativeCommand::Mode { page: p } => {
+                        page = *p as u32;
+                        continue;
+                    }
+                    NativeCommand::Polygon { page: p, clut, .. } => {
+                        page = *p as u32;
+                        *clut
+                    }
+                    NativeCommand::Sprite16 { clut, .. } => *clut,
+                };
+                // Conservatively include the full texture page and CLUT, including wrapping.
+                // A framebuffer feedback scene must use an explicitly compatible fallback.
+                let tm = page >> 7 & 3;
+                let tx = (page & 15) * 64;
+                let ty = (page & 16) * 16;
+                let overlaps = |x: u32, y: u32, width: u32, height: u32| -> bool {
+                    let vertical =
+                        y < target.y as u32 + target.height as u32 && y + height > target.y as u32;
+                    let horizontal = (x < target.x as u32 + target.width as u32
+                        && (x + width).min(1024) > target.x as u32)
+                        || (x + width > 1024 && x + width - 1024 > target.x as u32);
+                    vertical && horizontal
+                };
+                if overlaps(tx, ty, 64 << tm.min(2), 256)
+                    || (tm < 2
+                        && overlaps(
+                            (clut as u32 & 63) * 16,
+                            (clut as u32 >> 6) & 511,
+                            if tm == 0 { 16 } else { 256 },
+                            1,
+                        ))
+                {
+                    return Err("貼圖或色盤可能與繪圖目標重疊".into());
+                }
+            }
+        }
+        Ok(())
     }
     fn render_native_commands(&mut self, commands: &[NativeCommand], cache_only: bool) {
         for command in commands {
