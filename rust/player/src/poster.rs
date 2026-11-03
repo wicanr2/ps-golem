@@ -468,6 +468,7 @@ mod tests {
             h: 240,
             rgba: Arc::new(bytes),
             movie: None,
+            scene: None,
         };
         assert!(zoom_safe(&f));
         let l = geometry(1920, 1080, true);

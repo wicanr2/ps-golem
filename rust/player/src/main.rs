@@ -37,6 +37,7 @@ struct Options {
     size: Option<(u32, u32)>,
     native: bool,
     movies: Option<PathBuf>,
+    scenes: Option<PathBuf>,
     ffmpeg: PathBuf,
     ffprobe: PathBuf,
     captures: Vec<u64>,
@@ -56,7 +57,7 @@ fn options() -> Result<Option<Options>> {
     let mut args = env::args().skip(1);
     while let Some(a) = args.next() {
         if a == "-h" || a == "--help" {
-            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n保存來源HD呈現：-render-sotn-view INPUT.json [-viewport WxH]；1080p畫面預覽：-preview-sotn-view INPUT.json [-posters DIR] [-viewport WxH] [-frames N] [-screenshot FILE] [-report FILE]。預覽F1／滑鼠顯示視野工具列，F12擷取指定截圖。這兩項不啟動遊戲。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
+            println!("Rust 玩家視窗（原版／LOGO與OPN的HD影片；可切換海報；完整手把設定面板仍待遷移）\npsgolem-player -native -bios FILE -cue FILE [-card FILE] [-resolution 1920x1080] [-mute] [-present auto|cpu|gpu]\nHD場景：-sotn-hd-scenes DIR（或-textures DIR），F3／工具列切換；保存素材路徑，下次省略模式即可沿用。無已存路徑則原版。\nHD影片：以-sotn-hd-movies DIR取代-native；-ffmpeg FILE -ffprobe FILE指定工具。\n鍵盤同 Go 版；已連線標準手把；F1 顯示工具列；F2 暫停／續播；Esc 關窗保存原卡。\n素材逐值診斷：-check-textures DIR（只檢查圖像，不啟動遊戲）。\n保存來源HD呈現：-render-sotn-view INPUT.json [-viewport WxH]；1080p畫面預覽：-preview-sotn-view INPUT.json [-posters DIR] [-viewport WxH] [-frames N] [-screenshot FILE] [-report FILE]。預覽F1／滑鼠顯示視野工具列，F12擷取指定截圖。這兩項不啟動遊戲。\n海報：-posters DIR -poster ID [-poster-soft true|false] [-poster-zoom true|false] [-settings FILE]。\n診斷：-fields N [-press SCRIPT | -press-file FILE] [-report PREFIX] [-screenshot FILE] [-capture-fields N,N（需-report）] [-unpaced（限靜音有界診斷）]");
             return Ok(None);
         }
         if a == "-version" {
@@ -103,6 +104,7 @@ fn options() -> Result<Option<Options>> {
                         o.poster_zoom = Some(v.parse().map_err(|_| "poster-zoom須為true或false")?)
                     }
                     "-sotn-hd-movies" => o.movies = Some(v.into()),
+                    "-sotn-hd-scenes" | "-textures" => o.scenes = Some(v.into()),
                     "-ffmpeg" => o.ffmpeg = v.into(),
                     "-ffprobe" => o.ffprobe = v.into(),
                     "-capture-fields" => {
@@ -130,8 +132,8 @@ fn options() -> Result<Option<Options>> {
             }
         }
     }
-    if o.native == o.movies.is_some() {
-        return Err("請指定-native或-sotn-hd-movies DIR，兩者互斥；既有HD偏好不會被改寫".into());
+    if o.native && (o.movies.is_some() || o.scenes.is_some()) {
+        return Err("-native與HD影片／場景參數互斥".into());
     }
     if !o.captures.is_empty()
         && (o.report.is_none()
@@ -237,6 +239,32 @@ fn main() {
 fn entry() -> Result<()> {
     let Some(o) = options()? else { return Ok(()) };
     let disc = Disc::open(&o.cue)?;
+    let (mut prefs, pack, mut poster_error) = poster_setup(&o)?;
+    let saved_scene = if !o.native && o.scenes.is_none() && o.movies.is_none() {
+        prefs.scene_config()?
+    } else {
+        (None, true)
+    };
+    let scene_path = if o.native {
+        None
+    } else {
+        o.scenes.clone().or(saved_scene.0)
+    };
+    let initial_hd = if o.native {
+        false
+    } else if o.scenes.is_some() || o.movies.is_some() {
+        true
+    } else {
+        scene_path.is_some() && saved_scene.1
+    };
+    let scene = scene_path
+        .as_ref()
+        .map(|p| apps::sotn::game::PlayerScene::load(&disc, p))
+        .transpose()?;
+    if let Some(p) = o.scenes.as_ref() {
+        prefs.save_scene(p, initial_hd)?;
+    }
+
     let card = match &o.card {
         Some(p) => p.clone(),
         None => default_card(disc.boot_file())?,
@@ -265,12 +293,14 @@ fn entry() -> Result<()> {
         .as_ref()
         .map(|s| psgolem_core::input::parse(s))
         .transpose()?;
-    let (mut prefs, pack, mut poster_error) = poster_setup(&o)?;
+
     let sdl = sdl2::init()?;
     let video = sdl.video()?;
     let controllers = sdl.game_controller()?;
     let (w, h) = o.size.unwrap_or((1280, 960));
-    let mode = if o.movies.is_some() {
+    let mode = if scene.is_some() {
+        "原版／HD"
+    } else if o.movies.is_some() {
         "HD影片"
     } else {
         "原版"
@@ -327,6 +357,7 @@ fn entry() -> Result<()> {
         d.resume()
     }
     let shared = Arc::new(worker::Shared::default());
+    shared.state.lock().unwrap().hd_requested = initial_hd;
     let worker_opts = worker::Options {
         fields: o.fields,
         script,
@@ -334,6 +365,7 @@ fn entry() -> Result<()> {
         unpaced: o.unpaced,
         report: o.report.clone(),
         movie,
+        scene,
         captures: o.captures.clone(),
     };
     let producer = shared.clone();
@@ -374,6 +406,13 @@ fn entry() -> Result<()> {
                         pinned = !pinned;
                     }
                     Event::KeyDown {
+                        keycode: Some(Keycode::F3),
+                        repeat: false,
+                        ..
+                    } => {
+                        toggle_scene(&shared, &prefs, &scene_path, &mut poster_error);
+                    }
+                    Event::KeyDown {
                         keycode: Some(Keycode::F2),
                         repeat: false,
                         ..
@@ -394,6 +433,8 @@ fn entry() -> Result<()> {
                                 let mut st = shared.state.lock().unwrap();
                                 st.pause = !st.pause;
                                 shared.wake.notify_all();
+                            } else if (488..594).contains(&x) && scene_path.is_some() {
+                                toggle_scene(&shared, &prefs, &scene_path, &mut poster_error);
                             } else if let Some(renderer) = posters.as_ref() {
                                 let mut next = prefs.choice.clone();
                                 let mut change = true;
@@ -454,13 +495,21 @@ fn entry() -> Result<()> {
             } else {
                 0
             };
-            let (done, paused, pause, field, cycles) = {
+            let (done, paused, pause, field, cycles, hd_requested, hd_applied) = {
                 let mut s = shared.state.lock().unwrap();
                 s.buttons = mask;
                 if let Some(f) = s.frame.take() {
                     latest = Some(f);
                 }
-                (s.done, s.paused, s.pause, s.field, s.cycles)
+                (
+                    s.done,
+                    s.paused,
+                    s.pause,
+                    s.field,
+                    s.cycles,
+                    s.hd_requested,
+                    s.hd_applied,
+                )
             };
             if paused != last_pause {
                 if let Some(d) = &device {
@@ -558,6 +607,28 @@ fn entry() -> Result<()> {
                         prefs.choice.zoom,
                     )?;
                 }
+                if scene_path.is_some() {
+                    let label = if hd_requested != hd_applied {
+                        if hd_requested {
+                            "等待 HD"
+                        } else {
+                            "等待原版"
+                        }
+                    } else if hd_applied {
+                        "HD"
+                    } else {
+                        "原版"
+                    };
+                    toolbar_button(
+                        &mut canvas,
+                        &font,
+                        &font_texture,
+                        488,
+                        106,
+                        label,
+                        hd_requested,
+                    )?;
+                }
                 if !poster_error.is_empty() {
                     font.draw(&mut canvas, &font_texture, &poster_error, 14, 36)?;
                 }
@@ -582,7 +653,7 @@ fn entry() -> Result<()> {
                 captures.insert(
                     shown,
                     json!({"path":path,"width":size_w,"height":size_h,
-                    "movie":latest.as_ref().and_then(|f|f.movie.clone())}),
+                    "movie":latest.as_ref().and_then(|f|f.movie.clone()),"scene":latest.as_ref().and_then(|f|f.scene),"source_rgba_sha256":latest.as_ref().map(|f|worker::hash(&f.rgba))}),
                 );
             }
             {
@@ -595,7 +666,7 @@ fn entry() -> Result<()> {
                 let mouse = events.mouse_state();
                 let key = json!({"id":prefs.choice.id,"soft":prefs.choice.soft,"zoom":prefs.choice.zoom,"error":poster_error,
                     "pinned":pinned,"visible":toolbar_visible(pinned,mouse.x(),mouse.y(),size_w),"paused":paused,"pause_requested":pause,
-                    "width":size_w,"height":size_h,"layout":layout});
+                    "width":size_w,"height":size_h,"layout":layout,"hd_requested":hd_requested,"hd_applied":hd_applied,"scene":latest.as_ref().and_then(|f|f.scene),"source_size":latest.as_ref().map(|f|[f.w,f.h])});
                 if observed_ui.as_ref() != Some(&key) {
                     let mut state = key.clone();
                     state["field"] = json!(field);
@@ -747,4 +818,23 @@ fn poster_setup(o: &Options) -> Result<(preferences::Preferences, Option<poster:
         }
     }
     Ok((next, pack, error))
+}
+
+fn toggle_scene(
+    shared: &worker::Shared,
+    prefs: &preferences::Preferences,
+    path: &Option<PathBuf>,
+    error: &mut String,
+) {
+    if let Some(path) = path {
+        let next = {
+            let mut s = shared.state.lock().unwrap();
+            s.hd_requested = !s.hd_requested;
+            shared.wake.notify_all();
+            s.hd_requested
+        };
+        if let Err(e) = prefs.save_scene(path, next) {
+            *error = format!("HD設定保存失敗：{e}");
+        }
+    }
 }

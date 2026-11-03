@@ -3290,3 +3290,16 @@ READY後staged協調器保留人物呼叫前來源，primitive前建Work、提�
 READY後一次正常BIOS至11726，三epoch／兩buffer，三場景提交加既有階段共33階段完整Machine／每成本同原CPU；300／307／310工作直接進live GPU，GP0解析0、base保持、新目標在明確原生觀測前未產生。完整Machine／Scanout比較本身是原生像素需求，不把驗證說成全程零原生工作。7438個i16原音、卡片／輸入保持，三HD畫布、五Scanout及原音SHA同16.18，主線無注入。舊原版兩Scanout像素與已驗美術承接，無新畫面審查／IDA／硬體GPU或舊核心矩陣。
 
 受測來源僅rustfmt，正式player編譯通過。規格回鏈、技術文件／索引與唯一現況更新，README沿既有入口。正常無頭staged hook已接live GPU，正式玩家GUI／模式分派、全遊戲來源及GPU呈現／速度仍待；原版、兩後端、海報、影片、素材與雙擊包承接。使用者明示先完成HD接線再評估重製，未開重製分支。私人scene-dma-v1保存來源、初敗、原型／正常、格式化與發布／Issue／Docker收尾；原資料不入Git，有界--rm／UID1000，不動其他專案資源。
+
+
+## 2026-11-03：Rust玩家場景接線與整場模式
+
+026 §16.21限定CONFORMED。直接場景來源／DMA與完整場發布接SDL玩家，F3與工具列切換，保存textures路徑／rust_scene_hd，保留Go hd／gamepad及未知欄位。明確-native不建Scene、不改HD偏好；已驗電影與海報、Go雙擊包保持。
+
+正常原版12000場一次，HD首輪及修正後各一次，無RAM／PC注入。首輪端點及控制同基準，但517提交僅172場HD，11725回退；原正式false保留，端點pass不冒稱完整呈現。根因為把pending像素生命期當作顯示身分，外部材質上傳／原生物化誤使HD失效。改為兩個Arc單位身分監看完整視窗，實際put／plot及typed交集失效，wrapped／黑邊亦涵蓋；不持GPU快照，不改像素／cache。待提交圖像另由app保留到DMA完成才交Frames。
+
+修正後517提交／515場選用HD，連續來源段11488–12000。11725／11726的5913／5914實際GUI來源完整RGBA同16.20既有圖；1080p海報集中查看，F2／F3凍結與F1工具列通過。端點完整RAM／VRAM／原音／卡片／原畫面SHA同原版與既有基準；靜音診斷未驗實體音訊。GPU兩項身分測試、設定保存與六項寫入／混色／cache回歸通過。受測來源只rustfmt，正式player編譯通過，原版／美術／舊核心矩陣不重跑。
+
+首輪原版、HD兩個binary差異亦記錄：在HD啟動前原型審查修正pending保存，atomic替換執行檔，原版沿既有inode跑完；原版程式路徑不變。首輪兩次唯讀進度查詢的Python括號／列舉誤字只影響查詢，修正後讀取既有輸出，未重開遊戲。私人工具／首輪／gui-v2／source-freeze／formal-acceptance與後續發布／Docker收據均由素材assets-catalog索引，原資料不入Git。
+
+README保留穩定入口，現況表與技術文件／規格索引同步。其他場景、人物／怪物／文字／特效完整來源、GPU光柵、實體設備、速度與Rust正式三平台雙擊仍待；未宣稱完整HD或零原生工作。兩輪技術查看結束，新美術0。只使用有界--rm／UID1000容器，不動其他專案資源；收尾狀態另由本批hygiene／publication保存。

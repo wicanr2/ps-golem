@@ -179,6 +179,50 @@ impl Preferences {
         p.insert("id".into(), json!(next.id));
         p.insert("soft".into(), json!(next.soft));
         p.insert("zoom".into(), json!(next.zoom));
+        self.write_map(&m)
+    }
+    pub fn scene_config(&self) -> Result<(Option<PathBuf>, bool), String> {
+        let m = read(&self.path)?;
+        let path = match m.get("textures") {
+            None | Some(Value::Null) => None,
+            Some(Value::String(s)) if s.is_empty() => None,
+            Some(Value::String(s)) => {
+                let p = PathBuf::from(s);
+                Some(if self.relative && !p.is_absolute() {
+                    self.path.parent().unwrap().join(p)
+                } else {
+                    p
+                })
+            }
+            _ => return Err("textures須為字串".into()),
+        };
+        let hd = match m.get("rust_scene_hd") {
+            None | Some(Value::Null) => true,
+            Some(Value::Bool(b)) => *b,
+            _ => return Err("rust_scene_hd須為布林值".into()),
+        };
+        Ok((path, hd))
+    }
+    pub fn save_scene(&self, path: &Path, hd: bool) -> Result<(), String> {
+        let p = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            env::current_dir().map_err(|e| e.to_string())?.join(path)
+        };
+        let saved = if self.relative {
+            p.strip_prefix(self.path.parent().unwrap())
+                .unwrap_or(&p)
+                .to_string_lossy()
+                .into_owned()
+        } else {
+            p.to_string_lossy().into_owned()
+        };
+        let mut m = read(&self.path)?;
+        m.insert("textures".into(), json!(saved));
+        m.insert("rust_scene_hd".into(), json!(hd));
+        self.write_map(&m)
+    }
+    fn write_map(&self, m: &Map<String, Value>) -> Result<(), String> {
         let mut bytes = serde_json::to_vec_pretty(&m).map_err(|e| e.to_string())?;
         bytes.push(b'\n');
         let parent = self.path.parent().ok_or("設定路徑無效")?;
@@ -240,6 +284,16 @@ mod tests {
         }
         assert_eq!(after["poster"]["futureEffect"], 77);
         assert_eq!(Preferences::load(Some(file.clone())).unwrap().choice, next);
+        p.save_scene(&root.join("textures"), true).unwrap();
+        let cfg = p.scene_config().unwrap();
+        assert_eq!(cfg, (Some(root.join("textures")), true));
+        p.save_scene(&root.join("textures"), false).unwrap();
+        assert!(!p.scene_config().unwrap().1);
+        let scene = read(&file).unwrap();
+        assert_eq!(scene["textures"], "textures");
+        for key in ["hd", "bios", "gamepad", "future", "poster"] {
+            assert_eq!(scene[key], after[key]);
+        }
         let saved = fs::read(&file).unwrap();
         fs::rename(&file, root.join("saved.json")).unwrap();
         fs::create_dir(&file).unwrap();

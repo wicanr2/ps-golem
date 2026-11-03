@@ -77,6 +77,7 @@ fn image(c: psgolem_core::scene::Canvas) -> worker::Image {
         h: c.height as u32,
         rgba: Arc::new(rgba),
         movie: None,
+        scene: None,
     }
 }
 fn button(

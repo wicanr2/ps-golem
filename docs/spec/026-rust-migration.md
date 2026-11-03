@@ -1937,3 +1937,26 @@ READY後一次正常BIOS至11726，三epoch／兩buffer，原30階段再加三�
 7438個i16原音、卡片與原始輸入保持，三HD畫布、五Scanout及原音SHA同16.18；主線無PC／RAM注入，已有兩個完整Scanout逐像素證據承接。共用listclock抽出原環境helper已驗CPU／成本，原三環境提交與六顯示控制仍在同33階段驗證。初次附加片段的inner doc註解造成編譯拒絕、GPU執行0，只修註解後首次ABI執行通過；保留失敗，沒有多開正常路線。受測來源只rustfmt、正式player編譯通過；新美術／IDA／硬體GPU及舊核心矩陣0。
 
 本節是正常原片的staged hook，尚未註冊正式玩家GUI分派；全遊戲來源、場邊界模式切換、GPU呈現與速度仍待。原版、兩後端、海報、影片、素材與雙擊包承接，無全HD或速度聲明；先完成HD接線，再評估重製。私人scene-dma-v1的source-plan、prototype-verification、region-verification、verification、source-freeze及acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+### 16.21 正式玩家場景與模式分派
+
+狀態：限定CONFORMED，僅ST0玩家場景／整場模式分派；全遊戲、GPU光柵與正式交付仍DRAFT。沿16.14完整場發布、16.20直接DMA及逐字來源，把READY的ST0來源鏈接入SDL玩家。原版模式不呼叫新接管，HD僅在支持的ST0來源完整時提交並發布；任何未知／不完整階段回到原CPU路徑，先前已提交的同態RAM／CPU階段保持，不猜補。新dispatcher失敗時依實際cycle是否已推進回報consumed，避免重做已提交階段。
+
+HD圖像綁定GPU的有界SceneToken，宣告完整256×240畫面的監看區域。原型第一輪發現pending生命期不能代表畫面身分：原生物化與不重疊材質上傳會釋放pending，畫面卻未被覆寫。訂正為最多兩個Arc單位身分，與原生快照分開；put、plot與typed寫入的實際像素／區域交集使對應身分失效，reset清空。原生物化、讀回與外部材質更新保留身分，wrapped座標及黑邊亦受監看；不新增GPU快照鏈或改像素／cache結果。每個完整場凍結原版／HD來源，模式變更只在下一場套用；切回原版物化必要VRAM並清理協調器／發布狀態。圖像維持1024×960與既有1080p／海報，不改相機或玩法。
+
+CLI新增-sotn-hd-scenes DIR與-textures別名，F3／自動隱藏工具列切換；textures沿既有Go路徑schema，Rust模式另存rust_scene_hd，保留Go hd／輸入等其他欄位，無參數模式沿已存路徑／模式，無路徑原版。-native明確覆寫且不改HD偏好；原HD影片CLI保持，與場景可同時指定。影片來源仍在原首格前凍結，明確使用者模式切換只改選用圖像，不改原MDEC／原音／時間。
+
+先在可丟棄的完整player／core中驗所有權失效與設定保存，再以正常BIOS的原版視窗及HD場景視窗各一次，核對RAM／原VRAM／原音／卡片基準，實際F1／F2／F3、暫停凍結、1080p／海報與原版-HD切換，不注入PC／RAM。通過後READY，受測來源位元組／格式化證據接正式程式，不另開美術／原片重播迴圈。正式三平台包、實體聲音／手把、GPU光柵、全遊戲HD與速度仍待。
+
+
+16.21第一輪原版與HD各12000場，端點RAM／VRAM／原音／卡片與原畫面同既有基準，F2／F3凍結及F1工具列通過；但517次提交僅172場呈現HD，11725的已驗來源回退，正式閘門不通過，維持DRAFT。端點比較與完整呈現驗收分開保存。第二輪只補修正後HD路線，不重跑原版、美術與核心矩陣；先驗物化／外部上傳／讀回保留，交集與wrapped像素、typed區域及黑邊覆寫失效，再確認11725／11726既有來源與連續呈現。未驗來源仍按原guard回退，不放寬IRQ／CPU／來源條件。
+
+
+16.21集中結果：原版一次正常BIOS12000場，首輪HD同路線一次、修正後僅HD再一次。兩個HD端點及原版均為6853150729 cycles／PC 8001548C，完整RAM／原生VRAM／原音／卡片與原畫面SHA同既有026 §12；本批靜音診斷不代表實體聲音。首輪只通端點／控制，11725仍誤回退，原false正式閘門保留，沒有改標整批通過。原型審查在首次HD啟動前也修正pending圖像保存位置：由app保留到DMA提交，再交Frames；未提交圖像不因缺少舊所有權而丟棄。
+
+修正後517次typed提交、515場選用HD來源；已驗來源連續段為11488–12000，11725／11726實際GUI capture來源為5913／5914，1024×960完整RGBA逐值SHA同16.20既有Scanout-HD圖，實際1920×1080畫布與A海報集中查看一次。F2兩次凍結、F3原版與HD要求在暫停時保持同field／cycles／圖像，續播才在完整場套用；F1顯示／隱藏工具列。保存Go textures路徑自動啟用、Rust模式保存及原Go hd／gamepad／未知欄位保持。明確-native完全不建PlayerScene、不改HD偏好。
+
+通用呈現身分不再依賴deferred像素生命期。兩項GPU身分測試涵蓋原生物化／外部上傳／讀回、metadata、交集typed區域、實際put／plot、wrapped與黑邊像素，以及雙目標／第三身分有界拒絕；六項既有GPU寫入／混色／cache／copy／readback回歸通過。身分只有Arc單位值，不持有GPU快照；原生像素／cache契約保持，原生物化成本仍在，未宣稱零原生工作或速度改善。phase失敗依cycle判斷是否consumed，保留有界錯誤、總計與最新錯誤；載入中與未知分支按guard整場回原版，不猜補。
+
+受測程式只rustfmt後安裝，正式player編譯通過；新增CFG測試不進GUI runtime。沒有重跑原版路線、舊核心矩陣或美術。原版、CPU／GPU選項、A／B／C、已定案影片與Go雙擊包保留；其餘房間／角色／怪物／文字／特效、GPU光柵、實體設備與Rust三平台雙擊包仍待。私人player-scenes-v1保留首輪、gui-v2、token測試、source-freeze及formal-acceptance，由素材docs/assets-catalog.md#render-control進入；原資料不入公開repo。

@@ -20,10 +20,13 @@ pub struct Image {
     pub h: u32,
     pub rgba: Arc<Vec<u8>>,
     pub movie: Option<(String, usize)>,
+    pub scene: Option<u32>,
 }
 #[derive(Default)]
 pub struct State {
     pub buttons: u16,
+    pub hd_requested: bool,
+    pub hd_applied: bool,
     pub pause: bool,
     pub paused: bool,
     pub stop: bool,
@@ -83,6 +86,7 @@ pub struct Options {
     pub unpaced: bool,
     pub report: Option<PathBuf>,
     pub movie: Option<super::apps::sotn::Overlay>,
+    pub scene: Option<super::apps::sotn::game::PlayerScene>,
     pub captures: Vec<u64>,
 }
 fn save(m: &mut Machine, p: &std::path::Path) -> Result<(), String> {
@@ -99,6 +103,7 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
     let (mut values, mut nz) = (0u64, 0u64);
     let (mut last_writes, mut changed) = (0, 0);
     let mut movie = opts.movie.take();
+    let mut scene = opts.scene.take();
     let result = (|| -> Result<(), String> {
         let mut fields = opts
             .report
@@ -134,7 +139,11 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
             } else {
                 s.buttons
             };
+            let field_mode = s.hd_requested;
             drop(s);
+            if let Some(scene) = scene.as_mut() {
+                scene.set_mode(&mut m, field_mode);
+            }
             if let Some(p) = m.bus.sio.pads[0].as_mut() {
                 p.buttons = buttons;
             }
@@ -144,7 +153,9 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
                 if m.cycles() >= end {
                     return Err("未在單場週期上限到達 VBlank".into());
                 }
-                m.step();
+                if !scene.as_mut().is_some_and(|s| s.step(&mut m)) {
+                    m.step();
+                }
             }
             let samples = m.take_audio();
             for &v in &samples {
@@ -170,9 +181,19 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
                     a.high_water.fetch_max(q.len() as u64, Ordering::Relaxed);
                 }
             }
-            let hd = if let Some(movie) = movie.as_mut() {
+            let movie_hd = if let Some(movie) = movie.as_mut() {
                 let batch = m.bus.cd.take_sector_reads();
                 movie.update(&m, &batch)?
+            } else {
+                None
+            };
+            let scene_hd = if let Some(scene) = scene.as_mut() {
+                scene.image(&m)?
+            } else {
+                None
+            };
+            let hd = if field_mode {
+                movie_hd.or(scene_hd)
             } else {
                 None
             };
@@ -186,19 +207,24 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
                     h: f.height,
                     rgba: Arc::new(f.rgba),
                     movie: None,
+                    scene: None,
                 }
             };
             if let Some(out) = fields.as_mut() {
-                let (source, index, crc) = movie
-                    .as_ref()
-                    .map(|v| {
-                        (
-                            v.last_source.as_str(),
-                            v.last_index.map(|i| i as i64).unwrap_or(-1),
-                            v.last_crc.unwrap_or(0),
-                        )
-                    })
-                    .unwrap_or(("native", -1, 0));
+                let (source, index, crc) = if let Some(epoch) = image.scene {
+                    ("scene", epoch as i64, 0)
+                } else {
+                    movie
+                        .as_ref()
+                        .map(|v| {
+                            (
+                                v.last_source.as_str(),
+                                v.last_index.map(|i| i as i64).unwrap_or(-1),
+                                v.last_crc.unwrap_or(0),
+                            )
+                        })
+                        .unwrap_or(("native", -1, 0))
+                };
                 writeln!(
                     out,
                     "{}\t{}\t{}\t{}\t{}\t{}\t{}",
@@ -216,6 +242,7 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
                 let mut s = shared.state.lock().unwrap();
                 s.field = m.field();
                 s.cycles = m.cycles();
+                s.hd_applied = field_mode;
                 s.frame = Some(image);
             }
             shared.wake.notify_all();
@@ -270,13 +297,14 @@ pub fn run(mut m: Machine, shared: Arc<Shared>, audio: Option<Arc<Audio>>, mut o
         .flat_map(|v| v.to_le_bytes())
         .collect();
     let frame = m.bus.gpu.screen();
-    let mut report = json!({"scope":"Rust player window; optional source-selected LOGO/OPN HD movies; no physical audio/controller acceptance",
+    let mut report = json!({"scope":"Rust player window; optional complete-field ST0 HD scenes and source-selected movies; no physical audio/controller acceptance",
         "field":m.field(),"cycles":m.cycles(),"pc":m.cpu.pc(),"ram_sha256":hash(m.bus.ram()),
         "vram_sha256":hash(&vram),"tty_sha256":hash(m.tty()),"pcm_sha256":format!("{:x}",pcm.finalize()),"pcm_i16_values":values,
         "pcm_nonzero_values":nz,"rgba_sha256":hash(&frame.rgba),"native_width":frame.width,"native_height":frame.height,
         "elapsed_seconds":started.elapsed().as_secs_f64(),"unpaced":opts.unpaced,
         "card_sha256":m.bus.sio.cards[0].as_ref().map(|c|hash(&c.data[..])),
         "card_writes":m.bus.sio.cards[0].as_ref().map(|c|c.writes),"card_save_ok":saved.is_ok()});
+    report["scenes"] = scene.as_ref().map(|s| s.report()).unwrap_or(Value::Null);
     report["movies"] = movie.as_ref().map(|v| v.report()).unwrap_or(Value::Null);
     let screenshot = if let Some(p) = &opts.report {
         let p = p.with_extension("native.png");

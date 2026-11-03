@@ -51,6 +51,7 @@ impl Gpu {
         if !textured {
             fore &= 0x7fff;
         }
+        self.forget_scene_pixel(x as u32, y as u32);
         self.pixels[at] = fore | self.mask_or;
     }
     pub(super) fn update_clut(&mut self, raw: u32, tm: u32) {

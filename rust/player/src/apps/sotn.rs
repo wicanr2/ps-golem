@@ -264,6 +264,7 @@ impl Overlay {
                     h: f.height as u32,
                     rgba: rgba.clone(),
                     movie: Some((key, *index)),
+                    scene: None,
                 }))
             }
             Ok(None) => Ok(None),
@@ -386,3 +387,6 @@ mod nativework;
 // 026 §16.20 staged direct scene list submission.
 mod listclock;
 mod scenesubmit;
+
+// 026 §16.21 complete-field scene player.
+pub(crate) mod game;

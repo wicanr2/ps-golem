@@ -39,6 +39,7 @@ pub struct Gpu {
     pixels: Vec<u16>,
     deferred_pixels: Vec<std::sync::Arc<scene::PreparedScene>>,
     observed_pixels: std::sync::OnceLock<Vec<u16>>,
+    scene_owners: Vec<deferred::Owner>,
     buf: [u32; 16],
     len: usize,
     need: usize,
@@ -113,6 +114,7 @@ impl Gpu {
             pixels: vec![0; WIDTH * HEIGHT],
             deferred_pixels: Vec::new(),
             observed_pixels: std::sync::OnceLock::new(),
+            scene_owners: Vec::new(),
             buf: [0; 16],
             len: 0,
             need: 0,
@@ -191,6 +193,7 @@ impl Gpu {
         g
     }
     fn soft_reset(&mut self) {
+        self.scene_owners.clear();
         self.irq = false;
         self.invalidate_cache();
         self.dma = 0;
@@ -482,6 +485,7 @@ impl Gpu {
         self.pixels[(((y & 511) << 10) | (x & 1023)) as usize]
     }
     fn put(&mut self, x: u32, y: u32, v: u16) {
+        self.forget_scene_pixel(x, y);
         self.pixels[(((y & 511) << 10) | (x & 1023)) as usize] = v;
     }
     fn line_skip(&self, y: u32) -> bool {
