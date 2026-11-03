@@ -17,6 +17,7 @@ pub struct Coordinator {
     base: fieldhud::Coordinator,
     actors: Option<Arc<ActorView>>,
     prefix: u32,
+    native_sources: Option<Arc<(Vec<super::actor::Quad>, Vec<u8>)>>,
 }
 pub struct Bundle {
     pub base: fieldhud::Bundle,
@@ -29,16 +30,17 @@ impl Coordinator {
     }
     pub fn mark(&self) -> String {
         format!(
-            "{} {:?} {}",
+            "{} {:?} {:?}",
             self.base.mark(),
             self.actors.as_ref().map(Arc::as_ptr),
-            self.prefix
+            (self.prefix, self.native_sources.as_ref().map(Arc::as_ptr))
         )
     }
     pub fn begin(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
         let costs = self.base.begin(m)?;
         self.actors = None;
         self.prefix = 0;
+        self.native_sources = None;
         Ok(costs)
     }
     pub(super) fn after_scroll(&self, m: &Machine) -> Result<Epoch> {
@@ -97,11 +99,18 @@ impl Coordinator {
         if actors.orders.iter().any(|&o| o < lower || o >= upper) {
             return Err("人物與HUD排序尚未封閉".into());
         }
+        let native_sources = Arc::new((plan.data.geometry.quads.clone(), m.bus.scratch().to_vec()));
         let costs = plan.costs().to_vec();
         plan.commit(m)?;
+        self.native_sources = Some(native_sources);
         self.actors = Some(Arc::new(actors));
         self.prefix = n as u32;
         Ok(costs)
+    }
+    pub(super) fn native_sources(&self, m: &Machine) -> Result<(&[super::actor::Quad], &[u8])> {
+        self.needs_actors(m)?;
+        let source = self.native_sources.as_ref().ok_or("缺少人物原生來源")?;
+        Ok((&source.0, &source.1))
     }
     fn needs_actors(&self, m: &Machine) -> Result<()> {
         self.base.check_epoch(m)?;

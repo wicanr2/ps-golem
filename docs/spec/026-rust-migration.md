@@ -1862,3 +1862,25 @@ GPU只修改顯示原點或mode0，保留pixel、cache、parser／讀回游標�
 測試fixture先從真原RAM用原CPU執行800EDC94至800E3C80，共38003步，明示default CPU／scratch與真BIOS載入但不開機；只有診斷器解碼原列表，正式API不解析GP0。這證明限定GPU端契約，沒有原版oracle新聲明、正常Machine／DMA提交或SotN原資料producer接線。原型／正式來源抽驗通過，四檔僅rustfmt，正式player編譯及兩項相關原生cache／polygon回歸通過。格式化工具首次把stdout檔名標頭寫入來源而編譯拒絕，從受測副本恢復，改stdin後同命令通過，並非遊戲缺陷。
 
 PreparedScene內部cache端點尚未供live Machine採用，不作完整VRAM輸出；既有Gpu::vram、原版路徑與GUI不變。原生掃描轉換／UV取樣仍有成本，這次只分開像素調色／混色／寫入，沒有速度倍率、GPU加速或整場原光柵停用聲明。SotN直接來源、SDK／DMA、按需VRAM所有權及正式整場玩家仍待。新美術／正常開機／IDA／硬體GPU0；原版、CPU／GPU、海報與影片承接。私人native-scene-v1的source-plan、formal-verification、source-freeze與acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+<!-- RUST-NATIVE-SOURCE-RESOLVED-16.17 -->
+16.18補證：ST0語意池／typed人物與圖塊已直接建立原生工作，三epoch／30階段正常Machine及GPU副本cache／原生影像相同；只補來源，16.17的live DMA／按需VRAM／GUI待辦保持。
+
+### 16.18 ST0語意來源到原生型別工作
+
+狀態：限定CONFORMED，僅ST0原生工作與staged來源保留；DMA／live VRAM及GUI仍DRAFT。沿16.17通用快取／按需影像API，補SotN語意來源轉換，不接live Machine／DMA或GUI。HD主幾何沿16.13直接模型／圖層／動畫來源；這個元件只負責原生相容工作，不取代主HD畫布。來源與SHA見私人native-source-v1/source-plan，原始位址為KSEG0、RAM offset=EA-80000000。
+
+已驗依據為call.rs的ST0兩層Tile、actor.rs的typed Quad及primitives.rs的80086FEC／stride52語意圖元池；模式依兩圖層96／160各24頁。先圖塊／模式、再人物、最後通用池，按原order正序及同order插入序反向排列，不讀排序鏈表或舊GPU封包。只接受ST0、零捲動、kind4／5及已驗旗標與計數；未知環境／額外來源拒絕。
+
+人物幾何取typed頂點／page／CLUT／旗標；硬體忽略padding取人物呼叫前scratch，通用池padding取primitive入口scratch，均明列相容metadata，不從GP0抽幾何。呼叫端須提供同一epoch的typed來源與scratch。先用同一人物入口前後真RAM／scratch／VRAM保存態診斷；載真BIOS但不開機、default CPU入口只供原primitive oracle，不能稱正常Machine。比較所有工作順序／可見欄位、完整cache端點／按需GPU，毒化全部舊packet／OT及Quad.words／address仍保持；錯來源／數量／分支拒絕。證據充分後才READY，正式協調器保留來源與SDK／DMA另接。
+
+
+16.18 READY：同epoch5912的300工作、四個GPU冷暖／雙目標、九拒絕及全部舊OT／packet與Actor Quad.words毒化已驗。包含105通用池、四人物、143圖塊及48模式；上一輪307來自5913，首次測試器套錯150圖塊的數量斷言保留，只修fixture期望。正式只新增資料元件與staged協調器來源保留：人物呼叫前保存typed quads／scratch metadata，primitive提交前建Work，成功提交後才保存；新begin清空，seal必須已有來源。不送DMA、不變live GPU／VRAM；一次正常BIOS三epoch／30階段驗證完整Machine、每成本及現有原音／畫布，另在GPU副本核對typed工作。GUI／DMA／按需VRAM所有權仍待。
+
+
+16.18集中結果：同epoch5912真原RAM／scratch與BIOS載入但不開機的診斷，300工作含105通用池、四人物、143圖塊與48模式；全部可見欄位及排序同獨立原CPU的GPU列表。四個雙目標／冷暖GPU案例的全部非像素cache端點及按需完整Gpu相同，準備不改像素；舊OT／packet整區與Actor Quad.words／address毒化保持，九拒絕通過。診斷原primitive執行38003步，明示default CPU與同epoch實際scratch；typed Tile以同來源重建的default ABI只作資料診斷，不作正常Machine。首次誤套5913的150圖塊期望而中止，修測試器後通過，未放寬實作。
+
+READY後一次正常BIOS至11726，三epoch／兩buffer，保留人物呼叫前typed頂點及scratch metadata，primitive提交前從語意池與typed圖塊建立Work，成功提交後保存，seal帶同epoch工作；不讀舊OT／GP0。30階段完整Machine與每成本同獨立原CPU，7438個i16原音、卡片與原始輸入保持，主線無注入。三場工作數300／307／310，在各場環境提交後的GPU副本，完整cache非像素狀態及按需原生Gpu同原列表oracle，副本不回填主線。三HD畫布、五Scanout與原音SHA全同16.16；既有兩個完整Scanout像素證據承接，沒有新畫面／美術重審。
+
+三檔僅rustfmt，正式player編譯通過。nativework只處理原生相容工作，3D相容XY來自已驗語意池；HD主幾何仍沿直接模型／投影producer，不能把此元件稱為新3D模型接管。staged API未接正式GUI分派，live GPU仍執行舊DMA圖元列表，按需VRAM所有權與DMA直接提交仍待；無新速度或全HD聲明。原版、兩後端、海報、影片及雙擊包承接。私人native-source-v1的source-plan、prototype-verification、verification、source-freeze及acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

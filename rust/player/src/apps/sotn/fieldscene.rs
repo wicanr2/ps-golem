@@ -15,6 +15,7 @@ pub struct Coordinator {
     base: fieldactors::Coordinator,
     tiles: Option<Arc<tileview::View>>,
     sealed: bool,
+    native_work: Option<Arc<super::nativework::Work>>,
     environment_done: bool,
     origin_done: bool,
     mode_done: bool,
@@ -22,6 +23,7 @@ pub struct Coordinator {
 pub struct Bundle {
     pub base: fieldactors::Bundle,
     pub tiles: Arc<tileview::View>,
+    pub native_work: Arc<super::nativework::Work>,
 }
 impl Coordinator {
     pub fn epoch(&self) -> Option<Epoch> {
@@ -33,7 +35,7 @@ impl Coordinator {
             self.base.mark(),
             (
                 self.tiles.as_ref().map(Arc::as_ptr),
-                self.sealed,
+                (self.sealed, self.native_work.as_ref().map(Arc::as_ptr)),
                 self.environment_done,
                 self.origin_done,
                 self.mode_done
@@ -44,6 +46,7 @@ impl Coordinator {
         let c = self.base.begin(m)?;
         self.tiles = None;
         self.sealed = false;
+        self.native_work = None;
         self.environment_done = false;
         self.origin_done = false;
         self.mode_done = false;
@@ -95,7 +98,20 @@ impl Coordinator {
         {
             return Err("圖塊後出現未知精靈或模式命令".into());
         }
-        self.base.primitives(m, pack)
+        if self.native_work.is_some() {
+            return Err("原生場景工作重複".into());
+        }
+        let (actors, seed) = self.base.native_sources(m)?;
+        let native = Arc::new(super::nativework::Work::prepare(
+            m.bus.ram(),
+            m.bus.scratch(),
+            &tiles.tiles,
+            actors,
+            seed,
+        )?);
+        let costs = self.base.primitives(m, pack)?;
+        self.native_work = Some(native);
+        Ok(costs)
     }
     pub fn display(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
         let epoch = self.epoch().ok_or("缺少顯示epoch")?;
@@ -137,7 +153,7 @@ impl Coordinator {
         Ok(costs)
     }
     pub fn seal(&mut self, m: &Machine) -> Result<Bundle> {
-        if self.tiles.is_none() {
+        if self.tiles.is_none() || self.native_work.is_none() {
             return Err("缺少本場圖塊，不發布".into());
         }
         let base = self.base.seal(m)?;
@@ -145,6 +161,7 @@ impl Coordinator {
         Ok(Bundle {
             base,
             tiles: self.tiles.as_ref().unwrap().clone(),
+            native_work: self.native_work.as_ref().unwrap().clone(),
         })
     }
 }

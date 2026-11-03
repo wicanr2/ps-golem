@@ -3261,3 +3261,12 @@ READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offse
 真原RAM／BIOS載入但不開機，default CPU／scratch的原800EDC94診斷38003步建立fixture，測試器才從原列表建型別工作。307工作含48模式／109多邊形／150精靈，兩目標冷暖cache四案例完整非像素狀態同原GPU，準備像素保持，按需完整Gpu同且重讀沿同物件；初輪五拒絕、補回授守門後九拒絕通過，READY才安裝，正式來源抽驗同。不是正常Machine或SotN主流程證據。
 
 四檔只rustfmt；第一次stdout帶檔名標頭造成編譯拒絕，從凍結受測副本恢復，改stdin後同容器／命令通過。正式player及兩項直接相關原生cache／polygon回歸通過，既有大量staged API未用警告保持。正常遊戲／新美術／IDA／硬體GPU0，不重開舊矩陣。規格索引／技術文件／唯一現況表與素材入口更新，README沿既有穩定連結。SotN直接來源producer、SDK／DMA、live VRAM所有權與正式GUI仍待；原整場native光柵仍在，沒有全HD／速度聲明。原版、兩後端、海報、影片與雙擊包承接。私人native-scene-v1保存來源、原型／正式比較、格式化及發布／Docker收尾，原資料不入Git；有界--rm與UID1000，不動其他專案。
+
+
+## 2026-11-03：ST0語意來源直接建立原生型別工作
+
+026 §16.18限定CONFORMED。從語意圖元池、typed圖塊／人物及明示scratch padding建工作，依order及反向插入序排序，不讀舊OT／packet；只補原生相容資料，HD主幾何沿既有直接模型／圖層／動畫。保存態先驗300工作／四GPU案例／九拒絕及整區packet與Quad.words毒化，首次測試器誤套下一場150圖塊期望，實際5912為143，保留初敗後只修斷言；實作未改。讀檔定位曾因預想宣告文字查無而停止，改讀實際宣告後接續，無遊戲或原碼改動。
+
+READY後staged協調器保留人物呼叫前來源，primitive前建Work、提交成功後保存，begin清空，seal要求來源。一次正常BIOS至11726，三epoch／兩buffer／30階段完整Machine與逐成本同原CPU，工作數300／307／310；每場環境後以GPU副本核對完整cache及按需原生Gpu，不回填live機器。7438個i16原音、卡片與輸入保持，三HD、五Scanout及原音SHA同16.16，主線無注入。原版兩個Scanout證據及美術承接，沒有新影像審查／IDA／硬體GPU或舊核心矩陣。
+
+三檔僅rustfmt，正式player編譯通過；生成器的mark格式與seal定位於正常執行前核對修正，未開第二條玩家路線。規格回鏈、技術文件／索引與唯一現況更新，README沿既有穩定入口。live GPU仍走原DMA列表，按需VRAM所有權／DMA提交及正式GUI仍待，沒有全HD或速度聲明；原版、兩後端、海報、影片與雙擊包承接。私人native-source-v1保存來源、初敗／原型／正常、格式化及推送／Issue／Docker收尾，原資料不入Git，有界--rm／UID1000，不動他人資源。

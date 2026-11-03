@@ -379,3 +379,6 @@ mod envsubmit;
 
 // 026 §16.16 staged timed display controls.
 mod displaysubmit;
+
+// 026 §16.18 staged typed native compatibility sources.
+mod nativework;
