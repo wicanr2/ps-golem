@@ -3252,3 +3252,12 @@ READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offse
 真原RAM／BIOS載入但不開機，24個ABI／人為行邊界案例十四步完整Machine／每成本同原CPU，十個延後事件反例、六拒絕保持，活動DMA1有明確CHCR確認。READY後一次正常BIOS至11726，六個顯示控制接來源／排序／環境共30階段完整Machine／每成本同，7438個i16原音、卡片及原始輸入保持。三HD、五Scanout及原音SHA全同前批，兩個完整原生像素證據承接，11724的5912不補稱直接Screen比較。未到環境／重複／錯epoch／模式早於原點四拒絕保持，主線無注入。
 
 四檔只格式化，正式player編譯通過；畫面檢視、美術／NO3／核心矩陣承接，新美術／技術查看／IDA／硬體GPU0。獨立進度查詢遭自動核准服務Bad Request而未執行，相同權限重試成功，不重開遊戲。規格回鏈、技術文件／索引與唯一現況同步，README沿穩定入口。上層環境／PutDispEnv其餘效果、整場圖元cache／DMA與正式GUI仍待；整場native光柵保留，無全HD／速度聲明。原版、兩後端、海報、影片與雙擊包保持；私人display-submit-v1保存來源、原型／正常比較、受測／格式化與Docker／推送／Issue回讀，原資料不入Git。
+
+
+## 2026-11-03：原生快取與按需影像預備
+
+026 §16.17限定CONFORMED，通用PreparedScene接受型別化貼圖三角形／四邊形、Sprite16及模式，不解析GP0。快取準備沿原掃描／UV順序保留CLUT、texture cache含invalid行資料、page及FIFO，略過像素調色／混色／寫入；明確native需求才一次產生原生影像並重用。保守檢查完整貼圖頁／色盤，可能與目標重疊即拒絕，非零視窗亦拒絕，不猜補回授。
+
+真原RAM／BIOS載入但不開機，default CPU／scratch的原800EDC94診斷38003步建立fixture，測試器才從原列表建型別工作。307工作含48模式／109多邊形／150精靈，兩目標冷暖cache四案例完整非像素狀態同原GPU，準備像素保持，按需完整Gpu同且重讀沿同物件；初輪五拒絕、補回授守門後九拒絕通過，READY才安裝，正式來源抽驗同。不是正常Machine或SotN主流程證據。
+
+四檔只rustfmt；第一次stdout帶檔名標頭造成編譯拒絕，從凍結受測副本恢復，改stdin後同容器／命令通過。正式player及兩項直接相關原生cache／polygon回歸通過，既有大量staged API未用警告保持。正常遊戲／新美術／IDA／硬體GPU0，不重開舊矩陣。規格索引／技術文件／唯一現況表與素材入口更新，README沿既有穩定連結。SotN直接來源producer、SDK／DMA、live VRAM所有權與正式GUI仍待；原整場native光柵仍在，沒有全HD／速度聲明。原版、兩後端、海報、影片與雙擊包承接。私人native-scene-v1保存來源、原型／正式比較、格式化及發布／Docker收尾，原資料不入Git；有界--rm與UID1000，不動其他專案。

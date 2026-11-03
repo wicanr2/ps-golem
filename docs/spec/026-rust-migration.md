@@ -1843,3 +1843,22 @@ GPU只修改顯示原點或mode0，保留pixel、cache、parser／讀回游標�
 7438個i16原音、卡片及原始輸入保持，主線無PC／RAM注入；三HD畫布與五個Scanout、原音SHA皆同16.15，11725／11726兩個完整原生像素證據保持，11724的5912不補稱直接Screen比較。既有畫面檢視承接，新美術／技術畫面／IDA／硬體GPU0。四檔只作受測來源格式化，正式player編譯通過。中途獨立唯讀進度查詢曾遇核准服務Bad Request，動作未執行；相同權限重試成功，不影響唯一正常遊戲批次。
 
 原版、兩後端、海報、影片與雙擊包保持；staged APIs尚未接正式玩家GUI，整場native光柵仍在，沒有全HD或速度聲明。下一段補上層環境／PutDispEnv其餘SDK效果與整場圖元cache／DMA；不能由兩個控制工作外推整個SDK完成。私人display-submit-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+### 16.17 原生圖元快取與按需影像預備
+
+狀態：限定CONFORMED，僅通用API；遊戲主路徑／顯存所有權仍DRAFT。先封閉通用CPU圖元的快取／metadata效果，不接SotN正式主流程或VRAM所有權。原生GPU原碼／已驗取樣規則、原RAM與VRAM SHA由私人native-scene-v1/source-plan索引；原生預設路徑保持，無新IDA／美術。沿16.14觀測的場景圖元種類與快取依賴，不能只略過光柵後丟棄CLUT／texture cache、頁面與FIFO殘值。
+
+型別化工作只含gouraud貼圖三角形／四邊形、貼圖Sprite16及page／zero-window模式。來源頂點保留XY／UV／RGB、透明混色旗標，硬體忽略的padding另存作相容FIFO末態；不解析GP0。快取準備只跑同一裁切／插值下的取樣順序，保留CLUT、texture cache含invalid資料與頁面／FIFO狀態，跳過像素寫入及調色／混色。PreparedScene保存不可變輸入與工作，只有明確native查詢才一次產生原生Gpu結果並重用；不能把未寫像素的cache端點當成完整VRAM快照。
+
+先以真原RAM／真BIOS載入但不開機、明示default CPU／scratch執行原800EDC94產生fixture。測試才從原輸出建立型別化工作，同時將原GP0送獨立原生GPU作oracle；這是低層GPU契約，不能稱SotN已從原模型接線。冷暖cache與雙目標集中比對全部非像素欄位／cache／FIFO，準備前後pixel保持、明確需求後完整GPU相同及重複查詢不重繪。未證實前不安裝production；SotN原資料直接建立工作、SDK／DMA提交、按需VRAM與正式GUI仍待。
+
+
+16.17 READY：保存場景307工作含109貼圖多邊形、150 Sprite16及48模式，兩目標／冷暖快取四案例及九拒絕已驗。原始取樣頁與CLUT採完整範圍保守檢查，含X環回；可能與目標重疊、非零貼圖視窗或命令未完成時拒絕，不能猜測略過畫面回授。準備不改輸入或像素，完整非像素狀態同原GP0；明確native一次產生的完整Gpu同原生，重讀沿同物件。只允許安裝通用API與原生預設false開關，不接live Machine／SotN SDK／DMA或GUI。來源producer及按需顯存所有權仍DRAFT。
+
+
+16.17集中結果：307型別化工作含48模式、109貼圖多邊形與150精靈；兩目標及冷暖快取四案例，準備階段全部像素保持，含invalid行資料在內的所有非像素欄位同原GP0端點。明確native查詢的完整Gpu相同，第二次查詢沿同一物件。九項拒絕涵蓋空／超量工作、錯頂點數、目標、parser未完成、貼圖／色盤回授與非零視窗，輸入保持。採完整頁保守拒絕，不承諾所有實際無回授場景皆可接受。
+
+測試fixture先從真原RAM用原CPU執行800EDC94至800E3C80，共38003步，明示default CPU／scratch與真BIOS載入但不開機；只有診斷器解碼原列表，正式API不解析GP0。這證明限定GPU端契約，沒有原版oracle新聲明、正常Machine／DMA提交或SotN原資料producer接線。原型／正式來源抽驗通過，四檔僅rustfmt，正式player編譯及兩項相關原生cache／polygon回歸通過。格式化工具首次把stdout檔名標頭寫入來源而編譯拒絕，從受測副本恢復，改stdin後同命令通過，並非遊戲缺陷。
+
+PreparedScene內部cache端點尚未供live Machine採用，不作完整VRAM輸出；既有Gpu::vram、原版路徑與GUI不變。原生掃描轉換／UV取樣仍有成本，這次只分開像素調色／混色／寫入，沒有速度倍率、GPU加速或整場原光柵停用聲明。SotN直接來源、SDK／DMA、按需VRAM所有權及正式整場玩家仍待。新美術／正常開機／IDA／硬體GPU0；原版、CPU／GPU、海報與影片承接。私人native-scene-v1的source-plan、formal-verification、source-freeze與acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

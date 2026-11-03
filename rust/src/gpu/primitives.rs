@@ -23,10 +23,22 @@ impl Gpu {
         let x = sx11((sx11(cb[1] & 0xffff) + self.off_x) as u32);
         let y = sx11((sx11(cb[1] >> 16) + self.off_y) as u32);
         let mode = self.blend_mode(cmd);
-        self.draw_sprite(x, y, w, h, u, v, color, textured, textured && !raw, mode);
+        self.draw_sprite(
+            x,
+            y,
+            w,
+            h,
+            u,
+            v,
+            color,
+            textured,
+            textured && !raw,
+            mode,
+            false,
+        );
     }
     #[allow(clippy::too_many_arguments)]
-    fn draw_sprite(
+    pub(super) fn draw_sprite(
         &mut self,
         xa: i32,
         ya: i32,
@@ -38,6 +50,7 @@ impl Gpu {
         textured: bool,
         mut modulate: bool,
         mode: i32,
+        cache_only: bool,
     ) {
         modulate &= color & 0xffffff != 0x808080;
         let r = color & 255;
@@ -75,7 +88,7 @@ impl Gpu {
                 for x in xs..xb {
                     if textured {
                         let mut t = self.get_texel(self.tex_mode, ur as u32, v as u32);
-                        if t != 0 {
+                        if !cache_only && t != 0 {
                             if modulate {
                                 t = self.mod_texel(2, 3, t, r, g, b);
                             }

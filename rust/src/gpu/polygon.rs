@@ -1,22 +1,23 @@
 use super::*;
 
 #[derive(Clone, Copy, Default)]
-struct Vertex {
-    x: i32,
-    y: i32,
-    u: i32,
-    v: i32,
-    r: i32,
-    g: i32,
-    b: i32,
+pub(super) struct Vertex {
+    pub(super) x: i32,
+    pub(super) y: i32,
+    pub(super) u: i32,
+    pub(super) v: i32,
+    pub(super) r: i32,
+    pub(super) g: i32,
+    pub(super) b: i32,
 }
 #[derive(Clone, Copy)]
-struct Flags {
-    gouraud: bool,
-    textured: bool,
-    modulate: bool,
-    mode: i32,
-    tm: u32,
+pub(super) struct Flags {
+    pub(super) gouraud: bool,
+    pub(super) textured: bool,
+    pub(super) modulate: bool,
+    pub(super) mode: i32,
+    pub(super) tm: u32,
+    pub(super) cache_only: bool,
 }
 #[derive(Clone, Copy, Default)]
 struct Interp {
@@ -125,6 +126,7 @@ impl Gpu {
             modulate: textured && cmd & 1 == 0,
             mode: self.blend_mode(cmd),
             tm: self.tex_mode,
+            cache_only: false,
         };
         let nv = if cmd & 8 != 0 { 4 } else { 3 };
         let mut vs = [Vertex::default(); 4];
@@ -158,7 +160,7 @@ impl Gpu {
             self.triangle_checked([vs[1], vs[2], vs[3]], f);
         }
     }
-    fn triangle_checked(&mut self, v: [Vertex; 3], f: Flags) {
+    pub(super) fn triangle_checked(&mut self, v: [Vertex; 3], f: Flags) {
         if (v[2].y - v[0].y).abs() >= 512
             || (v[2].y - v[1].y).abs() >= 512
             || (v[1].y - v[0].y).abs() >= 512
@@ -335,7 +337,7 @@ impl Gpu {
             let mut dy = y as u32 & 3;
             if f.textured {
                 let mut t = self.get_texel(f.tm, ig.u >> 24, ig.v >> 24);
-                if t != 0 {
+                if !f.cache_only && t != 0 {
                     if f.modulate {
                         if !self.dtd {
                             dx = 3;

@@ -601,3 +601,6 @@ fn command_len(cmd: u32) -> usize {
 pub mod environment;
 
 pub mod display;
+
+/// Typed native compatibility preparation; see 026 §16.17.
+pub mod scene;
