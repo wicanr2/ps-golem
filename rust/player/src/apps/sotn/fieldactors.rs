@@ -41,7 +41,22 @@ impl Coordinator {
         self.prefix = 0;
         Ok(costs)
     }
+    pub(super) fn after_scroll(&self, m: &Machine) -> Result<Epoch> {
+        self.base.after_scroll(m)
+    }
+    pub(super) fn batch(&self, role: Role) -> Option<&super::field3d::Batch> {
+        self.base.batch(role)
+    }
     pub fn actors(&mut self, m: &mut Machine, pack: &Path) -> Result<Vec<u32>> {
+        self.actors_in_order(m, pack, 104, 495)
+    }
+    pub(super) fn actors_in_order(
+        &mut self,
+        m: &mut Machine,
+        pack: &Path,
+        lower: usize,
+        upper: usize,
+    ) -> Result<Vec<u32>> {
         self.base.after_scroll(m)?;
         if self.actors.is_some()
             || m.cpu.pc() != 0x800eb998
@@ -79,7 +94,7 @@ impl Coordinator {
             0,
             0,
         )?;
-        if actors.orders.iter().any(|&o| o >= 495) {
+        if actors.orders.iter().any(|&o| o < lower || o >= upper) {
             return Err("人物與HUD排序尚未封閉".into());
         }
         let costs = plan.costs().to_vec();

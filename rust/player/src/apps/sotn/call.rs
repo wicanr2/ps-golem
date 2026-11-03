@@ -96,6 +96,16 @@ impl Layer {
         })
     }
 }
+#[derive(Clone, Debug)]
+pub struct Tile {
+    pub foreground: bool,
+    pub x: i16,
+    pub y: i16,
+    pub page: u8,
+    pub gfx: u8,
+    pub palette: u8,
+    pub order: usize,
+}
 pub struct CallPlan {
     before: State,
     biu: u32,
@@ -105,9 +115,25 @@ pub struct CallPlan {
     patches: Vec<RamWordPatch>,
     scratch: Vec<u8>,
     costs: Vec<u32>,
+    tiles: Vec<Tile>,
 }
 impl CallPlan {
     pub fn prepare(r: &[u8], scratch: &[u8], state: &State, biu: u32) -> Result<Self> {
+        Self::prepare_profile(r, scratch, state, biu, false)
+    }
+    pub fn prepare_st0(r: &[u8], scratch: &[u8], state: &State, biu: u32) -> Result<Self> {
+        Self::prepare_profile(r, scratch, state, biu, true)
+    }
+    pub fn tiles(&self) -> &[Tile] {
+        &self.tiles
+    }
+    fn prepare_profile(
+        r: &[u8],
+        scratch: &[u8],
+        state: &State,
+        biu: u32,
+        st0: bool,
+    ) -> Result<Self> {
         if r.len() != 2 << 20
             || scratch.len() != 1024
             || state.pc != 0x800e_cc10
@@ -144,7 +170,11 @@ impl CallPlan {
             (
                 0x180000,
                 36,
-                "0a19676621ba9dfaad1a39a2ab6ead6fd0438fad85a57c91be011b4f9fe0cd82",
+                if st0 {
+                    "ce14842f7f0101760916814b497603a5db6241409581fff963d5fb5fd2154a1b"
+                } else {
+                    "0a19676621ba9dfaad1a39a2ab6ead6fd0438fad85a57c91be011b4f9fe0cd82"
+                },
             ),
         ] {
             if !hash(&r[a..a + n], h) {
@@ -160,7 +190,11 @@ impl CallPlan {
         }
         if !hash(
             &layout,
-            "4281dfee0f618f53bf31bfb1a0e30b2b66f57eebb58ce4db0c84b0b4483958fe",
+            if st0 {
+                "413cdc403ec91585a91c6530bee48063e1abe44bd6c1a3e105e9e8dd34953f60"
+            } else {
+                "4281dfee0f618f53bf31bfb1a0e30b2b66f57eebb58ce4db0c84b0b4483958fe"
+            },
         ) || ![0x8003cb08, 0x800542fc].contains(&word(r, 0x6c37c))
             || [0x97940, 0x9792c, 0x730ac, 0x2c26c]
                 .iter()
@@ -175,6 +209,9 @@ impl CallPlan {
                 return Err("其他背景圖層尚未支援".into());
             }
         }
+        if st0 && (word(r, 0x7309c) != 160 || word(r, 0x730f0) != 96) {
+            return Err("ST0圖層排序不符".into());
+        }
         let layers = [Layer::read(r, 0x73084)?, Layer::read(r, 0x730d8)?];
         let tiles = layers
             .iter()
@@ -188,10 +225,11 @@ impl CallPlan {
         let mut sc = scratch.to_vec();
         let buffer = (word(r, 0x6c37c) - 0x8000_0000) as usize;
         let ot = buffer + 0x474;
+        let mut typed_tiles = Vec::new();
         let mut sprites = 0usize;
         let mut modes = 0usize;
         let mut last = (0u32, 0u32, 0u32, 0u32, 0u32);
-        for l in &layers {
+        for (layer, l) in layers.iter().enumerate() {
             for (i, &id) in l.ids.iter().enumerate() {
                 if id == 0 {
                     continue;
@@ -208,6 +246,15 @@ impl CallPlan {
                 let uv = (gfx & 15) * 16
                     | (gfx >> 4) * 16 << 8
                     | (half(r, 0x3c104 + pal as usize * 2) as u32) << 16;
+                typed_tiles.push(Tile {
+                    foreground: layer == 0,
+                    x: x as i16,
+                    y: y as i16,
+                    page: page as u8,
+                    gfx: gfx as u8,
+                    palette: pal as u8,
+                    order: l.order + page as usize,
+                });
                 let packet = buffer + 0x117f4 + sprites * 16;
                 let bucket = ot + (l.order + page as usize) * 4;
                 let old = word(&out, bucket);
@@ -348,6 +395,7 @@ impl CallPlan {
             patches,
             scratch: sc,
             costs: clock.costs,
+            tiles: typed_tiles,
         })
     }
     pub fn validate(&self, r: &[u8], s: &[u8], state: &State, biu: u32) -> Result<()> {
