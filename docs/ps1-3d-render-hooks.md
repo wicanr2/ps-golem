@@ -233,6 +233,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | ST0直接場景DMA／來源讀取 | 026 §16.20：[scenesubmit.rs](../rust/player/src/apps/sotn/scenesubmit.rs)按四時點直接交typed工作，三提交／33階段Machine與原音同；[source.rs](../rust/src/gpu/source.rs)只需求所讀目標，HD畫布SHA保持 | 正常無頭證據保持，限定玩家GUI／模式由16.21承接；其他場景與GPU呈現／速度仍待 |
 | ST0玩家場景與模式分派 | 026 §16.21：[game.rs](../rust/player/src/apps/sotn/game.rs)接既有直接來源／DMA與整場發布；F3或工具列切換，保存素材路徑，1080p海報與兩個既有HD畫布RGBA相同 | 限定ST0正常路線；未知來源回原版，全遊戲、GPU光柵及速度仍待。呈現身分與原生物化分離，不先畫原版螢幕再換圖 |
 | 零可見人物 | 026 §16.22：[fieldactors.rs](../rust/player/src/apps/sotn/fieldactors.rs)與[nativework.rs](../rust/player/src/apps/sotn/nativework.rs)接受0..32人物，空集合保留場景／HUD／3D；六項注入抽驗完整Machine與原音同原CPU | 注入診斷，不代表自然隱身事件或其他場景；完整玩家／GPU與速度範圍保持 |
+| ST0空背景圖塊 | 026 §16.23：[call.rs](../rust/player/src/apps/sotn/call.rs)允許背景可見ID為空且前景仍非空；四正向逐階段Machine／原音同原CPU，保留48模式與原scratch末態 | 僅注入抽驗，NO3及兩層全空仍按原守門；自然觸發與全遊戲另驗 |
 | NO3 可調視野 | 026 §16.7.21：保存來源到800×600 | 連續遊玩、跨房與框外物件 |
 | 任意 3D 視點 | 已有型別化相機與原始幾何基礎 | 新視點、剔除、遮擋與來源覆蓋的專門規格／驗證 |
 | 1080p 與後端 | 已有1080p保存預覽；CPU／GPU支援按各規格範圍承接 | 新路線的完整遊玩、GPU與速度驗收 |

@@ -3314,3 +3314,12 @@ README保留穩定入口，現況表與技術文件／規格索引同步。其�
 私人player-memory-v1保存計畫、初敗、受測程式、基準、逐筆修改、六組來源圖／index.html、verification、source-freeze與acceptance；工具與本機頁由assets-catalog索引。README正常玩家截圖保留。原版、兩後端選項、海報、影片與Go雙擊包保持，後續補其他來源。只用有界--rm、UID1000容器；Docker／擁有權與推送／Issue回讀另保存於hygiene／publication，不動其他專案資源。
 
 收據整理第一次誤用容器/output的父目錄尋找舊來源，僅修正為實際/materials研究路徑後重讀既有輸出，未重跑遊戲。
+
+
+## 2026-11-03：空背景圖塊的HD接線
+
+026 §16.23先DRAFT，定位兩層獨立map資料與272格可見窗口。一次共用11721基準建立六個副本，先重現舊版空背景回退，再驗控制、前景清空、背景清空、背景清空並隱藏人物四正向；逐接管階段與完整場的完整Machine同原CPU、PCM逐值同、測試卡片保持。11725皆HD，修改組畫布不同、控制RGBA同既有來源。兩層全空維持拒絕／原版回退，NO3守門保持；不猜補未驗分支。
+
+原型只取消ST0背景必須非空的條件，前景＋背景仍須1..640，原配置／48模式、scratch與CPU末態及資源時鐘保持；對照原CPU後READY，受測call.rs只rustfmt即安裝，正式player編譯通過。新的逐筆RAM修改、改前狀態與成對來源圖只留本機，原片／原卡唯讀。四正向集中技術查看一次，新GUI／美術與舊矩陣0，原正常GUI／模式／海報證據承接，不把注入抽驗稱為自然空背景或完整HD／速度通過。
+
+私人player-empty-background-v1保存來源／原型／基準／逐筆修改、verification、source-freeze、acceptance與index.html；README與assets-catalog連本機診斷頁，正常玩家截圖保持。工具沿16.22，輸入每完整場更新並只在實際修改事件比較寫入清單，語意仍相同。Docker使用有界--rm／UID1000，擁有權與推送／Issue回讀另存hygiene／publication，不動其他專案資源。

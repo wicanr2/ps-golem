@@ -218,7 +218,7 @@ impl CallPlan {
             .flat_map(|l| &l.ids)
             .filter(|&&id| id != 0)
             .count();
-        if tiles == 0 || tiles > 640 || !layers[1].ids.iter().any(|&id| id != 0) {
+        if tiles == 0 || tiles > 640 || (!st0 && !layers[1].ids.iter().any(|&id| id != 0)) {
             return Err("空背景或圖塊預算分支尚未支援".into());
         }
         let mut out = r.to_vec();
