@@ -90,7 +90,7 @@ impl Coordinator {
         predicted.apply_texture_jobs(&jobs)?;
         let actors = ActorView::prepare_at(
             &plan.data.geometry.ram,
-            predicted.vram(),
+            &predicted,
             &plan.data.geometry,
             pack,
             0,

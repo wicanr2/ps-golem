@@ -329,47 +329,47 @@ pub(crate) mod hud;
 // Staged compatibility ordering only, 026 §16.8.3; no player registration.
 pub(crate) mod order;
 
-pub(crate) mod planes;
-pub(crate) mod planeview;
-pub(crate) mod planestate;
 pub(crate) mod planeclock;
 pub(crate) mod planecommit;
 pub(crate) mod planelife;
+pub(crate) mod planes;
+pub(crate) mod planestate;
+pub(crate) mod planeview;
 
 // Staged common ST0 source work, 026 §16.10; player dispatch unchanged.
-pub(crate) mod frame;
-pub(crate) mod framecpu;
-pub(crate) mod frameclock;
 pub(crate) mod camera;
-pub(crate) mod camerastate;
 pub(crate) mod cameraclock;
+pub(crate) mod camerastate;
+pub(crate) mod field3d;
+pub(crate) mod frame;
+pub(crate) mod frameclock;
+pub(crate) mod framecpu;
 pub(crate) mod mesh;
-pub(crate) mod meshstate;
 pub(crate) mod meshclock;
-pub(crate) mod towerlife;
+pub(crate) mod meshstate;
+pub(crate) mod tower;
 pub(crate) mod toweractive;
 pub(crate) mod towerinit;
-pub(crate) mod tower;
-pub(crate) mod field3d;
+pub(crate) mod towerlife;
 
 // 026 §16.11 staged source APIs; full-field player dispatch remains pending.
-mod primitives;
-mod primitiveclock;
-mod hudst0;
 mod fieldhud;
+mod hudst0;
+mod primitiveclock;
+mod primitives;
 
 // 026 §16.12 actor material extraction; staged orchestration remains private.
 mod actorview;
 
 // 026 §16.12.3 staged ST0 composition; full-field player dispatch remains pending.
-mod actorstate;
 mod actorclock;
+mod actorstate;
 mod fieldactors;
 
 mod call;
 mod callclock;
-mod tileview;
 mod fieldscene;
+mod tileview;
 
 // 026 §16.14 staged field publication; no player dispatch.
 mod present;
@@ -382,3 +382,7 @@ mod displaysubmit;
 
 // 026 §16.18 staged typed native compatibility sources.
 mod nativework;
+
+// 026 §16.20 staged direct scene list submission.
+mod listclock;
+mod scenesubmit;

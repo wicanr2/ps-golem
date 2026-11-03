@@ -1908,3 +1908,32 @@ READY後一次正常BIOS至11726，三epoch／兩buffer，保留人物呼叫前t
 六檔只rustfmt，正式player編譯及相關原版傳輸／讀回回歸通過；未啟用defer API時pending為空，原版仍走既有流程。第一次錯誤cargo target掛載形成UID不符空目錄，程式0，確認後只刪該空目錄並改回既有快取；第一次抽取函式多一層slice借用導致編譯拒絕，GPU執行0，修正型別後首次實際診斷通過，失敗均保留。沒有重跑正常原片／美術／IDA／硬體GPU或舊CPU矩陣。
 
 尚未接Machine／DMA或正式玩家，整場原光柵仍在。vram／screen是完整原生需求，現有來源建構器的整張vram讀取會觸發物化；後續須改接區域來源存取及直接DMA，不能僅新增defer API就稱HD已免原生工作。這次只證明有界所有權與相容障壁，無速度倍率或全HD聲明。原版、CPU／GPU、海報、影片及雙擊包承接；使用者明示先完成HD接線，再評估重製。私人deferred-pixels-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+<!-- RUST-SCENE-DMA-RESOLVED-16.19 -->
+16.20補證：ST0同epoch typed工作已接Machine直接DMA與逐字來源，三次正常提交不解析GP0／GP1或走RAM列表，新場景在明確原生觀測前保持未產生。16.19通用所有權已由此承接；正式GUI、其他場景及完整HD仍待。
+
+### 16.20 ST0場景列表直接DMA提交
+
+狀態：限定CONFORMED，僅ST0場景提交／逐字來源與正常無頭切片；正式GUI及全遊戲仍DRAFT。沿16.15既有800145D0..8001461B helper、16.18同epoch typed Work及16.19按需像素。原helper GPU模式、MADR、BCR及CHCR寫入分別在事件量子4／8／12／16開始，CPU與資源端點共19步。沿既有來源字與SHA，不新增IDA或逐指令主實作。位址KSEG0，RAM offset=EA-80000000，DMA來源為physical RAM。
+
+場景來源僅兩個buffer+474排序入口，驗相同epoch／環境／計數，再將typed工作直接交defer_native_scene；保留DMA末態與完整CPU／時間，不讀原列表或解析GP0／GP1。共用已驗helper時鐘，不改環境提交語意。Machine先驗證空RAM交易，再依四事件推時；只接受無活動DMA、無IRQ且DICR不產生新IRQ的已驗範圍，任何失敗保持原整機／音訊。協調器須seal、環境、原點與模式完成，且本場提交一次。
+
+先以真原RAM及BIOS載入但不開機的default ABI診斷，兩buffer、冷暖CPU／GPU、原DMA mode0及非零MADR／BCR；原封包只供CPU oracle。提交後原生像素尚未產生、base保持，明確觀測完整Machine與每成本同原CPU，錯來源／事件／IRQ／回授拒絕；毒化舊列表不影響typed工作。充分後READY，正常BIOS三epoch一次驗證；區域來源／正式GUI與全HD仍待，不宣稱新速度。
+
+
+16.20.1 DRAFT：新增VramSource逐字觀測介面，slice／Vec／array維持舊值；Gpu只在所讀word落入pending時需求該目標，外部來源不物化其他區域。ST0圖塊／人物／3D與HUD載入器及共同畫布改用此唯讀介面，材料鍵／像素不變；先驗307工作雙區域、外部來源與單目標需求，再以同一正常三場驗完整整合。此為呈現資料存取，不改遊戲GPU讀回port或RAM狀態。
+
+
+16.20／16.20.1 READY：八個保存態整機／逐成本、九拒絕及舊列表毒化通過；新場景尚未產生原生像素，明確觀測全Machine同原CPU。401408個貼圖／色盤來源word讀取保持兩目標未產生，讀目標內word只需求該目標，slice／Vec／array值保持。足以安裝共用helper時鐘、四時點DMA交易與staged協調器一次提交；來源載入器機械替換索引介面，正常三場核對同材質／HD畫布及狀態。正式GUI／其他來源與全HD仍待，不放寬原版、海報或CPU／GPU。
+
+
+16.20集中結果：原RAM的primitive CPU輸出作ABI fixture，重排為兩buffer可用的測試鏈，計數同步；這是載真BIOS但不開機、default CPU／scratch的診斷，不稱正常路線。八個冷暖CPU／GPU案例完整Machine及19個資源成本同原helper；事件4／8／12／16直接保留GPU DMA模式、MADR、BCR與CHCR末態。提交後一個新pending原生色彩未產生且base保持，明確完整Machine比較才要求像素。九個來源／CPU／IRQ／DPCR／DICR、事件及回授拒絕保持整機；毒化舊OT／packet不影響CPU端點及typed原生影像，毒化RAM保持。
+
+16.20.1逐字來源先驗401408個實際貼圖／色盤範圍word同原值，兩pending皆未產生；讀目標內word只需求該目標，Vec／slice／array保持。正式ST0圖塊、人物、通用HUD及3D材質建構器改接VramSource；讀回port與完整vram／screen契約保持。GPU內命中待產生區域時才原生呈現該目標，未命中直接讀base；未以空白資料代替未讀區。
+
+READY後一次正常BIOS至11726，三epoch／兩buffer，原30階段再加三場景提交共33階段完整Machine與每成本同原CPU。300／307／310工作直接交live GPU的按需所有權，提交時GP0解析呼叫0、base像素保持且新目標未產生；仍跑同UV取樣以保留原生cache，不代表成本為0。原helper ISA、GP0／GP1解析與RAM鏈表不進新提交路徑。明確完整Machine／Scanout觀測會產生原生像素，這些驗證觀測不冒稱無需求遊玩或速度。
+
+7438個i16原音、卡片與原始輸入保持，三HD畫布、五Scanout及原音SHA同16.18；主線無PC／RAM注入，已有兩個完整Scanout逐像素證據承接。共用listclock抽出原環境helper已驗CPU／成本，原三環境提交與六顯示控制仍在同33階段驗證。初次附加片段的inner doc註解造成編譯拒絕、GPU執行0，只修註解後首次ABI執行通過；保留失敗，沒有多開正常路線。受測來源只rustfmt、正式player編譯通過；新美術／IDA／硬體GPU及舊核心矩陣0。
+
+本節是正常原片的staged hook，尚未註冊正式玩家GUI分派；全遊戲來源、場邊界模式切換、GPU呈現與速度仍待。原版、兩後端、海報、影片、素材與雙擊包承接，無全HD或速度聲明；先完成HD接線，再評估重製。私人scene-dma-v1的source-plan、prototype-verification、region-verification、verification、source-freeze及acceptance由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

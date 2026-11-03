@@ -4,6 +4,7 @@ use super::{
     field3d::{Epoch, Role},
     fieldactors, planeview, tileview,
 };
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{cpu::Bus, machine::Machine, scene::Canvas};
 use std::{path::Path, sync::Arc};
 type Result<T> = std::result::Result<T, String>;
@@ -19,6 +20,7 @@ pub struct Coordinator {
     environment_done: bool,
     origin_done: bool,
     mode_done: bool,
+    scene_done: bool,
 }
 pub struct Bundle {
     pub base: fieldactors::Bundle,
@@ -38,7 +40,7 @@ impl Coordinator {
                 (self.sealed, self.native_work.as_ref().map(Arc::as_ptr)),
                 self.environment_done,
                 self.origin_done,
-                self.mode_done
+                (self.mode_done, self.scene_done)
             )
         )
     }
@@ -50,6 +52,7 @@ impl Coordinator {
         self.environment_done = false;
         self.origin_done = false;
         self.mode_done = false;
+        self.scene_done = false;
         Ok(c)
     }
     pub fn plane(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
@@ -79,7 +82,7 @@ impl Coordinator {
             }
         }
         let plan = CallPlan::prepare_st0(m.bus.ram(), m.bus.scratch(), &m.cpu.state, m.bus.biu())?;
-        let view = tileview::View::prepare(m.bus.ram(), m.bus.gpu.vram(), gfx, plan.tiles(), pack)?;
+        let view = tileview::View::prepare(m.bus.ram(), &m.bus.gpu, gfx, plan.tiles(), pack)?;
         let costs = plan.costs().to_vec();
         plan.commit(m)?;
         self.tiles = Some(Arc::new(view));
@@ -111,6 +114,27 @@ impl Coordinator {
         )?);
         let costs = self.base.primitives(m, pack)?;
         self.native_work = Some(native);
+        Ok(costs)
+    }
+    pub fn submit(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
+        let epoch = self.epoch().ok_or("場景提交缺少epoch")?;
+        if !self.sealed
+            || !self.environment_done
+            || !self.origin_done
+            || !self.mode_done
+            || self.scene_done
+            || word(m.bus.ram(), 0x3c998) != epoch.counter
+            || word(m.bus.ram(), 0x6c37c) != epoch.draw_buffer
+            || m.cpu.gpr(4) != epoch.ordering_start
+        {
+            return Err("場景尚未完整準備、重複或epoch錯配".into());
+        }
+        let work = self.native_work.as_ref().ok_or("缺少場景typed工作")?;
+        let plan =
+            super::scenesubmit::ScenePlan::prepare(m.bus.ram(), &m.cpu.state, m.bus.biu(), work)?;
+        let costs = plan.costs().to_vec();
+        plan.commit(m)?;
+        self.scene_done = true;
         Ok(costs)
     }
     pub fn display(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
@@ -166,7 +190,13 @@ impl Coordinator {
     }
 }
 impl Bundle {
-    pub fn render(&self, r: &[u8], v: &[u16], pack: &Path, scale: usize) -> Result<Canvas> {
+    pub fn render(
+        &self,
+        r: &[u8],
+        v: &(impl VramSource + ?Sized),
+        pack: &Path,
+        scale: usize,
+    ) -> Result<Canvas> {
         if ![1, 4].contains(&scale) {
             return Err("共同場倍率未封閉".into());
         }

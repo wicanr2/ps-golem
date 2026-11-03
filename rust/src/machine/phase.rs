@@ -852,3 +852,52 @@ impl Machine {
         Ok(())
     }
 }
+
+// Direct typed scene DMA transport, 026 §16.20, GPL-3.0-or-later.
+impl Machine {
+    pub fn commit_scene_data_phase(
+        &mut self,
+        endpoint: &State,
+        costs: &[u32],
+        events: [usize; 4],
+        address: u32,
+        commands: &[crate::gpu::scene::NativeCommand],
+        target: crate::gpu::transfer::Rect,
+    ) -> Result<(), String> {
+        if !self.texture_phase_ready()
+            || address & 3 != 0
+            || address >= 0x200000
+            || events[3] >= costs.len()
+            || events.windows(2).any(|p| p[0] >= p[1])
+        {
+            return Err("場景DMA來源、事件順序或裝置上下文不符".into());
+        }
+        let mut validation = self.clone();
+        validation.commit_ram_phase(endpoint, &[], costs, 256)?;
+        let mut next = self.clone();
+        let field = self.field();
+        for (i, &n) in costs.iter().enumerate() {
+            if i == events[0] {
+                next.bus.gpu.begin_direct_linked_list()?;
+            }
+            if i == events[1] {
+                next.bus.stage_linked_list_address(address);
+            }
+            if i == events[2] {
+                next.bus.stage_linked_list_zero_block();
+            }
+            if i == events[3] {
+                next.bus.gpu.defer_native_scene(commands.to_vec(), target)?;
+                next.bus.finish_texture_linked_list();
+            }
+            next.cycles += n as u64;
+            next.bus.advance(n as u64);
+            if next.field() != field || !next.texture_phase_ready() {
+                return Err("場景DMA跨場、IRQ或活動裝置".into());
+            }
+        }
+        next.cpu.state = endpoint.clone();
+        *self = next;
+        Ok(())
+    }
+}

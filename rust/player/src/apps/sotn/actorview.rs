@@ -2,6 +2,7 @@
 //! Extracted without changing the verified NO3 material/source contract.
 use super::actor::ActorPlan;
 use crate::texture_audit;
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{
     paint::{self, Draw, Point},
     scene::{Canvas, Image, Material, MaterialKey},
@@ -37,13 +38,13 @@ pub struct ActorView {
 impl ActorView {
     pub fn prepare_at(
         r: &[u8],
-        vram: &[u16],
+        vram: &(impl VramSource + ?Sized),
         actors: &ActorPlan,
         pack: &Path,
         left: i32,
         top: i32,
     ) -> Result<Self> {
-        if r.len() != 2 << 20 || vram.len() != 1024 * 512 {
+        if r.len() != 2 << 20 || vram.word_count() != 1024 * 512 {
             return Err("人物畫布來源大小不符".into());
         }
         if actors
@@ -73,7 +74,9 @@ impl ActorView {
             if cy >= 512 || cy < 240 {
                 return Err("HD人物CLUT可能與畫布alias".into());
             }
-            palette.copy_from_slice(&vram[cy * 1024 + cx..cy * 1024 + cx + 16]);
+            for i in 0..16 {
+                palette[i] = vram.source_word(cy * 1024 + cx + i);
+            }
             let (width, height, packed, origin) = if n & 0x8000 != 0 {
                 let pool = match bank {
                     13 => word(r, 0x8013c004)?,
@@ -105,7 +108,7 @@ impl ActorView {
                     for xx in 0..width / 4 {
                         let i = (yy * width / 4 + xx) * 2;
                         let v = u16::from_le_bytes(packed[i..i + 2].try_into().unwrap());
-                        if vram[(y + yy) * 1024 + x + xx] != v {
+                        if vram.source_word((y + yy) * 1024 + x + xx) != v {
                             return Err("HD packed來源與顯存不同".into());
                         }
                     }
@@ -139,9 +142,10 @@ impl ActorView {
                 let (ox, oy, size) = if quarter { (ox, oy, 128) } else { (0, 0, 256) };
                 let mut packed = Vec::with_capacity(size * size / 2);
                 for yy in 0..size {
-                    for &w in &vram[(y + oy + yy) * 1024 + x + ox / 4
-                        ..(y + oy + yy) * 1024 + x + ox / 4 + size / 4]
+                    for at in (y + oy + yy) * 1024 + x + ox / 4
+                        ..(y + oy + yy) * 1024 + x + ox / 4 + size / 4
                     {
+                        let w = vram.source_word(at);
                         packed.extend_from_slice(&w.to_le_bytes());
                     }
                 }

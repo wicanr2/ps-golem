@@ -1,6 +1,7 @@
 //! ST0 screen HUD input, 026 §16.11, GPL-3.0-or-later.
 //! Semantic pool records + original upload; no generated packets/framebuffer.
 use crate::texture_audit;
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{
     paint::{self, Draw, Point},
     scene::{Canvas, Image, Material, MaterialKey},
@@ -24,9 +25,9 @@ pub struct Hud {
     pub HD_hits: usize,
 }
 impl Hud {
-    pub fn prepare(r: &[u8], v: &[u16], pack: &Path) -> Result<Self> {
+    pub fn prepare(r: &[u8], v: &(impl VramSource + ?Sized), pack: &Path) -> Result<Self> {
         if r.len() != 2 << 20
-            || v.len() != 1024 * 512
+            || v.word_count() != 1024 * 512
             || word(r, 0x3c0f8) != 0
             || word(r, 0x973ec) != 0
             || format!("{:x}", Sha256::digest(&r[0x1ba70c..0x1baeb0]))
@@ -36,7 +37,8 @@ impl Hud {
         }
         let mut packed = Vec::with_capacity(8192);
         for y in 256..384 {
-            for w in &v[y * 1024 + 704..y * 1024 + 736] {
+            for at in y * 1024 + 704..y * 1024 + 736 {
+                let w = v.source_word(at);
                 packed.extend_from_slice(&w.to_le_bytes());
             }
         }
@@ -85,7 +87,7 @@ impl Hud {
             if !(240..256).contains(&cy) {
                 return Err("序章HUD色盤可能與畫布alias".into());
             }
-            let palette: [u16; 16] = v[cy * 1024 + cx..cy * 1024 + cx + 16].try_into().unwrap();
+            let palette: [u16; 16] = std::array::from_fn(|i| v.source_word(cy * 1024 + cx + i));
             let points = std::array::from_fn(|j| {
                 let a = p + j * 12;
                 Point {

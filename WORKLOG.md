@@ -3279,3 +3279,14 @@ READY後staged協調器保留人物呼叫前來源，primitive前建Work、提�
 真RAM的原primitive診斷、default CPU／scratch與BIOS載入但不開機，原型／正式來源各一次GPU抽驗。12次交替覆寫不先算原生色彩，八類需求／寫入、四拒絕同原GPU；舊GP0僅供測試oracle，正式API不解析。首次target路徑誤掛形成UID不符空目錄，程式0，確認後只刪該空目錄並回既有快取；抽取函式slice多一層借用而編譯拒絕，GPU執行0，修正後首次實際診斷通過。兩個初敗均保存，不當產品缺陷。六檔只rustfmt，正式player與相關原版傳輸／讀回回歸通過；正常開機、美術／IDA／硬體GPU及舊CPU矩陣0。
 
 規格回鏈、技術文件／索引與唯一現況更新，README沿既有入口。Machine-DMA、區域來源及正式GUI未接，整場原光柵仍在；現有全vram查詢會觸發原生需求，後續接線須處理，不稱已省去所有原生工作或速度通過。原版、兩後端、海報、影片與雙擊包承接。使用者明示先完成HD接線，再評估重製；本批未啟動重製分支。私人deferred-pixels-v1保存來源、初敗、原型／正式、格式化與發布／Issue／Docker收尾；原資料不入Git，UID1000、有界--rm，不動其他專案資源。
+
+
+## 2026-11-03：ST0直接場景DMA與逐字素材來源
+
+026 §16.20／16.20.1限定CONFORMED。沿既有helper四個事件量子4／8／12／16，直接保留GPU模式、MADR、BCR及CHCR末態，typed Work交16.19按需所有權，不執行原helper ISA／GP0-GP1解析或RAM列表。CPU／成本抽為共用listclock，環境提交語意保持；逐字VramSource讓ST0圖塊／人物／3D／HUD只讀實際素材，讀pending內word才需求該目標，Vec／slice／array保持。
+
+真原RAM primitive輸出重排ABI測試鏈，兩buffer冷暖CPU／GPU八例完整Machine與19成本同原CPU、九拒絕及舊列表毒化保持。default CPU／scratch、真BIOS載入但不開機明列；逐字來源401408字同原值且兩目標未產生，讀單目標只產生該目標。首次inner doc附加位置錯誤造成編譯拒絕，GPU0，只修註解後首次實際ABI執行通過，初敗保留。
+
+READY後一次正常BIOS至11726，三epoch／兩buffer，三場景提交加既有階段共33階段完整Machine／每成本同原CPU；300／307／310工作直接進live GPU，GP0解析0、base保持、新目標在明確原生觀測前未產生。完整Machine／Scanout比較本身是原生像素需求，不把驗證說成全程零原生工作。7438個i16原音、卡片／輸入保持，三HD畫布、五Scanout及原音SHA同16.18，主線無注入。舊原版兩Scanout像素與已驗美術承接，無新畫面審查／IDA／硬體GPU或舊核心矩陣。
+
+受測來源僅rustfmt，正式player編譯通過。規格回鏈、技術文件／索引與唯一現況更新，README沿既有入口。正常無頭staged hook已接live GPU，正式玩家GUI／模式分派、全遊戲來源及GPU呈現／速度仍待；原版、兩後端、海報、影片、素材與雙擊包承接。使用者明示先完成HD接線再評估重製，未開重製分支。私人scene-dma-v1保存來源、初敗、原型／正常、格式化與發布／Issue／Docker收尾；原資料不入Git，有界--rm／UID1000，不動其他專案資源。

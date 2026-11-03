@@ -2,6 +2,7 @@
 //! GPL-3.0-or-later. Own planes/primitives/paint contracts, no guest ISA or GP0.
 use super::planes;
 use crate::texture_audit;
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{
     cpu::State,
     paint::{self, Draw, Point, ProjectedDraw},
@@ -22,8 +23,13 @@ pub struct View {
 }
 
 impl View {
-    pub fn prepare(ram: &[u8], vram: &[u16], entry: &State, pack: &Path) -> Result<Self> {
-        if ram.len() != 2 << 20 || vram.len() != 1024 * 512 {
+    pub fn prepare(
+        ram: &[u8],
+        vram: &(impl VramSource + ?Sized),
+        entry: &State,
+        pack: &Path,
+    ) -> Result<Self> {
+        if ram.len() != 2 << 20 || vram.word_count() != 1024 * 512 {
             return Err("平面呈現來源大小不符".into());
         }
         if ram[0x6c39c..0x6c39e] != [0, 0] || ram[0x6c3a0..0x6c3a2] != [0, 0] {
@@ -35,11 +41,11 @@ impl View {
     /// Internal source bundle only; no old pool XY/GP0/framebuffer input.
     pub(super) fn from_quads(
         ram: &[u8],
-        vram: &[u16],
+        vram: &(impl VramSource + ?Sized),
         quads: Vec<planes::Quad>,
         pack: &Path,
     ) -> Result<Self> {
-        if ram.len() != 2 << 20 || vram.len() != 1024 * 512 || quads.len() > 152 {
+        if ram.len() != 2 << 20 || vram.word_count() != 1024 * 512 || quads.len() > 152 {
             return Err("共同3D畫布來源大小或容量不符".into());
         }
         if ram[0x6c39c..0x6c39e] != [0, 0] || ram[0x6c3a0..0x6c3a2] != [0, 0] {
@@ -80,10 +86,11 @@ impl View {
             if !(240..512).contains(&cy) {
                 return Err("平面色盤可能與原生畫布alias".into());
             }
-            let palette: [u16; 16] = std::array::from_fn(|i| vram[cy * 1024 + cx + i]);
+            let palette: [u16; 16] = std::array::from_fn(|i| vram.source_word(cy * 1024 + cx + i));
             let mut packed = Vec::with_capacity(size * size / 2);
             for row in 0..size {
-                for w in &vram[(y + row) * 1024 + x..(y + row) * 1024 + x + size / 4] {
+                for at in (y + row) * 1024 + x..(y + row) * 1024 + x + size / 4 {
+                    let w = vram.source_word(at);
                     packed.extend_from_slice(&w.to_le_bytes());
                 }
             }

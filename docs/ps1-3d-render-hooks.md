@@ -230,6 +230,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | 原生快取與按需影像預備 | 026 §16.17：[scene.rs](../rust/src/gpu/scene.rs)接受型別化多邊形／精靈，先保留快取而不寫像素；明確native查詢才產生並重用影像，四保存態／九拒絕通過 | 通用元件，尚未接SotN原資料、SDK／DMA、live VRAM與GUI；掃描／UV取樣仍有成本，非速度驗收 |
 | ST0原生工作來源 | 026 §16.18：[nativework.rs](../rust/player/src/apps/sotn/nativework.rs)從語意圖元池、typed Tile／Actor與scratch metadata建工作，三epoch／30階段Machine及GPU副本相同 | 原生相容資料，HD主幾何沿既有模型producer；live DMA／按需VRAM與GUI仍待 |
 | 有界按需原生像素 | 026 §16.19：[deferred.rs](../rust/src/gpu/deferred.rs)保留最多兩區域、完整覆寫可取消，vram／screen或部分寫入時才物化；12覆寫／八需求案例／四拒絕通過 | 通用元件，Machine／DMA與GUI未接；現有全vram來源查詢仍會觸發原生需求，須接區域來源 |
+| ST0直接場景DMA／來源讀取 | 026 §16.20：[scenesubmit.rs](../rust/player/src/apps/sotn/scenesubmit.rs)按四時點直接交typed工作，三提交／33階段Machine與原音同；[source.rs](../rust/src/gpu/source.rs)只需求所讀目標，HD畫布SHA保持 | 已在正常無頭原片驗證，尚未接正式GUI／模式分派、其他場景與GPU呈現／速度 |
 | NO3 可調視野 | 026 §16.7.21：保存來源到800×600 | 連續遊玩、跨房與框外物件 |
 | 任意 3D 視點 | 已有型別化相機與原始幾何基礎 | 新視點、剔除、遮擋與來源覆蓋的專門規格／驗證 |
 | 1080p 與後端 | 已有1080p保存預覽；CPU／GPU支援按各規格範圍承接 | 新路線的完整遊玩、GPU與速度驗收 |

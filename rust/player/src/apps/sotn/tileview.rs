@@ -2,6 +2,7 @@
 //! Original archive/CLUT identity; no generated packets or framebuffer input.
 use super::call::Tile;
 use crate::texture_audit;
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{
     paint::{self, Draw, Point},
     scene::{Canvas, Image, Material, MaterialKey},
@@ -24,9 +25,15 @@ pub struct View {
     pub HD_hits: usize,
 }
 impl View {
-    pub fn prepare(r: &[u8], v: &[u16], gfx: &[u8], tiles: &[Tile], pack: &Path) -> Result<Self> {
+    pub fn prepare(
+        r: &[u8],
+        v: &(impl VramSource + ?Sized),
+        gfx: &[u8],
+        tiles: &[Tile],
+        pack: &Path,
+    ) -> Result<Self> {
         if r.len() != 2 << 20
-            || v.len() != 1024 * 512
+            || v.word_count() != 1024 * 512
             || tiles.is_empty()
             || tiles.len() > 640
             || format!("{:x}", Sha256::digest(gfx))
@@ -68,13 +75,15 @@ impl View {
             let clut = half(r, 0x3c104 + pal * 2) as usize;
             let cx = (clut & 63) * 16;
             let cy = clut >> 6;
-            if !(240..256).contains(&cy) || v[cy * 1024 + cx..cy * 1024 + cx + 16] != palette {
+            if !(240..256).contains(&cy)
+                || (0..16).any(|i| v.source_word(cy * 1024 + cx + i) != palette[i])
+            {
                 return Err("ST0色盤不符或可能與畫布alias".into());
             }
             let x = (t.page as usize + 8) * 64 + u / 4;
             for yy in 0..16 {
                 for xx in 0..4 {
-                    if v[(vv + yy) * 1024 + x + xx]
+                    if v.source_word((vv + yy) * 1024 + x + xx)
                         != half(raw, (vv % 128 + yy) * 64 + (u % 128) / 2 + xx * 2)
                     {
                         return Err("ST0原圖塊上傳與archive不同".into());

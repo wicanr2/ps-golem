@@ -620,3 +620,15 @@ pub mod display;
 pub mod scene;
 
 pub mod deferred;
+
+impl Gpu {
+    pub fn begin_direct_linked_list(&mut self) -> Result<(), String> {
+        if self.in_cmd != NONE || self.len != 0 || self.need != 0 {
+            return Err("直接列表需要完整GPU命令邊界".into());
+        }
+        self.dma = 2;
+        Ok(())
+    }
+}
+
+pub mod source;

@@ -165,7 +165,7 @@ impl Coordinator {
         if word(m.bus.ram(), 0xbd284) != 0 {
             return Err("條件矩形繪圖尚未接入HUD共同場".into());
         }
-        let hud = Hud::prepare(m.bus.ram(), m.bus.gpu.vram(), pack)?;
+        let hud = Hud::prepare(m.bus.ram(), &m.bus.gpu, pack)?;
         let clip = Clip::read(m.bus.ram())?;
         let min_order = *hud.orders.iter().min().ok_or("缺少HUD排序")?;
         let mut owners = vec![false; 1280];

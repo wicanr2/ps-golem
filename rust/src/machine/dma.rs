@@ -281,3 +281,12 @@ impl SystemBus {
         }
     }
 }
+
+impl SystemBus {
+    pub(super) fn stage_linked_list_address(&mut self, address: u32) {
+        self.dma.madr[2] = address & 0xffffff;
+    }
+    pub(super) fn stage_linked_list_zero_block(&mut self) {
+        self.dma.bcr[2] = 0;
+    }
+}
