@@ -1787,3 +1787,31 @@ Picture由已驗共同畫布建立，1024×960 RGBA必為opaque；原點只允�
 一次技術查看、零美術／IDA／硬體GPU，video.rs及present.rs只作受測來源格式化，正式player編譯通過。原正常探針先因Frame.rgba欄位誤作方法而編譯停止，遊戲0；只修封裝後首次正常路線通過。保存回放先漏Epoch.ordering_start而編譯停止，回放執行0；由原排序守門已驗draw_buffer+474補齊，只修測試器後首次回放通過，沒有重開原片。原失敗／受測來源／原正常事件與發布回放分開保存。
 
 下一段是原SDK／DMA提交與native cache／顯存相容效果，封閉後才能停用對應原native光柵及接正式玩家；原版、兩後端、海報、影片與雙擊包承接。私人field-present-v1的source-plan／ready-scanout／verification／READY-publication／publication-replay／acceptance由素材docs/assets-catalog.md#render-control進入，原資料不入Git。
+
+
+<!-- RUST-ENV-SUBMIT-RESOLVED-16.14 -->
+16.15補證：本節待辦中的環境列表提交helper 800145D0已以typed GPU環境／原子DMA資料交易接管；三次十九步全Machine／每成本同原CPU。這只解環境提交，不涵蓋上層PutDrawEnv／display切換或整場圖元cache與DMA。原觀測／發布證據承接，不重新開啟已解兩緩衝時序。
+
+### 16.15 ST0繪圖環境與SDK提交
+
+狀態：限定CONFORMED，僅ST0環境提交helper與typed GPU／DMA交易；完整SDK／整場native光柵替代仍DRAFT。沿16.14的已觀測環境列表，先替代sub_800145D0..8001461B的76-byte提交helper，尚不涵蓋上層PutDrawEnv／display切換或整場圖元列表。原helper完整bytes SHA96a75f8c9ecd2647157165e1b5f1a002c0f55738d9bc2b67e6aba17e0e6f3bcc、原名稱／xref／operands沿私人actor-clock-v1/SDK-IDA.json，IDA9.4 PS1 KSEG0；boot檔offset=EA-80010000+2048，RAM offset=EA-80000000。沿已驗image4ac62de83339與UID1000證據，locked-v1不在本機，不另建image；本批新IDA0。
+
+原helper只設定GPU DMA方向2、DMA2起點／BCR0／CHCR01000401並返回，十九個資源步，四個RAM讀點145D8／145E8／145F8／14608；原指標RAM2C280..2C28F依序為1F801814／1F8010A0／1F8010A4／1F8010A8。CPU端點保留未改寄存器、HI／LO／GTE與scratch，更新v0／v1／dummy延遲載入、返回與cache／成本。語意來自既有IDA與正常trace，不把函式名稱當證據，不逐指令翻寫或解碼原ISA。
+
+先做可丟棄原RAM的ABI診斷：載入真BIOS但不執行開機，以明示default CPU／自訂RA／DPCR及冷暖cache比較原helper十九步完整Machine／每成本；不冒稱正常玩家。DrawEnvironment從原DRAWENV結構建立area／offset／page／RGB，忽略已生成的GP0列表。限定ST0兩緩衝clip x0或256,y20,256×207、offset x0或256,y0、tpage10／dtd0／dfe1／isbg1、texture-window0／mask0；顏色保留來源。typed GPU直接完成環境及必要底色填寫，保留page造成的cache失效、buf殘值／DMA與欄位，不解析GP0／GP1，不走RAM鏈表。
+
+Machine提交必須CPU／cache／來源相符、原支援的空閒裝置／無IRQ／DMA2中斷不啟用，先在副本按已驗排程推時再提交GPU／DMA末態；跨場或拒絕保持整機及音訊。已證實此短helper中途MMIO不被CPU讀回，無活動DMA，排程不消費中途RAM／顯存；完整原生cache效果僅此環境，不外推整場圖元。診斷通過後才訂READY並作一次正常集成，原版／HD、CPU／GPU、海報與定案素材保持，正式GUI／全native光柵替代仍待。
+
+
+16.15 READY：保存原RAM／實際BIOS但無開機的16個ABI診斷通過，含兩buffer、冷暖CPU／GPU cache及RGB重設；十九步完整Machine／逐成本同原helper，九個拒絕保持。來源／CPU／GPU末態與中途不可見的短helper已足以限定實作。正式GPU加DrawEnvironment、Machine加受限原子提交，app加EnvPlan及fieldscene的sealed／一次提交／epoch守門；原版路徑不改。固定ST0來源結構生成typed環境，不從已生成GP0取回。
+
+一次正式正常原片至11726：承接三場完整來源／排序，再加三次環境提交共24階段，逐次完整Machine及每成本同獨立原CPU，原音／卡片與兩個已知Scanout保持。提交器拒絕重複／未seal／錯epoch，沿原型九個低層拒絕承接，不重跑舊NO3／CPU／GTE矩陣。上層PutDrawEnv／display切換與整場圖元native cache／DMA仍DRAFT；本批不能稱整場native光柵停用或正式GUI完成。
+
+
+16.15集中結果：16個真原RAM的ABI診斷全部完整Machine與每成本同原十九步helper，九個過期State／RAM／BIU、DMA IRQ／活動DMA／GPU parser及typed job拒絕保持。使用真BIOS但不執行開機，default ABI與自訂DPCR明列，不作正常玩家證據。來源沿既有IDA9.4，無新IDA／DB修改。
+
+一次正式正常BIOS至11726，前三場完整來源／排序與三次環境提交共24階段，完整Machine及每成本同獨立原CPU；環境每次19資源步，場數11722／11723／11724。環境主路徑不執行該helper原ISA、不解析九個GP0環境word、不走RAM鏈表；GPU直接保留clip／offset／page、texture-window／mask清除、底色填寫、cache失效、buf殘值／DMA與完整CPU端點。SDK上層及整場native圖元仍在。
+
+7438個i16原音、卡片及原始輸入保持，正常主線無PC／RAM注入。三個HD來源與五個原生Scanout SHA全部同16.14，原音SHA相同；11725／11726兩個完整Scanout逐RGBA證據保持，11724的5912仍不補稱直接Screen比較。未seal／重複／錯epoch三拒絕完整保持。既有畫面技術查看承接，新美術／新畫面審查0，沒有以測試擴大已驗畫風或遊玩路線。
+
+四檔只作受測來源格式化，正式player編譯通過。原版、兩後端、海報、影片與雙擊包保持；staged APIs未接正式玩家GUI，沒有整場native光柵停用、全素材或速度聲明。下一段是上層環境建立／顯示切換及整場圖元列表的native cache／DMA效果，不能將本helper完成外推整個SDK。私人environment-submit-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

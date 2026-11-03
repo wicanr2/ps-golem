@@ -373,3 +373,6 @@ mod fieldscene;
 
 // 026 §16.14 staged field publication; no player dispatch.
 mod present;
+
+// 026 §16.15 staged typed environment submission.
+mod envsubmit;

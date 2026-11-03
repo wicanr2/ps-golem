@@ -3234,3 +3234,12 @@ READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offse
 一次正常BIOS到11726，三場含排序共21階段完整Machine與逐成本同獨立原CPU，7438個i16原音、卡片及輸入保持。來源5912／5913／5914於11721／11722／11723完成、下一場提交；11725／11726的完整Scanout同5913／5914。原觀測器以pending覆蓋舊來源，11724的5912沒有直接Screen比較，不補稱三個。三列表typed預測目標同原VRAM；texture取樣91200／91093／91077次都在framebuffer外，無C0／copy，僅此窗口，不代表cache或全遊戲依賴已封閉。
 
 保存事件回放選None／None／5912／5913／5914，兩個真像素證據、七拒絕、同場凍結／場邊界切換／未知覆寫失效通過。正常探針先誤寫Frame.rgba方法，遊戲0；回放封裝先缺Epoch.ordering_start，回放0；分別保存初敗，只修測試器後各首次執行通過，沒有重開原片。一次技術查看、原美術／NO3／核心矩陣承接；兩檔只格式化，正式player編譯通過。規格回鏈／技術文件／索引與唯一現況同步，README沿穩定入口。下一段原SDK／DMA及native cache／顯存相容效果仍待，沒有全HD／GUI／GPU／速度聲明；原版、海報、影片及雙擊包保持。私人field-present-v1保存來源、原正常／回放、失敗與格式化及Docker／發布收尾，原資料不入Git。
+
+
+## 2026-11-03：Rust直接接手ST0環境SDK提交
+
+026 §16.15限定CONFORMED。承接actor-clock-v1既有IDA9.4原helper／指標與資源證據，從原DRAWENV結構建立typed環境，直接保留GPU區域／偏移／page／底色、window／mask、cache失效／buf及DMA末態。十九步CPU端點／成本直接建模，不執行原helper、GP0解析或RAM鏈表。原byte／位址與SHA保留，無新IDA／DB修改；locked-v1 image不在本機，沿已驗4ac62de83339，不重建image。
+
+真原RAM／BIOS載入但不開機，明示default ABI／DPCR的16診斷完整Machine／逐成本同原CPU，含兩buffer、冷暖CPU／GPU cache、RGB重設及九拒絕。READY後一次正常BIOS至11726，來源／排序／三環境提交共24階段完整Machine／每成本同，7438個i16原音、卡片與原始輸入保持；三HD畫布、五原生Scanout與原音SHA全同前批，兩個完整Scanout逐像素證據承接，11724的5912不補稱直接比較。未seal／重複／錯epoch三拒絕保持，主線無注入。
+
+四檔只格式化，正式player編譯通過；既有圖像檢視及美術／NO3／核心矩陣承接，新畫面審查／美術／IDA／硬體GPU0，正常遊戲僅一次。規格回鏈／索引／唯一現況及既有技術文件補SDK說明，README沿穩定連結。上層環境建立／display切換、整場圖元cache／DMA與正式GUI仍待，原native整場光柵仍在，沒有全HD／速度聲明；原版、兩後端、海報、影片與雙擊包保持。私人environment-submit-v1保存來源、原型／正常比較、受測／格式化與Docker／推送／Issue回讀，原資料不入Git。

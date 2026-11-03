@@ -790,3 +790,26 @@ mod completed_gte_tests {
         assert_eq!(m.cycles(), 0);
     }
 }
+
+// Included in machine/phase.rs. Direct bounded environment submission transport.
+impl Machine {
+    pub fn commit_environment_data_phase(
+        &mut self,
+        endpoint: &State,
+        costs: &[u32],
+        job: crate::gpu::environment::DrawEnvironment,
+    ) -> Result<(), String> {
+        if !self.texture_phase_ready() {
+            return Err("環境提交的DMA／IRQ／GPU上下文不符".into());
+        }
+        let mut next = self.clone();
+        next.commit_ram_phase(endpoint, &[], costs, 256)?;
+        next.bus.gpu.apply_draw_environment(job)?;
+        next.bus.finish_texture_linked_list();
+        if !next.texture_phase_ready() {
+            return Err("環境提交後裝置上下文不符".into());
+        }
+        *self = next;
+        Ok(())
+    }
+}

@@ -14,6 +14,8 @@ fn word(r: &[u8], p: usize) -> u32 {
 pub struct Coordinator {
     base: fieldactors::Coordinator,
     tiles: Option<Arc<tileview::View>>,
+    sealed: bool,
+    environment_done: bool,
 }
 pub struct Bundle {
     pub base: fieldactors::Bundle,
@@ -27,12 +29,18 @@ impl Coordinator {
         format!(
             "{} {:?}",
             self.base.mark(),
-            self.tiles.as_ref().map(Arc::as_ptr)
+            (
+                self.tiles.as_ref().map(Arc::as_ptr),
+                self.sealed,
+                self.environment_done
+            )
         )
     }
     pub fn begin(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
         let c = self.base.begin(m)?;
         self.tiles = None;
+        self.sealed = false;
+        self.environment_done = false;
         Ok(c)
     }
     pub fn plane(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
@@ -83,11 +91,28 @@ impl Coordinator {
         }
         self.base.primitives(m, pack)
     }
+    pub fn environment(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
+        let epoch = self.epoch().ok_or("沒有環境來源epoch")?;
+        if !self.sealed
+            || self.environment_done
+            || word(m.bus.ram(), 0x3c998) != epoch.counter
+            || word(m.bus.ram(), 0x6c37c) != epoch.draw_buffer
+            || m.cpu.gpr(4) != epoch.draw_buffer + 32
+        {
+            return Err("環境尚未seal、重複或epoch錯配".into());
+        }
+        let plan = super::envsubmit::EnvPlan::prepare(m.bus.ram(), &m.cpu.state, m.bus.biu())?;
+        let costs = plan.costs().to_vec();
+        plan.commit(m)?;
+        self.environment_done = true;
+        Ok(costs)
+    }
     pub fn seal(&mut self, m: &Machine) -> Result<Bundle> {
         if self.tiles.is_none() {
             return Err("缺少本場圖塊，不發布".into());
         }
         let base = self.base.seal(m)?;
+        self.sealed = true;
         Ok(Bundle {
             base,
             tiles: self.tiles.as_ref().unwrap().clone(),

@@ -40,6 +40,8 @@ flowchart TD
 
 ### 2.1 優先選語意完整的入口
 
+SDK 是軟體開發套件（Software Development Kit）。本文件的 SDK 呼叫指原片連結的繪圖函式庫，負責包裝繪圖環境、同步與 DMA 提交。接管時要保留 GPU 控制、顯存與時序效果，來源仍須逐個呼叫證實；原名稱與 bytes 的入口見 [026 §16.15](spec/026-rust-migration.md#1615-st0繪圖環境與sdk提交)。
+
 ps-golem 控制 CPU 的執行分派，可在 PC 抵達已證實的繪圖入口時辨識呼叫。這不需要在遊戲內插入另一段 PS 組合語言。原函式的組合語言供研究資料流、返回與副作用，替代流程直接寫 Rust。
 
 《月下》目前的例子：
@@ -223,6 +225,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | ST0人物／3D／HUD | 026 §16.12.3：[fieldactors.rs](../rust/player/src/apps/sotn/fieldactors.rs)協調三Epoch／15階段全Machine，109圖元共同CPU-HD畫布 | 場景精靈由16.13承接；其餘來源、正式整場玩家與GPU／速度 |
 | ST0背景／前景共同場 | 026 §16.13：[fieldscene.rs](../rust/player/src/apps/sotn/fieldscene.rs)依3D→背景→人物→前景→HUD直接繪製；259圖元全HD、18階段正常Machine通過 | staged API，正式玩家分派／完整呈現交易、其他場景與GPU／速度仍待 |
 | 完整場來源發布 | 026 §16.14：[present.rs](../rust/player/src/apps/sotn/present.rs)分待提交／已提交／顯示；兩個實際Scanout像素相同，來源可在原列表前備妥 | SDK／DMA與native cache效果仍待，未接GUI／未略過原光柵 |
+| 環境SDK提交 | 026 §16.15：[envsubmit.rs](../rust/player/src/apps/sotn/envsubmit.rs)與[GPU環境](../rust/src/gpu/environment.rs)直接設定環境／底色及DMA末態；24階段正常Machine同 | 僅76-byte環境提交helper，上層環境／display、整場圖元cache／DMA與GUI仍待 |
 | NO3 可調視野 | 026 §16.7.21：保存來源到800×600 | 連續遊玩、跨房與框外物件 |
 | 任意 3D 視點 | 已有型別化相機與原始幾何基礎 | 新視點、剔除、遮擋與來源覆蓋的專門規格／驗證 |
 | 1080p 與後端 | 已有1080p保存預覽；CPU／GPU支援按各規格範圍承接 | 新路線的完整遊玩、GPU與速度驗收 |
