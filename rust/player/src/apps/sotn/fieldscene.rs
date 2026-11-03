@@ -16,6 +16,8 @@ pub struct Coordinator {
     tiles: Option<Arc<tileview::View>>,
     sealed: bool,
     environment_done: bool,
+    origin_done: bool,
+    mode_done: bool,
 }
 pub struct Bundle {
     pub base: fieldactors::Bundle,
@@ -32,7 +34,9 @@ impl Coordinator {
             (
                 self.tiles.as_ref().map(Arc::as_ptr),
                 self.sealed,
-                self.environment_done
+                self.environment_done,
+                self.origin_done,
+                self.mode_done
             )
         )
     }
@@ -41,6 +45,8 @@ impl Coordinator {
         self.tiles = None;
         self.sealed = false;
         self.environment_done = false;
+        self.origin_done = false;
+        self.mode_done = false;
         Ok(c)
     }
     pub fn plane(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
@@ -90,6 +96,29 @@ impl Coordinator {
             return Err("圖塊後出現未知精靈或模式命令".into());
         }
         self.base.primitives(m, pack)
+    }
+    pub fn display(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
+        let epoch = self.epoch().ok_or("缺少顯示epoch")?;
+        if !self.environment_done
+            || word(m.bus.ram(), 0x3c998) != epoch.counter
+            || word(m.bus.ram(), 0x6c37c) != epoch.draw_buffer
+        {
+            return Err("顯示尚缺環境或epoch錯配".into());
+        }
+        let plan =
+            super::displaysubmit::DisplayPlan::prepare(m.bus.ram(), &m.cpu.state, m.bus.biu())?;
+        if plan.origin && self.origin_done || !plan.origin && (!self.origin_done || self.mode_done)
+        {
+            return Err("顯示控制順序或重複提交".into());
+        }
+        let costs = plan.costs().to_vec();
+        plan.commit(m)?;
+        if plan.origin {
+            self.origin_done = true;
+        } else {
+            self.mode_done = true;
+        }
+        Ok(costs)
     }
     pub fn environment(&mut self, m: &mut Machine) -> Result<Vec<u32>> {
         let epoch = self.epoch().ok_or("沒有環境來源epoch")?;

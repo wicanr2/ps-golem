@@ -813,3 +813,42 @@ impl Machine {
         Ok(())
     }
 }
+
+// Included in machine/phase.rs; timed GPU register event, spec026 §16.16.
+impl Machine {
+    pub fn commit_display_data_phase(
+        &mut self,
+        endpoint: &State,
+        patches: &[RamWordPatch],
+        costs: &[u32],
+        event_index: usize,
+        job: crate::gpu::display::DisplayControl,
+    ) -> Result<(), String> {
+        if event_index >= costs.len() {
+            return Err("顯示事件超出時間量子".into());
+        }
+        // Reuse the exact transport validation. Its owned result is discarded;
+        // actual scheduling below applies the GPU event before its original tick.
+        let mut validation = self.clone();
+        validation.commit_ram_phase(endpoint, patches, costs, 128)?;
+        let mut candidate = self.clone();
+        let field = self.field();
+        for (i, &n) in costs.iter().enumerate() {
+            if i == event_index {
+                candidate.bus.gpu.apply_display_control(job)?;
+            }
+            candidate.cycles += n as u64;
+            candidate.bus.advance(n as u64);
+            if candidate.field() != field || !candidate.data_phase_idle() {
+                return Err("顯示控制跨場、IRQ或活動裝置".into());
+            }
+        }
+        for p in patches {
+            let at = p.offset as usize;
+            candidate.bus.ram[at..at + 4].copy_from_slice(&p.value.to_le_bytes());
+        }
+        candidate.cpu.state = endpoint.clone();
+        *self = candidate;
+        Ok(())
+    }
+}

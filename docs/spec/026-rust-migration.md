@@ -1815,3 +1815,31 @@ Machine提交必須CPU／cache／來源相符、原支援的空閒裝置／無IR
 7438個i16原音、卡片及原始輸入保持，正常主線無PC／RAM注入。三個HD來源與五個原生Scanout SHA全部同16.14，原音SHA相同；11725／11726兩個完整Scanout逐RGBA證據保持，11724的5912仍不補稱直接Screen比較。未seal／重複／錯epoch三拒絕完整保持。既有畫面技術查看承接，新美術／新畫面審查0，沒有以測試擴大已驗畫風或遊玩路線。
 
 四檔只作受測來源格式化，正式player編譯通過。原版、兩後端、海報、影片與雙擊包保持；staged APIs未接正式玩家GUI，沒有整場native光柵停用、全素材或速度聲明。下一段是上層環境建立／顯示切換及整場圖元列表的native cache／DMA效果，不能將本helper完成外推整個SDK。私人environment-submit-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。
+
+
+<!-- RUST-DISPLAY-CONTROL-RESOLVED-16.15 -->
+16.16補證：本節待辦中的原點／NTSC256×240模式控制helper 80014528已限定接管，GPU效果在第五量子tick前生效並更新SDK RAM狀態表。三場六次控制／30階段完整Machine與每成本同原CPU；上層環境建立／PutDispEnv其餘呼叫、整場圖元cache／DMA與GUI仍待，不重開16.15環境提交或已驗影像。
+
+### 16.16 ST0顯示原點／模式控制
+
+狀態：限定CONFORMED，僅ST0原點／模式helper、定時GPU事件與RAM狀態表；上層SDK／完整圖元／GUI仍DRAFT。承接16.15環境提交，補sub_80014528..8001455F的56-byte顯示控制helper，並保留原SDK狀態表寫入。來源為既有IDA9.4 GPU-library-refs.json原名稱／位址／bytes／xref及source-flow-v2正常trace，SHA5187295a25db14950899f1b48c158a534c59790f78004935f397327e1bc77ee7。IDA位址為boot虛擬EA，RAM offset=EA-80000000，boot offset=EA-80010000+2048，來源／工具由私人display-submit-v1/source-plan索引。新IDA／美術0。
+
+已證實十四個資源步，14530讀RAM2C280的GPU port指標，14538在第五量子開始寫GPU，14554更新RAM37ED0+命令索引×4。來源DISPENV位於buffer+96，矩形為256,0,256,240或0,0,256,240，其餘12 bytes為0；RA800130A4的原點控制、RA800133B0的NTSC256×240模式皆由來源結構建立typed工作，核對參數卻不靠解碼GP1作主流程。CPU保留其餘寄存器／HI／LO／GTE／scratch，更新AT／v0／v1／a0、dummy載入、返回與cache／成本，並寫回相同RAM shadow。
+
+GPU只修改顯示原點或mode0，保留pixel、cache、parser／讀回游標與其他控制狀態。Machine時序必須在事件量子tick前修改GPU，再按既有33.8688MHz裝置排程推時；不能把GPU效果一律延到helper返回。先在私有副本套用既有RAM交易驗證，再另副本執行有時點的GPU事件，無活動DMA／無IRQ且不跨場，拒絕保持整機／音訊。此窄介面不授權任意callback或其他MMIO。
+
+先做24個原RAM ABI診斷，兩buffer／兩呼叫／冷暖CPU cache與三種人為GPU行時鐘位置；載真BIOS但不開機，明列default CPU與GPU時鐘注入。對原十四步完整Machine／每成本，另以延後GPU事件作反例，證明時間點有可見效果。通過後才訂READY並作一次正常原片集成；正式GUI、上層PutDispEnv其餘控制與整場圖元cache／DMA仍待，不放寬原版／HD、海報或已驗素材。
+
+
+16.16 READY：24個原RAM ABI／人為行邊界案例完整Machine與每成本同原十四步；六個拒絕保持，延後GPU效果有10個反例。來源／時點／RAM shadow與CPU端點足以限定實作，不冒稱正常玩家或實機逐週期。正式GPU加typed顯示工作，Machine在第五量子tick前套用效果；既有RAM交易驗證副本只驗輸入，實際排程另副本執行，錯誤不漏音訊或部分寫入。效能未驗。
+
+場景協調器要求本epoch環境已提交，先原點、後模式，各一次；新begin清掉狀態，拒絕未到階段／重複／錯epoch。一次正常原片至11726承接24階段再加六次顯示控制，總30階段逐次完整Machine／每成本比對，原音／卡片、三HD畫布與五個Scanout SHA保持。畫面沿前批檢視，不重審美術；上層PutDispEnv其餘呼叫、整場圖元cache／DMA與正式GUI仍待。
+
+
+16.16集中結果：24個原RAM／實際BIOS載入但不開機的ABI與人為行邊界案例，十四步完整Machine與每成本同原CPU；含兩buffer、原點／模式、冷暖CPU cache、GPU讀回parser保留及mode1→mode0的點時鐘差異。延後GPU效果有十個反例，證實事件量子不能省略；這是既有執行器的同態證據，不稱實機逐週期。六個過期State／RAM／BIU、已確認仍活動的DMA1、事件越界／原點未對齊拒絕保持。
+
+一次正式正常BIOS至11726，原點／模式各三次共六次控制，場數11722／11723／11724，每次14資源步；合計30階段完整Machine與每成本同獨立原CPU。直接GPU metadata與RAM shadow不執行該helper原ISA、不解析其GP1；保留其餘GPU／parser／cache／顯存與CPU返回。未到環境階段／重複／錯epoch／模式早於原點四拒絕保持，原環境三拒絕承接。
+
+7438個i16原音、卡片及原始輸入保持，主線無PC／RAM注入；三HD畫布與五個Scanout、原音SHA皆同16.15，11725／11726兩個完整原生像素證據保持，11724的5912不補稱直接Screen比較。既有畫面檢視承接，新美術／技術畫面／IDA／硬體GPU0。四檔只作受測來源格式化，正式player編譯通過。中途獨立唯讀進度查詢曾遇核准服務Bad Request，動作未執行；相同權限重試成功，不影響唯一正常遊戲批次。
+
+原版、兩後端、海報、影片與雙擊包保持；staged APIs尚未接正式玩家GUI，整場native光柵仍在，沒有全HD或速度聲明。下一段補上層環境／PutDispEnv其餘SDK效果與整場圖元cache／DMA；不能由兩個控制工作外推整個SDK完成。私人display-submit-v1由素材docs/assets-catalog.md#render-control索引，原資料不入Git。

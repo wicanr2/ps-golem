@@ -376,3 +376,6 @@ mod present;
 
 // 026 §16.15 staged typed environment submission.
 mod envsubmit;
+
+// 026 §16.16 staged timed display controls.
+mod displaysubmit;

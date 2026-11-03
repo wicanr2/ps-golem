@@ -3243,3 +3243,12 @@ READY後只支援0／80000000，保留非對齊Clear的read_buffer高位與offse
 真原RAM／BIOS載入但不開機，明示default ABI／DPCR的16診斷完整Machine／逐成本同原CPU，含兩buffer、冷暖CPU／GPU cache、RGB重設及九拒絕。READY後一次正常BIOS至11726，來源／排序／三環境提交共24階段完整Machine／每成本同，7438個i16原音、卡片與原始輸入保持；三HD畫布、五原生Scanout與原音SHA全同前批，兩個完整Scanout逐像素證據承接，11724的5912不補稱直接比較。未seal／重複／錯epoch三拒絕保持，主線無注入。
 
 四檔只格式化，正式player編譯通過；既有圖像檢視及美術／NO3／核心矩陣承接，新畫面審查／美術／IDA／硬體GPU0，正常遊戲僅一次。規格回鏈／索引／唯一現況及既有技術文件補SDK說明，README沿穩定連結。上層環境建立／display切換、整場圖元cache／DMA與正式GUI仍待，原native整場光柵仍在，沒有全HD／速度聲明；原版、兩後端、海報、影片與雙擊包保持。私人environment-submit-v1保存來源、原型／正常比較、受測／格式化與Docker／推送／Issue回讀，原資料不入Git。
+
+
+## 2026-11-03：Rust定時接手顯示原點／模式控制
+
+026 §16.16限定CONFORMED。沿既有IDA9.4 GPU-library-refs的56-byte原helper與正常trace，從DISPENV建立原點／NTSC256×240模式工作，保留RAM37ED0狀態表與完整CPU端點。GPU效果在第五量子tick前套用，無原helper執行或GP1解析；先套既有RAM驗證副本，再以獨立副本按原時點排程，錯誤不漏部分狀態或音訊。
+
+真原RAM／BIOS載入但不開機，24個ABI／人為行邊界案例十四步完整Machine／每成本同原CPU，十個延後事件反例、六拒絕保持，活動DMA1有明確CHCR確認。READY後一次正常BIOS至11726，六個顯示控制接來源／排序／環境共30階段完整Machine／每成本同，7438個i16原音、卡片及原始輸入保持。三HD、五Scanout及原音SHA全同前批，兩個完整原生像素證據承接，11724的5912不補稱直接Screen比較。未到環境／重複／錯epoch／模式早於原點四拒絕保持，主線無注入。
+
+四檔只格式化，正式player編譯通過；畫面檢視、美術／NO3／核心矩陣承接，新美術／技術查看／IDA／硬體GPU0。獨立進度查詢遭自動核准服務Bad Request而未執行，相同權限重試成功，不重開遊戲。規格回鏈、技術文件／索引與唯一現況同步，README沿穩定入口。上層環境／PutDispEnv其餘效果、整場圖元cache／DMA與正式GUI仍待；整場native光柵保留，無全HD／速度聲明。原版、兩後端、海報、影片與雙擊包保持；私人display-submit-v1保存來源、原型／正常比較、受測／格式化與Docker／推送／Issue回讀，原資料不入Git。

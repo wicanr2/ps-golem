@@ -599,3 +599,5 @@ fn command_len(cmd: u32) -> usize {
 }
 
 pub mod environment;
+
+pub mod display;
