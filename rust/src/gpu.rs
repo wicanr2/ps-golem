@@ -7,7 +7,7 @@ mod polygon;
 mod primitives;
 pub mod transfer;
 mod video;
-pub use video::Frame;
+pub use video::{Frame, Scanout};
 mod raster;
 #[cfg(test)]
 mod tests;

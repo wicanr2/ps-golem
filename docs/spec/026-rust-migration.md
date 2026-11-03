@@ -1751,3 +1751,39 @@ GPU傳輸模組七測試通過，含0／80000000正負offset清邊對原GP1／GP
 四個Rust檔只作受測來源的rustfmt，正式player編譯通過，staged API已註冊但未啟用正常玩家dispatch。一次技術畫面查看，新美術／IDA／硬體GPU驗證0；NO3與核心矩陣承接。建立比較副本曾因512MiB上限中止，隨後清理檢查誤以為副本已存在，該斷言停止；均在遊戲0，修正輸出掛載及有界3GiB後成功，hash工具改為串流。正常遊戲僅一次，沒有重開美術或重跑已驗路線。
 
 本切片不等於原生光柵完全停用、正式場邊界切換或全遊戲HD。其他來源／SDK、完整呈現交易、正常GUI／GPU、其他房間／影片及同條件速度仍待；原版、兩後端、海報、既有定案素材與雙擊包承接。工具入口為私人素材docs/assets-catalog.md#render-control的sotn_st0_tiles.py，來源與prototype／READY／正常verification／格式化／acceptance留field-tiles-v1。
+
+
+<!-- RUST-FIELD-PUBLISH-16.13 -->
+16.14補證：16.13的已完成畫布不等於當場已顯示。5913來源於11722完成、11723提交，11725的Scanout才完整匹配；5914亦於11726匹配。有界發布器分pending／submitted／front，同場選擇凍結，缺來源整場native。正式GUI與原生光柵替代仍待，不重開已驗材質／來源。
+
+### 16.14 ST0完整場發布與原生需求交界
+
+狀態：限定CONFORMED，僅16.14.1唯讀metadata與16.14.3有界來源發布；正式GUI／略過原光柵仍DRAFT。承接16.13三epoch完整來源，不把場景完成當成已顯示，也不先接GUI換圖後宣稱停用原光柵。來源沿私人field-present-v1/source-plan的原trace、RAM及video.rs固定SHA，位址PS1 KSEG0，無新IDA／美術。原trace已證實800E3754排序→800E3C98同步→800E3CB8等VBlank→800E3D70繪圖環境／顯示與列表提交。兩個env clip分別x0／256、y20、256×207，offset x0／256、y0。
+
+#### 16.14.1 唯讀掃描輸出描述
+
+狀態：限定CONFORMED。Gpu::scanout輸出原點、寬高、24-bit／交錯／display-enable，寬高直接抽取現行screen計算，不讀VRAM、不改cache／機器狀態。screen沿相同數學與既有display-off處理，不能順便改顯示行為。getter不認識遊戲；Frame尺寸與RGBA必須保持既有契約。只在原片正常流程抽驗metadata／screen尺寸及兩緩衝，舊GPU矩陣承接。
+
+#### 16.14.2 正常發布來源與需求觀測
+
+維持DRAFT。一次正常原片到11726，承接16.13的三場來源，同時沿已驗OrderPlan取代排序迴圈，共21階段全Machine與逐成本比較。每場typed畫布完成時保存epoch、draw buffer、env offset與原生預測，原圖元只在oracle執行。追實際場邊界的display origin與原生Screen，核對哪個已提交epoch可供HD；不得用最近frame猜身分。GPU列表於80014610寫DMA2時觀測command種類、原生texture取樣落點、C0／VRAM-copy與完整前後狀態；counter只在私人test覆層，不改正式GPU狀態。
+
+未知依賴或cache／VRAM副作用不能省略。呈現選擇器僅在來源／提交／顯示時序得到證據後訂READY；GUI、整場模式切換、完全停用原native光柵、其他場景與GPU／速度仍待。一次技術抽樣，定案美術承接，不反覆重跑。
+
+
+#### 16.14.3 有界場景發布選擇器
+
+狀態：限定CONFORMED，限staged來源／提交／場邊界選擇，不接正式GUI，不略過native光柵。正常證據：5912／5913／5914於11721／11722／11723完成、11722／11723／11724提交；11725與11726實際Scanout分別完整匹配5913與5914。11722–11724的「最新已完成候選」尚未提交，對Screen分別差54064／69405／68988個RGBA通道，不可直接顯示。觀測器單槽以pending覆蓋舊來源，11724舊5912尚未直接比對，因此只稱兩個完整Scanout像素證據，不補稱三個。
+
+Picture由已驗共同畫布建立，1024×960 RGBA必為opaque；原點只允許draw-buffer 8003CB08→0,0或800542FC→256,0。Frames只有一個pending、兩個已提交slot及一份front引用，來源epoch連續；stage不代表可顯示。submit必須與pending epoch／buffer相同且為built_field+1，拒絕時保留狀態。完整場present依readonly Scanout原點選已提交slot，必須晚於提交場；缺來源、關HD、display-off、24-bit或交錯一律整場native。同field重複呼叫沿第一次選擇，即使途中換模式也不升HD／不換圖，倒退field拒絕。未知寫入目標須invalidate，移除舊slot及相同pending，但已發布front在本場保持；不能因位址相同沿用過期HD。
+
+純保存事件回放核對實際提交與Scanout，不重開原片；七個pending／epoch／早交／重複／倒退拒絕、同場凍結、原版／HD場邊界切換及未知覆寫失效集中測一次。這只封閉發布資料結構，不代替SDL操作、正常GUI或完整接管。三個場景列表的native texture取樣91200／91093／91077次均不讀x<512,y<240的兩個framebuffer，列表無C0或copy；只限列表及此窗口。native cache／DMA／環境的精確相容效果仍未封閉，不能因此直接刪原生光柵。
+
+
+16.14集中結果：一次正常BIOS到11726，前三場共21個Rust來源／排序階段完整Machine及每成本同獨立原CPU，7438個i16原音、卡片及原始輸入保持。HD畫布均在原整場列表提交之前準備好；三列表native目標20..226行逐word同typed預測。11725與11726的原Screen完整RGBA分別同5913／5914，getter尺寸保持；11724原觀測器被新pending覆蓋，沒有直接驗舊5912的完整Screen，不把它補稱第三個像素證據。
+
+保存事件回放無新BIOS／Machine，依真正Scanout選擇None／None／5912／5913／5914，後兩個有完整原生像素證據。七拒絕、同場HD／native選擇凍結、下一場模式切換、未知目標覆寫失效保持。三列表texture取樣91200／91093／91077次都在framebuffer外，無C0／copy；這不是native cache效果、完整SDK／DMA或全遊戲無依賴的證明。下游原光柵仍在，formal GUI沒有接線，速度與全HD無新聲明。
+
+一次技術查看、零美術／IDA／硬體GPU，video.rs及present.rs只作受測來源格式化，正式player編譯通過。原正常探針先因Frame.rgba欄位誤作方法而編譯停止，遊戲0；只修封裝後首次正常路線通過。保存回放先漏Epoch.ordering_start而編譯停止，回放執行0；由原排序守門已驗draw_buffer+474補齊，只修測試器後首次回放通過，沒有重開原片。原失敗／受測來源／原正常事件與發布回放分開保存。
+
+下一段是原SDK／DMA提交與native cache／顯存相容效果，封閉後才能停用對應原native光柵及接正式玩家；原版、兩後端、海報、影片與雙擊包承接。私人field-present-v1的source-plan／ready-scanout／verification／READY-publication／publication-replay／acceptance由素材docs/assets-catalog.md#render-control進入，原資料不入Git。

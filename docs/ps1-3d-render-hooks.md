@@ -222,6 +222,7 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | 人物材質元件 | 026 §16.12.1：[ActorView](../rust/player/src/apps/sotn/actorview.rs)已與NO3背景解耦；四個ST0保存raw圖元全HD、原生同原GT4 | 正常ST0共同場由16.12.3承接；其他來源與正式整場仍待 |
 | ST0人物／3D／HUD | 026 §16.12.3：[fieldactors.rs](../rust/player/src/apps/sotn/fieldactors.rs)協調三Epoch／15階段全Machine，109圖元共同CPU-HD畫布 | 場景精靈由16.13承接；其餘來源、正式整場玩家與GPU／速度 |
 | ST0背景／前景共同場 | 026 §16.13：[fieldscene.rs](../rust/player/src/apps/sotn/fieldscene.rs)依3D→背景→人物→前景→HUD直接繪製；259圖元全HD、18階段正常Machine通過 | staged API，正式玩家分派／完整呈現交易、其他場景與GPU／速度仍待 |
+| 完整場來源發布 | 026 §16.14：[present.rs](../rust/player/src/apps/sotn/present.rs)分待提交／已提交／顯示；兩個實際Scanout像素相同，來源可在原列表前備妥 | SDK／DMA與native cache效果仍待，未接GUI／未略過原光柵 |
 | NO3 可調視野 | 026 §16.7.21：保存來源到800×600 | 連續遊玩、跨房與框外物件 |
 | 任意 3D 視點 | 已有型別化相機與原始幾何基礎 | 新視點、剔除、遮擋與來源覆蓋的專門規格／驗證 |
 | 1080p 與後端 | 已有1080p保存預覽；CPU／GPU支援按各規格範圍承接 | 新路線的完整遊玩、GPU與速度驗收 |

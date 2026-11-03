@@ -370,3 +370,6 @@ mod call;
 mod callclock;
 mod tileview;
 mod fieldscene;
+
+// 026 §16.14 staged field publication; no player dispatch.
+mod present;

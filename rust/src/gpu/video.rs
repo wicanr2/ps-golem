@@ -30,6 +30,16 @@ pub struct Frame {
     pub height: u32,
     pub rgba: Vec<u8>,
 }
+/// Read-only scanout geometry. Does not read VRAM or touch texture caches.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Scanout {
+    pub origin: [u32; 2],
+    pub width: u32,
+    pub height: u32,
+    pub depth24: bool,
+    pub interlaced: bool,
+    pub enabled: bool,
+}
 impl Gpu {
     pub fn irq(&self) -> bool {
         self.irq
@@ -117,7 +127,7 @@ impl Gpu {
         v.read_line = (self.display_y + off) & 511;
         started
     }
-    pub fn screen(&self) -> Frame {
+    pub fn scanout(&self) -> Scanout {
         let hres = if self.display_mode & 0x40 != 0 {
             368
         } else {
@@ -138,6 +148,18 @@ impl Gpu {
         if self.display_mode & 0x24 == 0x24 {
             height *= 2;
         }
+        Scanout {
+            origin: [self.display_x, self.display_y],
+            width,
+            height,
+            depth24: self.display_mode & 0x10 != 0,
+            interlaced: self.display_mode & 0x24 == 0x24,
+            enabled: !self.display_off,
+        }
+    }
+    pub fn screen(&self) -> Frame {
+        let view = self.scanout();
+        let (width, height) = (view.width, view.height);
         let mut rgba = vec![0; (width * height * 4) as usize];
         for y in 0..height {
             let row = ((self.display_y + y) & 511) * 1024;
