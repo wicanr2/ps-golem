@@ -35,7 +35,7 @@ impl Work {
             || w(r, 0xbd284) != 0
             || h(r, 0x6c39c) != 0
             || h(r, 0x6c3a0) != 0
-            || !(1..=32).contains(&actors.len())
+            || actors.len() > 32
             || tiles.is_empty()
             || tiles.len() > 640
             || w(r, 0x97930) != actors.len() as u32

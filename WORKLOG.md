@@ -3303,3 +3303,14 @@ READY後一次正常BIOS至11726，三epoch／兩buffer，三場景提交加既�
 首輪原版、HD兩個binary差異亦記錄：在HD啟動前原型審查修正pending保存，atomic替換執行檔，原版沿既有inode跑完；原版程式路徑不變。首輪兩次唯讀進度查詢的Python括號／列舉誤字只影響查詢，修正後讀取既有輸出，未重開遊戲。私人工具／首輪／gui-v2／source-freeze／formal-acceptance與後續發布／Docker收據均由素材assets-catalog索引，原資料不入Git。
 
 README保留穩定入口，現況表與技術文件／規格索引同步。其他場景、人物／怪物／文字／特效完整來源、GPU光柵、實體設備、速度與Rust正式三平台雙擊仍待；未宣稱完整HD或零原生工作。兩輪技術查看結束，新美術0。只使用有界--rm／UID1000容器，不動其他專案資源；收尾狀態另由本批hygiene／publication保存。
+
+
+## 2026-11-03：改記憶體抽驗與零可見人物接線
+
+使用者改採記憶體修改抽驗。026 §16.22先DRAFT，以一次共用11721基準建立七個Machine副本；舊版隱藏人物先重現HD回退，私人原型只放寬人物0..32與空排序集合，保留其他來源／時鐘guard。控制、人物X、翻面、背景捲動、鐘塔yaw及全部人物frame=0六例，每個接管階段與完整場的完整Machine同獨立原CPU，PCM逐值同、卡片保持；11725皆HD，修改組畫布皆不同，控制RGBA同舊11725來源。未知指紋只驗拒絕／整機保持。RAM／CPU／GTE改前狀態及逐筆地址／before／after均只留本機；原片與原卡唯讀。
+
+首次封裝的模組path／CLOCK／欄位與Bus參數寬度，以及第二次字串guard語法在編譯階段拒絕，遊戲0；重查規格路由、修正封裝並rustfmt後，首次實際抽驗通過。物理狀態比較器補排除scene_owners這個非硬體身分，仍完整比較原生像素、cache與metadata。READY後只安裝受測fieldactors.rs與nativework.rs並格式化，正式player編譯通過，限定CONFORMED。既有正常GUI／美術／舊矩陣不重跑，注入收據不代替正常玩家證據，也不宣稱自然隱身觸發、全遊戲或速度通過。
+
+私人player-memory-v1保存計畫、初敗、受測程式、基準、逐筆修改、六組來源圖／index.html、verification、source-freeze與acceptance；工具與本機頁由assets-catalog索引。README正常玩家截圖保留。原版、兩後端選項、海報、影片與Go雙擊包保持，後續補其他來源。只用有界--rm、UID1000容器；Docker／擁有權與推送／Issue回讀另保存於hygiene／publication，不動其他專案資源。
+
+收據整理第一次誤用容器/output的父目錄尋找舊來源，僅修正為實際/materials研究路徑後重讀既有輸出，未重跑遊戲。

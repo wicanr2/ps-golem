@@ -1960,3 +1960,21 @@ CLI新增-sotn-hd-scenes DIR與-textures別名，F3／自動隱藏工具列切�
 通用呈現身分不再依賴deferred像素生命期。兩項GPU身分測試涵蓋原生物化／外部上傳／讀回、metadata、交集typed區域、實際put／plot、wrapped與黑邊像素，以及雙目標／第三身分有界拒絕；六項既有GPU寫入／混色／cache／copy／readback回歸通過。身分只有Arc單位值，不持有GPU快照；原生像素／cache契約保持，原生物化成本仍在，未宣稱零原生工作或速度改善。phase失敗依cycle判斷是否consumed，保留有界錯誤、總計與最新錯誤；載入中與未知分支按guard整場回原版，不猜補。
 
 受測程式只rustfmt後安裝，正式player編譯通過；新增CFG測試不進GUI runtime。沒有重跑原版路線、舊核心矩陣或美術。原版、CPU／GPU選項、A／B／C、已定案影片與Go雙擊包保留；其餘房間／角色／怪物／文字／特效、GPU光柵、實體設備與Rust三平台雙擊包仍待。私人player-scenes-v1保留首輪、gui-v2、token測試、source-freeze及formal-acceptance，由素材docs/assets-catalog.md#render-control進入；原資料不入公開repo。
+
+
+### 16.22 記憶體注入抽驗與零可見人物
+
+狀態：限定CONFORMED，僅零可見人物與所列記憶體注入抽驗；正常觸發與全遊戲仍待。使用者已授權以記憶體修改抽驗；只在私人測試副本改RAM，原片、原卡與正式玩法保持。沿16.21玩家分派，準備一次11721場begin基準後複製Machine，各副本與獨立原CPU收到完全相同的修改。此為注入診斷，不取代原正常玩家證據。
+
+抽樣人物座標800733DA、翻面800733EC、動畫frame 800733D8+slot*188+56h、背景捲動800730E2、鐘塔yaw 8007D316；KSEG0位址，RAM offset=EA-80000000。來源沿actor.rs的ActorPlan、call.rs圖層讀取與camera.rs的Sources；原routine與查表SHA沿16.7、16.9及16.21，輸入原檔及受測工具雜湊保存在本批plan。修改在其資料消費入口前套入，保存前RAM／CPU與逐筆before／after。
+
+舊版59cba00的已證實限制：fieldactors::actors_in_order拒絕0圖元，primitives要求人物最小排序，nativework亦拒絕空人物。ActorPlan允許bank／frame為0而略過，ActorView可建立空draws，圖塊／模式及3D／HUD仍有工作。原型只放寬人物數為0..32，無人物時略過人物與3D交錯判定，保留兩個3D來源存在及其他guard。只有完整Machine／CPU／RAM／VRAM／原音與原CPU相同、HD完整場仍可發布後，才READY並接正式程式。
+
+先重現舊版全人物隱藏回退，再抽驗控制、位置、翻面、背景捲動、3D角度與隱藏人物。依消費入口固定測試值，不猜新場景格式；支援外的來源保持原guard。物理GPU比較排除非硬體的scene_owners身分，仍完整比較vram、cache與metadata。每個接管階段及完整場比較整機與原音，保存11725同場原生／HD來源圖；未知指紋須拒絕且整機保持。集中抽驗一次，既有美術／GUI／正常路線不重跑；尚未執行不得稱通過，無速度／全遊戲聲明。
+
+
+16.22集中結果：一次共用BIOS前綴建立11721 begin基準，之後七個Machine副本各自只跑至11728。舊版隱藏人物案例確認非空限制使HD回退；修正後控制、人物X偏移、翻面、背景捲動、鐘塔yaw及全人物frame=0六例，每個接管階段與完整場的完整Machine均同獨立原CPU，原音逐值相同、卡片保持。每筆寫入保存KSEG0／RAM offset、原值／新值、PC／field／cycles及改前RAM／CPU／GTE；兩側收到相同修改，沒有改光碟或原卡。
+
+六例11725均發布HD，五個修改組的完整畫布均與控制組不同；控制組RGBA SHA同16.20既有11725-HD來源。新零人物範圍為0..32，空集合不需人物排序邊界，仍要求兩個3D來源且保留全部其他guard；NativeWork的模式、圖塊與3D／HUD仍非空。未知指紋注入只驗拒絕且整機保持，不執行損壞的程式。物理GPU比較只排除非硬體呈現身分，顯存、metadata及cache仍完整比較；比較本身可需求原生像素，未宣稱零原生運算。
+
+初次測試封裝的模組路徑／CLOCK、欄位與Bus寬度，以及下一次字串guard語法在編譯階段拒絕，遊戲執行0；修正封裝、格式化後首次實際抽驗通過，失敗紀錄保留。READY後只安裝受測的fieldactors.rs及nativework.rs，僅rustfmt，正式player編譯通過。既有正常GUI／美術／核心矩陣承接，新GUI／美術0；本批保存來源圖只留本機診斷頁，不替換README正常玩家截圖。此為注入驗證，不稱自然隱身觸發、其他關卡、完整HD或速度通過。私人player-memory-v1由素材docs/assets-catalog.md#render-control進入。

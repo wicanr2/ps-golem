@@ -76,7 +76,7 @@ impl Coordinator {
             m.bus.biu(),
         )?;
         let n = plan.data.geometry.quads.len();
-        if !(1..=32).contains(&n) || plan.data.geometry.count_after != n as u32 {
+        if n > 32 || plan.data.geometry.count_after != n as u32 {
             return Err("ST0人物數量或前綴未封閉".into());
         }
         let mut predicted = m.bus.gpu.clone();
@@ -133,14 +133,15 @@ impl Coordinator {
         if word(m.bus.ram(), 0x97930) != self.prefix || word(m.bus.ram(), 0x97938) != 0 {
             return Err("人物後出現未知圖元前綴".into());
         }
-        let min = *self
+        let min = self
             .actors
             .as_ref()
             .unwrap()
             .orders
             .iter()
             .min()
-            .ok_or("人物排序缺失")?;
+            .copied()
+            .unwrap_or(usize::MAX);
         for role in [Role::Plane, Role::Tower] {
             if self
                 .base
