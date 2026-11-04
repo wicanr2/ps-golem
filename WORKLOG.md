@@ -3334,3 +3334,14 @@ README保留穩定入口，現況表與技術文件／規格索引同步。其�
 READY後安裝受測call.rs／tileview.rs／nativework.rs，只rustfmt，正式Rust player編譯通過。ST0允許空Tile集合並保留48模式，NO3及其他來源／容量／回授守門保持；3D、HUD與人物直接資料仍在，不以原GP0主列表或舊畫面補HD。集中技術查看一次，新GUI／美術／GPU與舊矩陣0；正常分派／海報／影片承接16.21，不稱全遊戲、自然事件或速度通過。
 
 本機player-empty-layers-v1的plan／oracle／初停／local-verification／verification／source-freeze／formal-checks／acceptance及index.html由素材索引與README進入；唯一現況、規格索引與技術文件同步。原資料不入Git，未改現行Go包；Docker有界--rm／UID1000，擁有權、清理及兩庫推送／Issue回讀另存hygiene／publication。清理成果沿本日先前WORKLOG紀錄，不將新必要建置快取當作舊快取仍未清。
+
+
+## 2026-11-04：NO3環境來源與離屏顯存清除
+
+使用者要求繼續接管，接管接近可用後啟動remake。本輪從ST0擴到NO3所需副作用，026 §16.25先DRAFT。沿16.8.2四份正常8382–8385保存態，確認6／7號kind7來源、400／432排序、固定63×63離屏黑矩形與依當場DRAWENV還原；不讀上場cached restore作語意，不另開IDA／原片。離屏區用途仍未知，只承接已證實的3969字清除。
+
+通用NativeCommand加入零視窗／零遮罩Environment與不混色SolidRect，後者只准寫在所有pending目標之外，主目標仍按需。八個保存態GPU案例的兩環境＋七HUD、雙buffer／冷暖cache，完整VRAM／metadata／cache同原CPU保存GP0的獨立GPU；非零清除區立即清零，未物化主目標。毒化restore、五來源／長度守門、四GPU原子拒絕及其他pending保護通過。這是保存來源與明示診斷GPU條件，不稱正常Machine或全NO3。
+
+首次編譯在測試器assert_eq要求Gpu Debug停止，GPU案例0；保留源及日誌後改布林比較。執行前補固定九word長度守門，首次實際GPU批次通過。READY後只安裝受測GPU API與NO3來源、模組宣告，正式player編譯與既有token回歸通過；沒有NO3玩家註冊或原routine略過。新遊戲／GUI／美術與硬體GPU0，速度未量；原版、ST0、海報、影片及現行Go雙擊包保持。
+
+來源、三工具與本機no3-environment-v1的plan／初敗／tested-inputs／READY／verification／source-freeze／formal-checks／acceptance均由素材索引進入，唯一現況與技術文件同步。remake後續登記私人Issue #29，尚未開始架構或玩法改寫。原資料不入Git，Docker有界--rm／UID1000，擁有權／容器、提交／推送與Issue回讀另存hygiene／publication，不清理其他專案資源。

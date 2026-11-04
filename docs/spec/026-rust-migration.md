@@ -1849,6 +1849,8 @@ GPU只修改顯示原點或mode0，保留pixel、cache、parser／讀回游標�
 
 狀態：限定CONFORMED，僅通用API；遊戲主路徑／顯存所有權仍DRAFT。先封閉通用CPU圖元的快取／metadata效果，不接SotN正式主流程或VRAM所有權。原生GPU原碼／已驗取樣規則、原RAM與VRAM SHA由私人native-scene-v1/source-plan索引；原生預設路徑保持，無新IDA／美術。沿16.14觀測的場景圖元種類與快取依賴，不能只略過光柵後丟棄CLUT／texture cache、頁面與FIFO殘值。
 
+後續擴充見16.25：本節原三類工作準備不寫像素；新增顯式離屏矩形會立即寫入所有pending目標之外的顯存，主目標仍按需。
+
 型別化工作只含gouraud貼圖三角形／四邊形、貼圖Sprite16及page／zero-window模式。來源頂點保留XY／UV／RGB、透明混色旗標，硬體忽略的padding另存作相容FIFO末態；不解析GP0。快取準備只跑同一裁切／插值下的取樣順序，保留CLUT、texture cache含invalid資料與頁面／FIFO狀態，跳過像素寫入及調色／混色。PreparedScene保存不可變輸入與工作，只有明確native查詢才一次產生原生Gpu結果並重用；不能把未寫像素的cache端點當成完整VRAM快照。
 
 先以真原RAM／真BIOS載入但不開機、明示default CPU／scratch執行原800EDC94產生fixture。測試才從原輸出建立型別化工作，同時將原GP0送獨立原生GPU作oracle；這是低層GPU契約，不能稱SotN已從原模型接線。冷暖cache與雙目標集中比對全部非像素欄位／cache／FIFO，準備前後pixel保持、明確需求後完整GPU相同及重複查詢不重繪。未證實前不安裝production；SotN原資料直接建立工作、SDK／DMA提交、按需VRAM與正式GUI仍待。
@@ -1892,6 +1894,8 @@ READY後一次正常BIOS至11726，三epoch／兩buffer，保留人物呼叫前t
 ### 16.19 有界按需原生顯存所有權
 
 狀態：限定CONFORMED，僅通用GPU像素所有權；通用GPU元件；Machine／DMA與正式GUI另接。沿16.17型別工作與16.18來源，最多保留兩個不重疊的待產生目標。提交先更新cache／metadata，不調色或寫出原生目標像素；目標輸入快照移除其他待產生所有權，且完整texture page／CLUT與所有pending目標均不得重疊，避免跨場快照鏈及未證實回授。
+
+後續擴充見16.25：明示離屏矩形屬必要資料寫入，拒絕碰觸任何pending目標；本節既有主目標按需與有界所有權契約保持。
 
 唯讀vram／screen是明確像素需求，合成base及最多兩個目標、OnceLock重用；不重播metadata。未知GP0像素操作、讀回或部分重疊寫入先物化，純metadata控制不需。typed texture writes在外部區域可保留舊快照，任何依賴相交先物化；完整draw environment覆蓋pending且所有列實際寫入時取消舊工作，不為已覆蓋的場光柵化。原版未啟用此API時維持舊路徑。
 
@@ -2014,3 +2018,23 @@ READY後只安裝受測call.rs並rustfmt，正式player編譯通過。集中技�
 正式變更限定call.rs、tileview.rs與nativework.rs：ST0允許0..640圖塊，全空時保留上述原資料效果；NO3非空守門不變。型別化View為空集合，沒有讀原畫面補圖；原生相容工作仍有48模式、3D／HUD與可見人物，其他指紋／配置／來源／容量／回授守門保持。主HD來源不執行原圖層迴圈、不解碼GP0主列表；完整Machine比較本身會需求原生像素，不宣稱全程零原生工作。
 
 READY後只安裝三份受測來源並rustfmt，正式Rust player離線編譯通過；一次集中技術看圖，新GUI／美術／GPU與舊矩陣0，正常模式切換及海報／影片證據沿16.21。完整遊戲、其他來源、自然事件、硬體GPU、速度與Rust三平台雙擊仍待。私人player-empty-layers-v1保留plan、oracle、初停、local-verification、verification、source-freeze、formal-checks、acceptance及index.html，由素材docs/assets-catalog.md#render-control索引。
+
+
+### 16.25 NO3環境來源與離屏顯存清除
+
+狀態：限定CONFORMED，僅原生GPU型別API及NO3環境來源；NO3整場／Machine／玩家仍待。目標是讓16.17–20的型別化原生相容工作可承接NO3已驗的兩個kind7環境來源，尚不接NO3正式玩家。來源為16.8.2的四份正常8382–8385保存態，原CPU已執行完成，原定位DRA 800EDC94、池80086FEC的6／7槽，排序400／432，固定來源800974AC與動態來源800974EC。前者九word環境含x512／y448的63×63黑矩形，會清除3969個離屏顯存字；後者依當場DRAWENV還原，不讀上場cached packet當語意。60-byte固定來源SHA69d7f53b021d4e71012192a32987df62d0bf688079d750dc6857712da06f506d。
+
+可丟棄原型擴充通用NativeCommand的零貼圖視窗／零遮罩Environment與不混色SolidRect。環境直接更新clip／offset／page與必要metadata；離屏矩形以既有非貼圖像素規則立即寫入，主目標仍按需產生。離屏矩形不得覆寫當前或其他pending目標；貼圖工作必須在當前擁有區域內，未知視窗／範圍／來源拒絕且GPU保持。這是通用GPU能力，NO3位址／固定來源指紋只在apps/sotn。原版與既有ST0路徑保持，不藉此縮小相容性。
+
+先以四份原CPU輸出的兩環境與七HUD原GP0只作獨立測試oracle，兩buffer／冷暖cache共八例核對完整GPU含顯存／metadata／cache。3969字在主目標未物化前已清零；主目標查詢前後與原GPU保持。另驗來源、範圍、還原cached packet毒化及其他pending目標保護。原VRAM採保存8382來源，清除區域明示注入非零值；這是保存態GPU診斷，不稱正常Machine或自然玩家新驗收。
+
+只有READY後安裝通用API與受限NO3來源producer；尚不省略NO3原routine，不改原版、海報、影片、已定案美術或Go雙擊包。新GUI／美術與正常開機0。NO3完整來源協調／Machine時序／正式玩家、全遊戲、GPU硬體與速度仍待。私人no3-environment-v1保存來源SHA、原型與驗證，由素材docs/assets-catalog.md#render-control進入。使用者已明示接管接近可用後啟動remake；目前仍先完成這條接管路徑，remake架構與玩法尚未開工。
+
+
+16.25集中結果：四份正常8382–8385原CPU保存資料，兩draw buffer、冷暖cache共八例的兩環境＋七HUD，十個typed命令與原已生成的九／六word環境、七GT4獨立原GPU輸出相同。完整GPU比較涵蓋全部VRAM、metadata與texture／CLUT快取；固定63×63區域明示注入非零值後，3969字於主目標尚未物化前已清零，讀該區域不需求主畫面。完整原生觀測才物化主目標，其完整Gpu同oracle。清除區域用途仍未知，不因本切片替它命名或改用途。
+
+還原來源的64-byte cached packet全毒化仍採當場DRAWENV；五個來源／長度／模式守門、四項GPU範圍／裁切／零矩形原子拒絕，以及其他pending目標保護通過。固定來源payload指紋與九word長度必須符合，低tag連結屬輸出鏈不作語意；動態restore packet不當主資料。主來源不讀原OT／GP0列表，只有獨立oracle取原CPU保存輸出。原VRAM使用已保存8382，非零清除區與冷暖cache屬診斷條件，不稱正常同場Machine。
+
+首次編譯只因測試器assert_eq需要Gpu的Debug而拒絕，GPU案例0；保留原測試源／日誌後改為布林相等。執行前另補固定來源長度守門及其拒絕案例；第一次實際八例GPU執行通過，未改原oracle、未重開遊戲。READY後只安裝受測gpu/scene.rs、apps/sotn/no3env.rs並註冊元件宣告，正式player編譯及既有場景身分token回歸通過。既有ST0命令種類與原版預設路徑保持，不接NO3正式玩家，也不據此略過原NO3 routine。
+
+本節提供下一段NO3整場原生工作所需的環境／離屏副作用，尚缺圖層／人物／HUD共同Epoch、Machine時序與玩家分派。沒有新GUI／美術／GPU硬體／速度聲明；原版、CPU／GPU選項、海報、影片、素材與Go雙擊包保持。私人工具sotn_no3_environment.py、sotn_no3env_candidate.rs與probe_sotn_no3_environment.rs及no3-environment-v1的plan／READY／verification／source-freeze／formal-checks／acceptance由素材索引進入。使用者要求接管接近可用後啟動remake，後續階段登記私人素材Issue #29，尚未開始新架構或玩法改寫。

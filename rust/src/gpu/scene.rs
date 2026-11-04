@@ -19,6 +19,18 @@ pub struct NativeVertex {
 }
 #[derive(Clone, Debug)]
 pub enum NativeCommand {
+    Environment {
+        area: Rect,
+        offset: [i16; 2],
+        page: u16,
+    },
+    SolidRect {
+        x: i16,
+        y: i16,
+        width: u16,
+        height: u16,
+        color: [u8; 3],
+    },
     Mode {
         page: u16,
     },
@@ -66,7 +78,115 @@ impl PreparedScene {
         })
     }
 }
+
+fn valid_environment(area: Rect, offset: [i16; 2], page: u16) -> Result<(), String> {
+    if area.width == 0
+        || area.height == 0
+        || area.x as u32 + area.width as u32 > 1024
+        || area.y as u32 + area.height as u32 > 512
+        || offset.iter().any(|v| !(-1024..=1023).contains(v))
+        || page > 0x3fff
+    {
+        return Err("型別繪圖環境超界".into());
+    }
+    Ok(())
+}
+fn solid_bounds(
+    clip: [i32; 4],
+    offset: [i32; 2],
+    x: i16,
+    y: i16,
+    width: u16,
+    height: u16,
+) -> Result<Option<Rect>, String> {
+    if !(-1024..=1023).contains(&x)
+        || !(-1024..=1023).contains(&y)
+        || width == 0
+        || width >= 1024
+        || height == 0
+        || height >= 512
+    {
+        return Err("非貼圖矩形超界".into());
+    }
+    let x = super::sx11((super::sx11(x as u16 as u32) + offset[0]) as u32);
+    let y = super::sx11((super::sx11(y as u16 as u32) + offset[1]) as u32);
+    let a = [
+        x.max(clip[0]),
+        y.max(clip[1]),
+        (x + width as i32).min(clip[2]),
+        (y + height as i32).min(clip[3]),
+    ];
+    Ok((a[0] < a[2] && a[1] < a[3]).then(|| Rect {
+        x: a[0] as u16,
+        y: a[1] as u16,
+        width: (a[2] - a[0]) as u16,
+        height: (a[3] - a[1]) as u16,
+    }))
+}
+fn overlaps(a: Rect, b: Rect) -> bool {
+    (a.x as u32) < b.x as u32 + b.width as u32
+        && (b.x as u32) < a.x as u32 + a.width as u32
+        && (a.y as u32) < b.y as u32 + b.height as u32
+        && (b.y as u32) < a.y as u32 + a.height as u32
+}
+
 impl Gpu {
+    fn check_scene_draw_bounds(
+        &self,
+        commands: &[NativeCommand],
+        target: Rect,
+    ) -> Result<(), String> {
+        let mut clip = [
+            self.clip_x0,
+            self.clip_y0,
+            self.clip_x1 + 1,
+            self.clip_y1 + 1,
+        ];
+        let mut offset = [self.off_x, self.off_y];
+        for c in commands {
+            match c {
+                NativeCommand::Environment {
+                    area,
+                    offset: o,
+                    page,
+                } => {
+                    valid_environment(*area, *o, *page)?;
+                    clip = [
+                        area.x as i32,
+                        area.y as i32,
+                        area.x as i32 + area.width as i32,
+                        area.y as i32 + area.height as i32,
+                    ];
+                    offset = [o[0] as i32, o[1] as i32];
+                }
+                NativeCommand::SolidRect {
+                    x,
+                    y,
+                    width,
+                    height,
+                    ..
+                } => {
+                    if solid_bounds(clip, offset, *x, *y, *width, *height)?
+                        .is_some_and(|r| overlaps(r, target))
+                    {
+                        return Err("即時非貼圖矩形與按需目標重疊".into());
+                    }
+                }
+                NativeCommand::Mode { .. } => {}
+                _ => {
+                    if clip[0] < target.x as i32
+                        || clip[1] < target.y as i32
+                        || clip[2] > target.x as i32 + target.width as i32
+                        || clip[3] > target.y as i32 + target.height as i32
+                    {
+                        return Err("貼圖圖元裁切超出按需目標".into());
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn prepare_native_scene(
         &self,
         commands: Vec<NativeCommand>,
@@ -89,6 +209,7 @@ impl Gpu {
         {
             return Err("原生場景的命令邊界／目標不符".into());
         }
+        self.check_scene_draw_bounds(&commands, target)?;
         self.check_scene_reads(&commands, &[target])?;
         let mut cache = self.clone();
         cache.render_native_commands(&commands, true);
@@ -110,12 +231,49 @@ impl Gpu {
                 return Err("原生場景只支援零貼圖視窗".into());
             }
             let mut page = self.page_x / 64 | self.page_y / 16 | (self.tex_mode << 7);
+            let mut clip = [
+                self.clip_x0,
+                self.clip_y0,
+                self.clip_x1 + 1,
+                self.clip_y1 + 1,
+            ];
+            let mut offset = [self.off_x, self.off_y];
             for c in commands {
                 if matches!(c,NativeCommand::Polygon{vertices,..}if ![3,4].contains(&vertices.len()))
                 {
                     return Err("原生多邊形需三或四頂點".into());
                 }
                 let clut = match c {
+                    NativeCommand::Environment {
+                        area,
+                        offset: o,
+                        page: p,
+                    } => {
+                        valid_environment(*area, *o, *p)?;
+                        page = *p as u32;
+                        clip = [
+                            area.x as i32,
+                            area.y as i32,
+                            area.x as i32 + area.width as i32,
+                            area.y as i32 + area.height as i32,
+                        ];
+                        offset = [o[0] as i32, o[1] as i32];
+                        continue;
+                    }
+                    NativeCommand::SolidRect {
+                        x,
+                        y,
+                        width,
+                        height,
+                        ..
+                    } => {
+                        if solid_bounds(clip, offset, *x, *y, *width, *height)?
+                            .is_some_and(|r| overlaps(r, *target))
+                        {
+                            return Err("非貼圖矩形覆蓋受保護目標".into());
+                        }
+                        continue;
+                    }
                     NativeCommand::Mode { page: p } => {
                         page = *p as u32;
                         continue;
@@ -157,6 +315,56 @@ impl Gpu {
     fn render_native_commands(&mut self, commands: &[NativeCommand], cache_only: bool) {
         for command in commands {
             match command {
+                NativeCommand::Environment { area, offset, page } => {
+                    self.clip_x0 = area.x as i32;
+                    self.clip_y0 = area.y as i32;
+                    self.clip_x1 = (area.x + area.width - 1) as i32;
+                    self.clip_y1 = (area.y + area.height - 1) as i32;
+                    self.off_x = offset[0] as i32;
+                    self.off_y = offset[1] as i32;
+                    self.set_page(*page as u32);
+                    self.sprite_flip = *page as u32 & 0x3000;
+                    self.dtd = page & 0x200 != 0;
+                    self.dfe = page & 0x400 != 0;
+                    self.tww = 0;
+                    self.twh = 0;
+                    self.twx = 0;
+                    self.twy = 0;
+                    self.recalc_window();
+                    self.mask_or = 0;
+                    self.mask_and = 0;
+                    self.buf[0] = 0xe6000000;
+                }
+                NativeCommand::SolidRect {
+                    x,
+                    y,
+                    width,
+                    height,
+                    color,
+                } => {
+                    let rgb =
+                        color[0] as u32 | ((color[1] as u32) << 8) | ((color[2] as u32) << 16);
+                    let px = super::sx11((super::sx11(*x as u16 as u32) + self.off_x) as u32);
+                    let py = super::sx11((super::sx11(*y as u16 as u32) + self.off_y) as u32);
+                    // This auxiliary write is disjoint from all pending targets.
+                    // It changes texture RAM immediately, even in cache-only preparation.
+                    self.draw_sprite(
+                        px,
+                        py,
+                        *width as i32,
+                        *height as i32,
+                        0,
+                        0,
+                        rgb,
+                        false,
+                        false,
+                        -1,
+                        cache_only,
+                    );
+                    self.buf[0] = 0x60000000 | rgb;
+                    self.buf[1] = *x as u16 as u32 | ((*y as u16 as u32) << 16);
+                    self.buf[2] = *width as u32 | ((*height as u32) << 16);
+                }
                 NativeCommand::Mode { page } => {
                     self.set_page(*page as u32);
                     self.sprite_flip = *page as u32 & 0x3000;
