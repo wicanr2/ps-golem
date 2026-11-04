@@ -265,3 +265,5 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 026 §16.24補ST0兩層圖塊皆空的接線：圖層View可為空，48模式與原CPU／scratch必要末態保持，3D／HUD／人物仍以直接資料呈現。四局部與一次共用基準的注入Machine／原音已限定核對；正常事件、其他場景與完整HD仍待。原版／海報與兩後端選項沿原契約。
 
 026 §16.25補NO3環境的必要離屏寫入：兩個kind7來源先切至512,448的63×63區域清零，再從當場DRAWENV還原；這3969字立即完成，主畫面仍按需。八保存態完整原生GPU相同，來源只建立型別環境／矩形，不解析主GP0列表。此為下一段NO3整場接線的元件，尚未接NO3正式玩家或驗收GPU硬體／速度。
+
+026 §16.26將NO3的310圖塊、15人物、七HUD及兩環境組成完整型別工作與共同畫布，入口為[no3work.rs](../rust/player/src/apps/sotn/no3work.rs)與[no3scene.rs](../rust/player/src/apps/sotn/no3scene.rs)。八個保存態GPU比較通過，單場原生畫布同原輸出；HD使用既有素材且不讀兩個pending原生目標。這是來源元件，尚缺整場Machine／SDK時序與NO3玩家分派，不能據此宣稱全接管、GPU硬體或速度通過。

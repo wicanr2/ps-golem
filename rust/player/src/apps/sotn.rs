@@ -392,3 +392,6 @@ mod scenesubmit;
 pub(crate) mod game;
 
 pub(crate) mod no3env;
+
+pub(crate) mod no3scene;
+pub(crate) mod no3work;

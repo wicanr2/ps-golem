@@ -3345,3 +3345,14 @@ READY後安裝受測call.rs／tileview.rs／nativework.rs，只rustfmt，正式R
 首次編譯在測試器assert_eq要求Gpu Debug停止，GPU案例0；保留源及日誌後改布林比較。執行前補固定九word長度守門，首次實際GPU批次通過。READY後只安裝受測GPU API與NO3來源、模組宣告，正式player編譯與既有token回歸通過；沒有NO3玩家註冊或原routine略過。新遊戲／GUI／美術與硬體GPU0，速度未量；原版、ST0、海報、影片及現行Go雙擊包保持。
 
 來源、三工具與本機no3-environment-v1的plan／初敗／tested-inputs／READY／verification／source-freeze／formal-checks／acceptance均由素材索引進入，唯一現況與技術文件同步。remake後續登記私人Issue #29，尚未開始架構或玩法改寫。原資料不入Git，Docker有界--rm／UID1000，擁有權／容器、提交／推送與Issue回讀另存hygiene／publication，不清理其他專案資源。
+
+
+## 2026-11-04：NO3完整型別來源與共同畫布
+
+沿規格閘門接續026 §16.26，由既有四份8382–8385原CPU保存來源及8382人物入口組合圖層、人物、HUD與環境。四來源／兩buffer／冷暖cache八例，383型別命令同原382個node的全部GPU顯存／metadata／cache；原OT只作獨立oracle。後三來源明示共用首場VRAM，人物／圖塊counter歸零只用於私人型別幾何重建，不回填遊戲，不宣稱新正常Machine。
+
+8382同epoch／buffer／entity的256×240原生畫布完整相同，1024×960 HD含310圖塊、15人物圖元與七HUD；圖塊／人物全命中既有素材，人物fallback0。舊封包／ActorPlan輸出／Quad.words與address毒化保持。兩個pending framebuffer先毒化，17558個不同素材來源word均不在目標內，原生產生數前後0，證明本組圖不先畫原生。八項拒絕、ST0共享TileView保存圖RGBA控制通過，集中技術看圖一次；美術重審0。
+
+兩版prototype編譯成功，第一次執行即通過。安裝守門發現plan仍記補ST0控制前的probe雜湊而停止，正式寫入0；舊probe仍對原plan，現行工具格式化後與受測probe逐字一致，另存probe-amendment，原plan保持。只安裝四個受測來源與兩模組宣告，正式player離線編譯通過；沒有重跑集中案例。共同Epoch、Machine／SDK時序及NO3 PlayerScene仍待，沒有新CPU oracle／開機／GUI／GPU硬體／速度或全HD聲明。
+
+唯一現況表、README本機組裝頁、素材工具索引、026前序範圍回鏈與3D技術文件同步；原資料／畫布不加入Git。原版、CPU／GPU選項、海報、定案影片與Go雙擊包保持；接管可用後啟動remake仍沿私人Issue #29。來源、READY／freeze、正式編譯、驗收與發布回讀留在no3-scene-v1；Docker容器有界且--rm，擁有權／容器及GitHub Issue回讀另存hygiene／publication。

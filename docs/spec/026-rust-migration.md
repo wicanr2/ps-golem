@@ -443,6 +443,9 @@ CPU輸出由型別資源推導：tail=ordering_start+511×4；GPR1=0x80130000、
 本節未接正式玩家。呼叫者可見的完整NO3 CPU／RAM／scratch／時鐘效果、原生顯存相依、完整排序與其他人物／文字／3D仍須另接；不能只把這張靜態場景接上就跳過整段原routine。GPU後端、1080p GUI、原版／HD熱切換、正常遊玩與速度未驗，不以HD4 PNG稱完整月下HD。初始化沿16.3.3承接，後續沿16.1補場景的正常提交與其餘圖元，不重開本節已通過美術／資料。私人scene-v1的rust-verification.json、tested-source.json、acceptance.json及publication.json由素材索引追溯。
 
 
+<!-- NO3-SOURCES-16.4 -->
+後續16.26已將NO3圖層、人物、七HUD及兩環境接到完整型別工作與同一保存來源畫布；本節既有證據保持。共同Epoch／Machine時序與NO3正式玩家仍待。
+
 ### 16.5 Rust普通NO3呼叫資料與正常提交
 
 狀態：CONFORMED，限定已證實NO3普通兩層、空圖元緩衝與六份正常保存態的高階RAM／scratch／CPU／時間計畫；只進受限正常研究入口，完整玩家HD／人物文字／GPU仍DRAFT。來源承接025 §12.17的2332-byte原函式、兩helper、IDA9.4原位址與SHA，以及現行自有Go apps/sotn/hd_call_{plan,effects,clock}.go；GPL-3.0-or-later，不移植外部非自由原碼。原程式只作oracle，Rust不解碼或逐指令實作MIPS。
@@ -926,6 +929,9 @@ READY證據：三個正常來源的1倍畫布與獨立原生GPU逐色字相同�
 <!-- RUST-ACTORVIEW-EXTRACT-16.7.20 -->
 補註16.12.1：既有人物材質準備已純抽成ActorView，一個NO3保存態的舊／新native及HD畫布相同；ST0保存來源的四個raw人物／物件圖元原生同原GT4隔離GPU、四項HD命中。這是保存來源元件，原800EB998整機入口在16.12第二次正常抽驗被架構守門拒絕，仍DRAFT；沒有新增正常人物整機或3D＋人物完整畫布通過，前批範圍保持。
 
+<!-- NO3-SOURCES-16.7.20 -->
+後續16.26已將NO3圖層、人物、七HUD及兩環境接到完整型別工作與同一保存來源畫布；本節既有證據保持。共同Epoch／Machine時序與NO3正式玩家仍待。
+
 #### 16.7.21 保存來源視野控制
 
 狀態：CONFORMED，限16.7.20的唯讀保存來源CPU預覽，不註冊正式玩家。使用者已在2026-11-01確認工具列原型，採256×240、480×270、640×360、800×600、自訂及恢復原版視野；輸出1080p與024海報獨立保留。此決定不再等待操作確認。正式連續遊玩、其他房間與跨房生命週期仍沿017／Issue #18的DRAFT範圍。
@@ -994,6 +1000,9 @@ READY證據：三個保存來源共21個型別HUD四邊形，全部欄位同局�
 <!-- RUST-ST0-HUD-BACKLINK-16.8.1 -->
 
 補註 `RUST-ST0-HUD-HANDOFF-20261102`：本節較早的8010794C用途與畫布環境未知，由16.11限定補證。已證實媒體／錯誤分支與狀態更新，CD／載入用途屬強推論；80105B70由entity欄位建立彩色矩形已證實，診斷用途屬強推論。兩者保留原流程，未觀測分支不猜補。正常ST0 page27的八HUD及原裁切／底色，已與97個直接3D圖元共同繪製並對原CPU生成封包的隔離GPU逐像素相同；page31舊七HUD證據保持原範圍。此結果不封閉整場其餘來源或正式玩家。
+
+<!-- NO3-SOURCES-16.8.1 -->
+後續16.26已將NO3圖層、人物、七HUD及兩環境接到完整型別工作與同一保存來源畫布；本節既有證據保持。共同Epoch／Machine時序與NO3正式玩家仍待。
 
 #### 16.8.2 通用圖元的相容資料與環境設定
 
@@ -2038,3 +2047,28 @@ READY後只安裝三份受測來源並rustfmt，正式Rust player離線編譯通
 首次編譯只因測試器assert_eq需要Gpu的Debug而拒絕，GPU案例0；保留原測試源／日誌後改為布林相等。執行前另補固定來源長度守門及其拒絕案例；第一次實際八例GPU執行通過，未改原oracle、未重開遊戲。READY後只安裝受測gpu/scene.rs、apps/sotn/no3env.rs並註冊元件宣告，正式player編譯及既有場景身分token回歸通過。既有ST0命令種類與原版預設路徑保持，不接NO3正式玩家，也不據此略過原NO3 routine。
 
 本節提供下一段NO3整場原生工作所需的環境／離屏副作用，尚缺圖層／人物／HUD共同Epoch、Machine時序與玩家分派。沒有新GUI／美術／GPU硬體／速度聲明；原版、CPU／GPU選項、海報、影片、素材與Go雙擊包保持。私人工具sotn_no3_environment.py、sotn_no3env_candidate.rs與probe_sotn_no3_environment.rs及no3-environment-v1的plan／READY／verification／source-freeze／formal-checks／acceptance由素材索引進入。使用者要求接管接近可用後啟動remake，後續階段登記私人素材Issue #29，尚未開始新架構或玩法改寫。
+
+
+<!-- NO3-SOURCES-16.25 -->
+後續16.26已將NO3圖層、人物、七HUD及兩環境接到完整型別工作與同一保存來源畫布；本節既有證據保持。共同Epoch／Machine時序與NO3正式玩家仍待。
+
+### 16.26 NO3完整型別來源與共同畫布
+
+狀態：限定CONFORMED，僅NO3完整型別來源／共同畫布；整場Machine／玩家另接。承接16.5普通NO3圖塊、16.7人物、16.8 HUD／通用圖元與16.25環境。目標是一次組合NO3圖層、人物、七HUD與兩環境的完整可見來源，原生相容工作和HD都從typed來源建立，不讀原OT／packet／framebuffer。此切片不接Machine時間、SDK提交或正式玩家。
+
+來源沿四份正常8382–8385通用圖元前後RAM／scratch，及同場8382人物入口RAM／scratch與人物上傳後VRAM；具體SHA由私人no3-scene-v1/plan.json索引。原定位仍為KSEG0 800ECC10／800EB998／800EDC94，RAM offset=EA-80000000。第8382場來源須核對相同epoch／buffer／entity；後三場使用明示共同VRAM的控制GPU條件，不冒稱四個自然同態影像。既有actor資料與clock語意不改，私人診斷只歸零輸出counter以重建typed幾何，不回填遊戲。
+
+NO3Work支援1..640圖塊、0..32人物、1..32個order496／page31的已驗HUD與已知兩環境。圖塊BG order32..39／FG96..103，人物104..399，環境400／432，HUD496；每個原node內的環境命令保持順序，同bucket仍後加入者先繪。未知來源、容量、相機偏移、條件矩形、額外池圖元或交錯排序拒絕。型別View共用現行素材取樣與四倍畫布，HUD改用逐字VramSource，避免為讀素材物化兩個原生目標。ST0原入口與既有畫質／原版／兩後端／海報／影片保持。
+
+集中驗證：四個保存來源／雙buffer／冷暖cache八GPU案例，比對全部顯存／metadata／cache與原CPU保存OT的獨立原GPU，OT只作oracle。第8382場完成原生與HD共同畫布，原生完整viewport應同原GPU；舊輸出封包、actor words／address及framebuffer毒化不影響HD，讀取來源不得碰兩個pending目標且原生物化0。另驗未知來源／排序等拒絕，集中一次技術看圖，新美術／GUI／原片開機0。只有READY後安裝受測來源元件；NO3整場Machine／玩家仍待，不把這張保存來源圖稱為正常玩家完成。
+
+
+16.26集中結果：四個保存來源、兩buffer／冷暖cache八例，310圖塊、15人物、七HUD、48模式與兩環境形成383個typed命令，對應原382個linked node。固定環境node內兩個命令不反轉，其餘同桶依原prepend順序。全部VRAM／metadata／texture與CLUT cache同原CPU保存OT的獨立原GPU；原OT／GP0只作oracle，不作主資料。共同VRAM與counter歸零重建是明示診斷條件，不冒稱四個自然同場Machine。
+
+第8382場的同epoch／buffer／entity來源完成256×240原生與1024×960 HD畫布。完整61440原生字同原GPU；310圖塊、15人物圖元全命中已定案HD，人物fallback為0，七HUD共同呈現。HD完整RGBA SHA-256為83a1be5c4a8c5a85e536524422b70d9a50ce2b6781c7178aa1f51c1ca875568a。舊OT／packet RAM、ActorPlan輸出及Quad.words／address全毒化仍保持HD。兩pending目標先毒化framebuffer，17558個不同素材／色盤來源word讀取不落入任一目標，前後原生產生數0；完整畫布不依賴先畫原生畫面。
+
+八項來源／容量／頁面／排序／環境／未知池圖元／scratch／條件矩形拒絕通過。共享TileView的ST0入口以一張既有保存來源抽樣，兩層HD的完整RGBA仍同既有tiles-HD.png，不另跑正常原片或核心矩陣。技術對照圖集中查看一次，沒有新美術審查。正式安裝僅四個受測來源與兩個模組宣告，沒有註冊NO3 PlayerScene；正式player離線編譯通過。
+
+原型與補ST0控制項後的編譯均成功，首次GPU／畫布批次通過。安裝前守門偵測原plan的probe仍為補控制項之前版本而停止，正式檔案寫入0；核對保留的舊probe雜湊及現行工具rustfmt後與實際受測probe逐字一致，另存probe-amendment後安裝，原plan不改寫。沒有因此重跑已通過案例。
+
+尚待NO3共同Epoch、Machine／SDK提交時序及正式玩家分派；只有ST0沿既有正式玩家路徑。這次沒有新CPU oracle、BIOS開機、GUI、硬體GPU或速度聲明，也不稱全遊戲HD完成。原版、CPU／GPU選項、海報、四段定案影片及Go雙擊包保持。私人no3-scene-v1的plan、兩版build、tested-inputs、verification、原生／HD對照頁、READY、source-freeze、formal-checks與acceptance由素材docs/assets-catalog.md#render-control進入，原資料不入Git。接管可用後的remake仍由私人Issue #29追蹤。

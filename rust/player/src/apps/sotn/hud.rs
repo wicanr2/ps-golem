@@ -2,6 +2,7 @@
 //! Own IDA9.4 evidence: DRA sub_800EDC94, native record pool 80086FEC.
 //! Reads game records and native texels; never reads generated GP0 packets.
 use crate::texture_audit;
+use psgolem_core::gpu::source::VramSource;
 use psgolem_core::{
     paint::{self, Draw, Point},
     scene::{Canvas, Image, ImagePixels, Material, MaterialKey},
@@ -35,9 +36,14 @@ impl Hud {
         }
         Ok(&archive[229376..229376 + 8192])
     }
-    pub fn prepare(r: &[u8], v: &[u16], source: &[u8], pack: &Path) -> Result<Self> {
+    pub fn prepare(
+        r: &[u8],
+        v: &(impl VramSource + ?Sized),
+        source: &[u8],
+        pack: &Path,
+    ) -> Result<Self> {
         if r.len() != 2 << 20
-            || v.len() != 1024 * 512
+            || v.word_count() != 1024 * 512
             || source.len() != 8192
             || word(r, 0x3c0f8) != 0
             || word(r, 0x973ec) != 0
@@ -75,8 +81,8 @@ impl Hud {
         }
         let mut packed = Vec::with_capacity(8192);
         for y in 256..384 {
-            for &w in &v[y * 1024 + 960..y * 1024 + 992] {
-                packed.extend_from_slice(&w.to_le_bytes());
+            for at in y * 1024 + 960..y * 1024 + 992 {
+                packed.extend_from_slice(&v.source_word(at).to_le_bytes());
             }
         }
         let mut clear_texels = 0;
@@ -137,7 +143,7 @@ impl Hud {
             if cy < 240 || cy >= 256 {
                 return Err("HUD色盤區域不支援".into());
             }
-            let palette: [u16; 16] = v[cy * 1024 + cx..cy * 1024 + cx + 16].try_into().unwrap();
+            let palette: [u16; 16] = std::array::from_fn(|i| v.source_word(cy * 1024 + cx + i));
             if palette[0] != 0 {
                 return Err("HUD清除後色盤零號必須透明".into());
             }

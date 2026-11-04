@@ -32,11 +32,46 @@ impl View {
         tiles: &[Tile],
         pack: &Path,
     ) -> Result<Self> {
+        Self::prepare_profile(
+            r,
+            v,
+            gfx,
+            tiles,
+            pack,
+            "63340ba46ee070511824bafa5d10c7465d58618323a44965e543c73495ab3c63",
+            [160, 96],
+        )
+    }
+    pub fn prepare_no3(
+        r: &[u8],
+        v: &(impl VramSource + ?Sized),
+        gfx: &[u8],
+        tiles: &[Tile],
+        pack: &Path,
+    ) -> Result<Self> {
+        Self::prepare_profile(
+            r,
+            v,
+            gfx,
+            tiles,
+            pack,
+            "a0bb78a1260eee5e3bda4bae6cfbbd0a61ddd5604905f9fd6ef833fd03319c66",
+            [96, 32],
+        )
+    }
+    fn prepare_profile(
+        r: &[u8],
+        v: &(impl VramSource + ?Sized),
+        gfx: &[u8],
+        tiles: &[Tile],
+        pack: &Path,
+        source_sha: &str,
+        orders: [usize; 2],
+    ) -> Result<Self> {
         if r.len() != 2 << 20
             || v.word_count() != 1024 * 512
             || tiles.len() > 640
-            || format!("{:x}", Sha256::digest(gfx))
-                != "63340ba46ee070511824bafa5d10c7465d58618323a44965e543c73495ab3c63"
+            || format!("{:x}", Sha256::digest(gfx)) != source_sha
         {
             return Err("ST0圖塊來源或數量不符".into());
         }
@@ -52,7 +87,7 @@ impl View {
         let mut positions = BTreeSet::new();
         for t in tiles {
             if t.page > 7
-                || t.order != (if t.foreground { 160 } else { 96 }) + t.page as usize
+                || t.order != (if t.foreground { orders[0] } else { orders[1] }) + t.page as usize
                 || (t.x as i32).abs() > 512
                 || (t.y as i32).abs() > 512
                 || !positions.insert((t.foreground, t.x, t.y))
