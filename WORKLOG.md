@@ -3323,3 +3323,14 @@ README保留穩定入口，現況表與技術文件／規格索引同步。其�
 原型只取消ST0背景必須非空的條件，前景＋背景仍須1..640，原配置／48模式、scratch與CPU末態及資源時鐘保持；對照原CPU後READY，受測call.rs只rustfmt即安裝，正式player編譯通過。新的逐筆RAM修改、改前狀態與成對來源圖只留本機，原片／原卡唯讀。四正向集中技術查看一次，新GUI／美術與舊矩陣0，原正常GUI／模式／海報證據承接，不把注入抽驗稱為自然空背景或完整HD／速度通過。
 
 私人player-empty-background-v1保存來源／原型／基準／逐筆修改、verification、source-freeze、acceptance與index.html；README與assets-catalog連本機診斷頁，正常玩家截圖保持。工具沿16.22，輸入每完整場更新並只在實際修改事件比較寫入清單，語意仍相同。Docker使用有界--rm／UID1000，擁有權與推送／Issue回讀另存hygiene／publication，不動其他專案資源。
+
+
+## 2026-11-04：兩層全空的HD接線
+
+026 §16.24先DRAFT，以16.23保存入口RAM、明示合成CPU／scratch與兩buffer／冷暖cache取得四局部原CPU證據，各19071步、圖塊0與模式48，BIOS僅載入不開機。全空時保留scratch座標／UV及GPR8／10，命令byte為0x7c；第一個原型比較在仍填0x7d停止，原程式／二進位與停點保留。修正後直接比較四份不變oracle，完整RAM／scratch／CPU／cache／每成本通過，原CPU沒有重跑。
+
+一次共用正常11721基準、四副本至11728，舊版全空回退重現；新控制、全空、全空加隱藏人物三正向，各73接管階段與完整場的完整Machine／PCM同獨立原CPU、卡片保持，各五場HD。控制11725完整RGBA同舊來源，兩修改組畫布不同。RAM地址／改前後值及改前狀態只留本機，原片／原卡唯讀；注入與正常玩家證據分開。
+
+READY後安裝受測call.rs／tileview.rs／nativework.rs，只rustfmt，正式Rust player編譯通過。ST0允許空Tile集合並保留48模式，NO3及其他來源／容量／回授守門保持；3D、HUD與人物直接資料仍在，不以原GP0主列表或舊畫面補HD。集中技術查看一次，新GUI／美術／GPU與舊矩陣0；正常分派／海報／影片承接16.21，不稱全遊戲、自然事件或速度通過。
+
+本機player-empty-layers-v1的plan／oracle／初停／local-verification／verification／source-freeze／formal-checks／acceptance及index.html由素材索引與README進入；唯一現況、規格索引與技術文件同步。原資料不入Git，未改現行Go包；Docker有界--rm／UID1000，擁有權、清理及兩庫推送／Issue回讀另存hygiene／publication。清理成果沿本日先前WORKLOG紀錄，不將新必要建置快取當作舊快取仍未清。

@@ -261,3 +261,5 @@ psgolem-player -preview-sotn-view INPUT.json -viewport 800x600 -posters DIR
 | 正式契約與工作狀態 | [規格索引](spec/000-index.md)、[026](spec/026-rust-migration.md)、[017](spec/017-sotn-widescreen.md)、[Issue #17](https://github.com/wicanr2/ps-golem/issues/17)、[Issue #18](https://github.com/wicanr2/ps-golem/issues/18) |
 
 外部硬體說明採 psx-spx 的 [GTE](https://psx-spx.consoledev.net/geometrytransformationenginegte/)與 [GPU](https://psx-spx.consoledev.net/graphicsprocessingunitgpu/)文件，只引用介面與行為說明；本文件沒有移植外部模擬器程式碼。
+
+026 §16.24補ST0兩層圖塊皆空的接線：圖層View可為空，48模式與原CPU／scratch必要末態保持，3D／HUD／人物仍以直接資料呈現。四局部與一次共用基準的注入Machine／原音已限定核對；正常事件、其他場景與完整HD仍待。原版／海報與兩後端選項沿原契約。

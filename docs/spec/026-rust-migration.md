@@ -1984,6 +1984,8 @@ CLI新增-sotn-hd-scenes DIR與-textures別名，F3／自動隱藏工具列切�
 
 狀態：限定CONFORMED，僅ST0可見背景為空且前景非空；自然觸發、兩層全空與全遊戲仍待。沿16.22記憶體抽驗與16.21玩家分派。舊版35abee5的CallPlan直接拒絕背景272格全為0，即使前景仍有圖塊；兩份資料指標位於RAM 19AFB4／19C3B4，80×32格，兩圖層宣告分別在KSEG0 80073084／800730D8。修改只在私人副本，於800ECC10入口清空各自17×16可見視窗的非零ID，保存逐筆地址／原值與改前狀態。來源與原routine SHA沿16.5／16.13／16.20，非新場景格式。
 
+後續狀態：兩層全空已由16.24限定CONFORMED承接。本節的全空拒絕保留為當時負向收據，不代表現行仍拒絕。
+
 私人原型只取消ST0要求背景非空的條件，仍須前景加背景總圖塊1..640、兩個原圖層皆符合已驗配置、48模式與原CPU／時鐘契約；NO3原守門及總圖塊為0的拒絕保持。不預設空背景可用，需先對照原CPU完整RAM／scratch／CPU／GTE／VRAM／cache／裝置及原音，尤其前景最後一個圖塊的scratch／暫存器及兩組模式的末態。未驗證以前不接正式路徑。
 
 集中一次抽驗：先重現舊版空背景回退，再以控制、清空前景、清空背景、清空背景並隱藏人物四個正向案例驗證；兩層全空作保留拒絕的負向案例。共用一次11721基準，各副本至11728；原片／原卡唯讀，注入與正常玩家證據分開。只有READY後安裝受測來源，原版GUI／美術與舊矩陣沿用；GPU光柵、全遊戲、自然事件與速度不由此宣稱完成。
@@ -1994,3 +1996,21 @@ CLI新增-sotn-hd-scenes DIR與-textures別名，F3／自動隱藏工具列切�
 原CallPlan的型別化資料與時鐘工作已涵蓋背景ID為0的迭代、兩層48模式及前景最後圖塊的scratch／暫存器保留，本批原CPU對照確認所列來源末態相同；正式改動只讓ST0通過原背景非空守門，總圖塊仍1..640。圖像從直接來源合成，沒有重播原GP0主列表作HD來源。RAM寫入只覆蓋各層17×16可見視窗的非零ID，逐筆保存地址／before／after及修改前RAM／CPU／GTE。一次共用11721基準，六個副本至11728；原片／原卡唯讀，不將注入當正常場景切換或自然空背景事件。
 
 READY後只安裝受測call.rs並rustfmt，正式player編譯通過。集中技術查看一次，新GUI／美術／舊矩陣0；正常GUI、海報與原版／HD切換證據沿16.21，來源圖只放本機診斷頁，不替換README正常截圖。完整HD、其他場景、自然觸發、GPU與速度仍待。私人player-empty-background-v1的plan／verification／source-freeze／formal-checks／acceptance與index.html由素材docs/assets-catalog.md#render-control索引。
+
+
+### 16.24 ST0兩層圖塊全空的直接場景
+
+狀態：限定CONFORMED，僅ST0兩層可見圖塊全空；自然事件與全遊戲仍待。沿16.23的原入口800ECC10、固定來源與兩個獨立圖層，研究兩層17×16可見ID皆為0時的資料、CPU末態、scratch與原時鐘。舊版1f9a381仍拒絕這個分支；即使人物、HUD或3D存在，也整場回退原版。本節先用16.23保存的真實入口RAM，配明示的default／變化CPU及scratch、兩draw buffer與冷暖cache作局部原CPU oracle，原BIOS載入但不開機；不將它稱為正常Machine或自然場景。
+
+原始位址與routine／helper身份沿16.5／16.13／16.23，具體檔案SHA與前後資料由私人player-empty-layers-v1索引。全空時最後非零圖塊不存在，不能把scratch座標／UV或暫存器任意歸零。證據足夠後，型別化Tile集合可為空，但兩層48模式、全部必要RAM／CPU／cache／時鐘與其他來源守門仍須保留。NO3範圍不放寬；未知來源繼續拒絕。
+
+預定驗收為一次共用11721基準，舊版全空回退、控制、兩層清空、兩層清空加隱藏人物四個副本至11728，逐接管階段與完整場的完整Machine及原音同獨立原CPU，控制畫布同既有11725。修改前狀態與逐筆RAM寫入只留本機，原片／原卡唯讀。只在READY後安裝受測來源；保留原版、CPU／GPU選項、海報、影片及雙擊包。新GUI／美術不重跑，不以注入抽驗宣稱全遊戲、自然事件、GPU或速度完成。
+
+
+16.24局部證據：以16.23原入口RAM作兩buffer／冷暖cache、四種default或明示合成CPU／scratch的原CPU呼叫，各19071步、圖塊0與模式48；BIOS僅載入不開機，不稱正常Machine。全空時scratch[8..16]座標／UV與GPR8／GPR10保持，scratch[7]為0x7c。原型第一次局部比較在scratch[7]仍採0x7d停止，當時CPU／cache／RAM／每成本已同；初版程式與二進位／停點保留。依四份原證據修正後，只比較保存結果，不重跑原CPU，四例完整RAM／scratch／CPU／cache與每成本通過。
+
+一次正常BIOS共用11721 begin基準後，建立四個診斷副本至11728：舊版兩層全空確認回退；新控制、兩層全空、兩層全空並隱藏人物三正向，各73接管階段及完整場的完整Machine同獨立原CPU、PCM逐值同、測試卡片保持。三正向各發布五場HD，11725控制RGBA同16.20既有來源；兩修改組畫布與控制不同。RAM注入於800ECC10清空兩層各17×16的非零ID，隱藏人物仍沿800EB998的動畫frame=0，改前RAM／CPU／GTE及逐筆KSEG0／offset／before／after只留本機。原片／原卡唯讀，不稱自然場景或完整玩家驗收。
+
+正式變更限定call.rs、tileview.rs與nativework.rs：ST0允許0..640圖塊，全空時保留上述原資料效果；NO3非空守門不變。型別化View為空集合，沒有讀原畫面補圖；原生相容工作仍有48模式、3D／HUD與可見人物，其他指紋／配置／來源／容量／回授守門保持。主HD來源不執行原圖層迴圈、不解碼GP0主列表；完整Machine比較本身會需求原生像素，不宣稱全程零原生工作。
+
+READY後只安裝三份受測來源並rustfmt，正式Rust player離線編譯通過；一次集中技術看圖，新GUI／美術／GPU與舊矩陣0，正常模式切換及海報／影片證據沿16.21。完整遊戲、其他來源、自然事件、硬體GPU、速度與Rust三平台雙擊仍待。私人player-empty-layers-v1保留plan、oracle、初停、local-verification、verification、source-freeze、formal-checks、acceptance及index.html，由素材docs/assets-catalog.md#render-control索引。

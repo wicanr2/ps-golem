@@ -34,7 +34,6 @@ impl View {
     ) -> Result<Self> {
         if r.len() != 2 << 20
             || v.word_count() != 1024 * 512
-            || tiles.is_empty()
             || tiles.len() > 640
             || format!("{:x}", Sha256::digest(gfx))
                 != "63340ba46ee070511824bafa5d10c7465d58618323a44965e543c73495ab3c63"

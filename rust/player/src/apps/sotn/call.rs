@@ -218,7 +218,7 @@ impl CallPlan {
             .flat_map(|l| &l.ids)
             .filter(|&&id| id != 0)
             .count();
-        if tiles == 0 || tiles > 640 || (!st0 && !layers[1].ids.iter().any(|&id| id != 0)) {
+        if tiles > 640 || (!st0 && (tiles == 0 || !layers[1].ids.iter().any(|&id| id != 0))) {
             return Err("空背景或圖塊預算分支尚未支援".into());
         }
         let mut out = r.to_vec();
@@ -291,9 +291,12 @@ impl CallPlan {
         let last_row = bg.sy / 16 + 15;
         let last_col = bg.sx / 16 + 16;
         sc[3] = 3;
-        sc[7] = 0x7d;
-        put(&mut sc, 8, last.3);
-        put(&mut sc, 12, last.4);
+        sc[7] = if sprites == 0 { 0x7c } else { 0x7d };
+        // Empty layers retain the previous XY/UV scratch words (026 §16.24).
+        if sprites != 0 {
+            put(&mut sc, 8, last.3);
+            put(&mut sc, 12, last.4);
+        }
         for (a, v) in [
             (0x10, 0),
             (0x12, 0),
@@ -353,9 +356,16 @@ impl CallPlan {
             ),
             (6, 0xffffff),
             (7, 0xff000000),
-            (8, last.1 << 4),
+            (
+                8,
+                if sprites == 0 {
+                    state.gpr[8]
+                } else {
+                    last.1 << 4
+                },
+            ),
             (9, 17),
-            (10, last.0),
+            (10, if sprites == 0 { state.gpr[10] } else { last.0 }),
             (11, (272 - (bg.sx & 15)) as u32),
             (12, (last_row * bg.cols) as u32),
             (13, (256 - (bg.sy & 15)) as u32),

@@ -36,7 +36,6 @@ impl Work {
             || h(r, 0x6c39c) != 0
             || h(r, 0x6c3a0) != 0
             || actors.len() > 32
-            || tiles.is_empty()
             || tiles.len() > 640
             || w(r, 0x97930) != actors.len() as u32
             || w(r, 0x97938) != 0
